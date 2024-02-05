@@ -7,7 +7,6 @@ import java.io.IOException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.pgms.coresecurity.util.HttpResponseUtil;
@@ -24,7 +23,6 @@ import lombok.extern.slf4j.Slf4j;
  * jwt 토큰의 존재여부, 유효기간, 형식 검증 후 SecurityContextHolder에 Authentication을 저장해주는 역할
  */
 @Slf4j
-@Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 

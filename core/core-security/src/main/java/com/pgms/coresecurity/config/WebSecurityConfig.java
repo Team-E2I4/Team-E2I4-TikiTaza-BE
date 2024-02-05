@@ -4,7 +4,6 @@ import static org.springframework.security.web.util.matcher.AntPathRequestMatche
 
 import java.util.List;
 
-import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -24,6 +23,7 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
 import com.pgms.coresecurity.jwt.JwtAccessDeniedHandler;
 import com.pgms.coresecurity.jwt.JwtAuthenticationEntryPoint;
 import com.pgms.coresecurity.jwt.JwtAuthenticationFilter;
+import com.pgms.coresecurity.jwt.JwtTokenProvider;
 import com.pgms.coresecurity.service.OAuth2MemberService;
 
 import lombok.RequiredArgsConstructor;
@@ -35,9 +35,9 @@ public class WebSecurityConfig {
 
 	private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
 	private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
-	private final JwtAuthenticationFilter jwtAuthenticationFilter;
 	private final OAuth2MemberService oAuth2MemberService;
 	private final AuthenticationSuccessHandler oauthSuccessHandler;
+	private final JwtTokenProvider jwtTokenProvider;
 
 	/**
 	 * 패스워드 관련 여러 인코딩 알고리즘 사용을 제공하는 DelegatingPasswordEncoder
@@ -48,21 +48,8 @@ public class WebSecurityConfig {
 	}
 
 	@Bean
-	public WebSecurityCustomizer configure() {
-		return (web) -> web.ignoring()
-			.requestMatchers("/h2-console/**");
-	}
-
-	@Bean
 	public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
 		return authConfig.getAuthenticationManager();
-	}
-
-	@Bean
-	public FilterRegistrationBean<JwtAuthenticationFilter> filterRegistration(JwtAuthenticationFilter filter) {
-		FilterRegistrationBean<JwtAuthenticationFilter> registration = new FilterRegistrationBean<>(filter);
-		registration.setEnabled(false);
-		return registration;
 	}
 
 	/**
@@ -114,7 +101,7 @@ public class WebSecurityConfig {
 				.anyRequest()
 				.authenticated()
 			)
-			.addFilterAfter(jwtAuthenticationFilter, ExceptionTranslationFilter.class)
+			.addFilterAfter(new JwtAuthenticationFilter(jwtTokenProvider), ExceptionTranslationFilter.class)
 			.exceptionHandling(exception -> {
 				exception.authenticationEntryPoint(jwtAuthenticationEntryPoint);
 				exception.accessDeniedHandler(jwtAccessDeniedHandler);
@@ -124,6 +111,7 @@ public class WebSecurityConfig {
 
 	private RequestMatcher[] requestPermitAll() {
 		List<RequestMatcher> requestMatchers = List.of(
+			antMatcher("/h2-console/**"),
 			antMatcher("/api/*/auth/**"),
 			antMatcher("/api/*/members/sign-up")
 		);
