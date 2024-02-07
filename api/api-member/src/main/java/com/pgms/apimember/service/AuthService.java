@@ -4,19 +4,20 @@ import static com.pgms.coredomain.domain.common.MemberErrorCode.*;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import com.pgms.apimember.dto.request.LoginRequest;
 import com.pgms.apimember.dto.response.AuthResponse;
 import com.pgms.apimember.exception.MemberException;
 import com.pgms.coredomain.domain.member.Member;
+import com.pgms.coredomain.domain.member.Role;
 import com.pgms.coredomain.repository.MemberRepository;
 import com.pgms.coreinfraredis.repository.RedisRepository;
 import com.pgms.coresecurity.jwt.JwtTokenProvider;
@@ -42,12 +43,27 @@ public class AuthService {
 		);
 
 		Authentication authenticate = authenticationManager.authenticate(authentication);
-		SecurityContextHolder.getContext().setAuthentication(authentication);
 
 		String accessToken = jwtTokenProvider.createAccessToken((UserDetailsImpl)authenticate.getPrincipal());
 		String refreshToken = jwtTokenProvider.createRefreshToken();
 
 		redisRepository.save(refreshToken, ((UserDetailsImpl)authenticate.getPrincipal()).getId().toString());
+		return AuthResponse.from(accessToken, refreshToken);
+	}
+
+	public AuthResponse guestLogin() {
+		String randomNickname = UUID.randomUUID().toString();
+		Member member = Member.builder()
+			.nickname(randomNickname)
+			.role(Role.ROLE_GUEST)
+			.build();
+
+		Member savedGuest = memberRepository.save(member);
+
+		String accessToken = jwtTokenProvider.createAccessToken(createUserDetails(savedGuest));
+		String refreshToken = jwtTokenProvider.createRefreshToken();
+
+		redisRepository.save(refreshToken, savedGuest.getId().toString());
 		return AuthResponse.from(accessToken, refreshToken);
 	}
 

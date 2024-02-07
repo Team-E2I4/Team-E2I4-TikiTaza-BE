@@ -27,6 +27,11 @@ public class AuthController {
 		return ResponseEntity.ok(ApiResponse.of(authService.login(request)));
 	}
 
+	@PostMapping("/guest")
+	public ResponseEntity<ApiResponse<AuthResponse>> guestLogin() {
+		return ResponseEntity.ok(ApiResponse.of(authService.guestLogin()));
+	}
+
 	@PostMapping("/reissue")
 	public ResponseEntity<ApiResponse<AuthResponse>> reIssueAccessToken(
 		@CookieValue("refreshToken") String refreshToken) {
