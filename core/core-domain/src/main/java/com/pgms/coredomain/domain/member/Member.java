@@ -1,9 +1,7 @@
 package com.pgms.coredomain.domain.member;
 
 import static com.pgms.coredomain.domain.member.AccountStatus.*;
-import static com.pgms.coredomain.domain.member.Role.*;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.pgms.coredomain.domain.common.BaseEntity;
 import com.pgms.coredomain.domain.game.GameRoom;
 
@@ -39,7 +37,7 @@ public class Member extends BaseEntity {
 	@Column(name = "password")
 	private String password;
 
-	@Column(name = "password")
+	@Column(name = "nickname")
 	private String nickname;
 
 	@Enumerated(EnumType.STRING)
@@ -59,7 +57,7 @@ public class Member extends BaseEntity {
 	private GameRoom gameRoom;
 
 	@Builder
-	public Member(String email, String password,String nickname, ProviderType providerType, Role role) {
+	public Member(String email, String password, String nickname, ProviderType providerType, Role role) {
 		this.email = email;
 		this.password = password;
 		this.nickname = nickname;

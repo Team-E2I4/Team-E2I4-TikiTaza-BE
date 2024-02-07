@@ -41,7 +41,7 @@ public class GameRoom extends BaseEntity {
 	@Column(name = "current_member", nullable = false)
 	private Integer currentMember;
 
-	@OneToMany(mappedBy = "room", fetch = FetchType.EAGER)
+	@OneToMany(mappedBy = "gameRoom", fetch = FetchType.EAGER)
 	@JsonBackReference
 	List<Member> members = new ArrayList<>();
 

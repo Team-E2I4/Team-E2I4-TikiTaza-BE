@@ -4,6 +4,11 @@ plugins {
     // 실행가능한 jar 또는 war로 패키징하여 애플리케이션 실행이 가능하도록 하며, spring-boot-dependencies 기반의 의존성 관리를 사용함
     id 'io.spring.dependency-management' version '1.1.4' // 자동으로 spring-boot-dependencies bom을 끌어와서 버전 관리를 해줌
 }
+// 실행가능한 jar로 생성하는 옵션, main이 없는 라이브러리에서는 false로 비활성화함
+bootJar { enabled = false }
+
+// 외부에서 의존하기 위한 jar로 생성하는 옵션, main이 없는 라이브러리에서는 true로 비활성화함
+jar { enabled = true }
 
 allprojects {
     sourceCompatibility = '17'
