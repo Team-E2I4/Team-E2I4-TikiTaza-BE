@@ -1,6 +1,7 @@
 package com.pgms.apimember.dto.request;
 
 import com.pgms.coredomain.domain.member.Member;
+import com.pgms.coredomain.domain.member.Role;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -16,12 +17,16 @@ public record MemberSignUpRequest(
 	String password,
 
 	@NotBlank(message = "비밀번호 확인은 필수 항목입니다.")
-	String passwordConfirm
+	String passwordConfirm,
+
+	String nickname
 ) {
 	public Member toEntity(String encodedPassword) {
 		return Member.builder()
 			.email(email)
 			.password(encodedPassword)
+			.nickname(nickname)
+			.role(Role.ROLE_USER)
 			.build();
 	}
 }

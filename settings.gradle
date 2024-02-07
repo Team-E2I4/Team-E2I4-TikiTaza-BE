@@ -1,6 +1,8 @@
 rootProject.name = 'tiki-taza'
 
 include 'api:api-member'
+include 'api:api-game'
+include 'api:api-socket'
 include 'core:core-domain'
 include 'core:core-infra-db'
 include 'core:core-infra-redis'
