@@ -1,9 +1,12 @@
 package com.pgms.apimember.controller;
 
+import static com.pgms.coredomain.response.ResponseCode.*;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -11,6 +14,8 @@ import com.pgms.apimember.dto.request.LoginRequest;
 import com.pgms.apimember.dto.response.AuthResponse;
 import com.pgms.apimember.service.AuthService;
 import com.pgms.coredomain.response.ApiResponse;
+import com.pgms.coresecurity.jwt.JwtTokenProvider;
+import com.pgms.coresecurity.resolver.CurrentAccount;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -21,10 +26,20 @@ import lombok.RequiredArgsConstructor;
 public class AuthController {
 
 	private final AuthService authService;
+	private final JwtTokenProvider jwtTokenProvider;
 
 	@PostMapping("/login")
 	public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest request) {
 		return ResponseEntity.ok(ApiResponse.of(authService.login(request)));
+	}
+
+	@PostMapping("/logout")
+	public ResponseEntity<ApiResponse<Void>> logout(
+		@RequestHeader("Authorization") String bearerToken,
+		@CookieValue("refreshToken") String refreshToken,
+		@CurrentAccount Long memberId) {
+		authService.logout(jwtTokenProvider.resolveToken(bearerToken), refreshToken, memberId);
+		return ResponseEntity.ok(ApiResponse.of(SUCCESS));
 	}
 
 	@PostMapping("/guest")

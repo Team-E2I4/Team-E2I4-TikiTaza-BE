@@ -1,33 +1,48 @@
 package com.pgms.coreinfraredis.repository;
 
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Component;
 
 import lombok.RequiredArgsConstructor;
 
-@Repository
+@Component
 @RequiredArgsConstructor
 public class RedisRepository {
 
-	private final RedisTemplate redisTemplate;
+	private static final int REFRESH_TOKEN_TIME_OUT_DAYS = 7;
+	private static final int BLACKLIST_TIME_OUT_MINUTES = 30;
 
-	public void save(String key, String value) {
-		ValueOperations<String, String> valueOperations = redisTemplate.opsForValue();
+	private final RedisTemplate<String, Object> redisTemplate;
+	private final RedisTemplate<String, Object> redisBlackListTemplate;
+
+	public void save(String key, Object value) {
+		ValueOperations<String, Object> valueOperations = redisTemplate.opsForValue();
 		valueOperations.set(key, value);
-		redisTemplate.expire(key, 7, TimeUnit.DAYS);
+		redisTemplate.expire(key, REFRESH_TOKEN_TIME_OUT_DAYS, TimeUnit.DAYS);
 	}
 
-	public Optional<Long> getMemberId(String key) {
-		ValueOperations<String, String> valueOperations = redisTemplate.opsForValue();
-		Long memberId = Long.valueOf(valueOperations.get(key));
-		return Optional.ofNullable(memberId);
+	public Object get(String key) {
+		return redisTemplate.opsForValue().get(key);
 	}
 
 	public void delete(String key) {
 		redisTemplate.delete(key);
+	}
+
+	public boolean hasKey(String key) {
+		return Boolean.TRUE.equals(redisTemplate.hasKey(key));
+	}
+
+	public void saveBlackList(String key, Object value) {
+		ValueOperations<String, Object> valueOperations = redisBlackListTemplate.opsForValue();
+		valueOperations.set(key, value);
+		redisTemplate.expire(key, BLACKLIST_TIME_OUT_MINUTES, TimeUnit.MINUTES);
+	}
+
+	public boolean hasKeyBlackList(String key) {
+		return Boolean.TRUE.equals(redisTemplate.hasKey(key));
 	}
 }

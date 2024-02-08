@@ -1,5 +1,7 @@
 package com.pgms.coresecurity.config;
 
+import static com.pgms.coredomain.domain.member.Role.*;
+import static org.springframework.http.HttpMethod.*;
 import static org.springframework.security.web.util.matcher.AntPathRequestMatcher.*;
 
 import java.util.List;
@@ -11,6 +13,7 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -90,6 +93,26 @@ public class WebSecurityConfig {
 	}
 
 	/**
+	 * 인증 및 인가가 필요한 엔드포인트에 적용되는 SecurityFilterChain 입니다.
+	 */
+	@Bean
+	public SecurityFilterChain securityFilterChainAuthorized(HttpSecurity http) throws Exception {
+		configureCommonSecuritySettings(http);
+		http
+			.securityMatchers(matchers -> matchers
+				.requestMatchers(requestHasRoleUser())
+			)
+			.authorizeHttpRequests(auth -> auth
+				.requestMatchers(requestHasRoleUser()).hasAuthority(ROLE_USER.name()))
+			.exceptionHandling(exception -> {
+				exception.authenticationEntryPoint(jwtAuthenticationEntryPoint);
+				exception.accessDeniedHandler(jwtAccessDeniedHandler);
+			})
+			.addFilterAfter(new JwtAuthenticationFilter(jwtTokenProvider), ExceptionTranslationFilter.class);
+		return http.build();
+	}
+
+	/**
 	 * 위에서 정의된 엔드포인트 이외에는 authenticated로 설정
 	 */
 	@Bean
@@ -108,12 +131,22 @@ public class WebSecurityConfig {
 		return http.build();
 	}
 
+	private RequestMatcher[] requestHasRoleUser() {
+		List<RequestMatcher> requestMatchers = List.of(
+			antMatcher(POST, "/api/v1/auth/logout"),
+			antMatcher(DELETE, "/api/v1/members"),
+			antMatcher(PATCH, "/api/v1/members")
+		);
+		return requestMatchers.toArray(RequestMatcher[]::new);
+	}
+
 	private RequestMatcher[] requestPermitAll() {
 		List<RequestMatcher> requestMatchers = List.of(
 			antMatcher("/h2-console/**"),
-			antMatcher("/api/*/auth/**"),
-			antMatcher("/api/*/members/sign-up"),
+			antMatcher("/api/v1/auth/login"),
+			antMatcher("/api/v1/members/sign-up"),
 			antMatcher("/api/*/rooms")
+
 		);
 		return requestMatchers.toArray(RequestMatcher[]::new);
 	}
@@ -125,6 +158,9 @@ public class WebSecurityConfig {
 			.formLogin(AbstractHttpConfigurer::disable)
 			.httpBasic(AbstractHttpConfigurer::disable)
 			.rememberMe(AbstractHttpConfigurer::disable)
+			.headers(headers -> headers
+				.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable)
+			)
 			.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 	}
 }

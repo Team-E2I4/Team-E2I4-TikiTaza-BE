@@ -70,6 +70,14 @@ public class Member extends BaseEntity {
 		return this.status == DELETED;
 	}
 
+	public void delete() {
+		this.status = DELETED;
+	}
+
+	public void setNickname(String nickname) {
+		this.nickname = nickname;
+	}
+
 	public void setGameRoom(GameRoom gameRoom) {
 		this.gameRoom = gameRoom;
 	}
