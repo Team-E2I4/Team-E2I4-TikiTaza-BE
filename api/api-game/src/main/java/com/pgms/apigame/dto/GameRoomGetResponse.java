@@ -7,8 +7,8 @@ public record GameRoomGetResponse(
 	Long ownerId,
 	String title,
 	String inviteCode,
-	Integer maxPlayers,
-	Integer currentPlayers,
+	Integer maxPlayer,
+	Integer currentPlayer,
 	boolean isStarted,
 	boolean isPrivate
 
@@ -20,10 +20,10 @@ public record GameRoomGetResponse(
 			gameRoom.getOwnerId(),
 			gameRoom.getTitle(),
 			gameRoom.getInviteCode(),
-			gameRoom.getCurrentPlayer(),
 			gameRoom.getMaxPlayer(),
-			gameRoom.getIsStarted(),
-			gameRoom.getPassword() != null
+			gameRoom.getCurrentPlayer(),
+			gameRoom.isStarted(),
+			gameRoom.isPrivate()
 		);
 	}
 }

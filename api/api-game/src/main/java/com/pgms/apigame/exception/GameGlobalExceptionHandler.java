@@ -12,7 +12,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import com.pgms.coredomain.domain.common.GameErrorCode;
+import com.pgms.coredomain.domain.common.BaseErrorCode;
 import com.pgms.coredomain.response.ErrorResponse;
 
 import lombok.extern.slf4j.Slf4j;
@@ -24,9 +24,9 @@ public class GameGlobalExceptionHandler {
 	@ExceptionHandler(GameException.class)
 	protected ResponseEntity<ErrorResponse> handleGameCustomException(GameException ex) {
 		log.warn(">>>>> Game Custom Exception : ", ex);
-		GameErrorCode errorCode = ex.getErrorCode();
+		BaseErrorCode errorCode = ex.getErrorCode();
 		return ResponseEntity.status(errorCode.getStatus())
-			.body(ErrorResponse.of(errorCode.getCode(), errorCode.getMessage()));
+			.body(errorCode.getErrorResponse());
 	}
 
 	@ExceptionHandler(MethodArgumentNotValidException.class)

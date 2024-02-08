@@ -1,15 +1,15 @@
 package com.pgms.apigame.exception;
 
-import com.pgms.coredomain.domain.common.GameErrorCode;
+import com.pgms.coredomain.domain.common.BaseErrorCode;
 
 import lombok.Getter;
 
 @Getter
 public class GameException extends RuntimeException {
 
-	private final GameErrorCode errorCode;
+	private final BaseErrorCode errorCode;
 
-	public GameException(GameErrorCode errorCode) {
+	public GameException(BaseErrorCode errorCode) {
 		this.errorCode = errorCode;
 	}
 }

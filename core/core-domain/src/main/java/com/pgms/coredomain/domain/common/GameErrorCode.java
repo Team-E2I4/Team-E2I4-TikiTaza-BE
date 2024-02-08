@@ -2,10 +2,12 @@ package com.pgms.coredomain.domain.common;
 
 import org.springframework.http.HttpStatus;
 
+import com.pgms.coredomain.response.ErrorResponse;
+
 import lombok.Getter;
 
 @Getter
-public enum GameErrorCode {
+public enum GameErrorCode implements BaseErrorCode {
 
 	GAME_NOT_FOUND("game-404/01", HttpStatus.NOT_FOUND, "게임을 찾을 수 없습니다."),
 	VALIDATION_FAILED("game-400/01", HttpStatus.BAD_REQUEST, "입력값에 대한 검증에 실패했습니다."),
@@ -20,5 +22,10 @@ public enum GameErrorCode {
 		this.code = code;
 		this.status = status;
 		this.message = message;
+	}
+
+	@Override
+	public ErrorResponse getErrorResponse() {
+		return ErrorResponse.of(code, message);
 	}
 }
