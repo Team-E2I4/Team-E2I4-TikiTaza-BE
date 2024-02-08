@@ -26,6 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
+	private static final String AUTHENTICATION_HEADER = "Authorization";
 	private final JwtTokenProvider jwtTokenProvider;
 
 	@Override
@@ -33,7 +34,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 		FilterChain filterChain) throws ServletException, IOException {
 
 		try {
-			String accessToken = jwtTokenProvider.resolveToken(request.getHeader("Authorization"));
+			String accessToken = jwtTokenProvider.resolveToken(request.getHeader(AUTHENTICATION_HEADER));
 			if (hasText(accessToken)) {
 				jwtTokenProvider.validateAccessToken(accessToken);
 				Authentication authentication = jwtTokenProvider.getAuthentication(accessToken);

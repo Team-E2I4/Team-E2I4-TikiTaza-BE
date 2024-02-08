@@ -7,7 +7,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.pgms.apimember.dto.request.MemberSignUpRequest;
-import com.pgms.apimember.dto.response.MemberResponse;
+import com.pgms.apimember.dto.request.NicknameUpdateRequest;
+import com.pgms.apimember.dto.response.MemberGetResponse;
 import com.pgms.apimember.exception.MemberException;
 import com.pgms.coredomain.domain.member.Member;
 import com.pgms.coredomain.repository.MemberRepository;
@@ -32,14 +33,20 @@ public class MemberService {
 	}
 
 	@Transactional(readOnly = true)
-	public MemberResponse getMyProfileInfo(Long memberId) {
+	public MemberGetResponse getMyProfileInfo(Long memberId) {
 		Member member = getMember(memberId);
-		return MemberResponse.from(member);
+		return MemberGetResponse.from(member);
 	}
 
 	public void deleteMemberAccount(Long memberId) {
 		Member member = getMember(memberId);
 		member.delete();
+	}
+
+	public void updateMemberNickname(Long memberId, NicknameUpdateRequest request) {
+		validateDuplicateNickname(request.nickname());
+		Member member = getMember(memberId);
+		member.setNickname(request.nickname());
 	}
 
 	private Member getMember(Long memberId) {
@@ -56,6 +63,12 @@ public class MemberService {
 	private void validateNewPassword(String password, String passwordConfirm) {
 		if (!password.equals(passwordConfirm)) {
 			throw new MemberException(PASSWORD_CONFIRM_NOT_MATCHED);
+		}
+	}
+
+	private void validateDuplicateNickname(String nickname) {
+		if (memberRepository.existsByNickname(nickname)) {
+			throw new MemberException(DUPLICATE_NICKNAME);
 		}
 	}
 }

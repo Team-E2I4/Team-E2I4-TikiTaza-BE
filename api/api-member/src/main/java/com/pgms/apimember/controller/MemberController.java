@@ -5,13 +5,15 @@ import static com.pgms.coredomain.response.ResponseCode.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.pgms.apimember.dto.request.MemberSignUpRequest;
-import com.pgms.apimember.dto.response.MemberResponse;
+import com.pgms.apimember.dto.request.NicknameUpdateRequest;
+import com.pgms.apimember.dto.response.MemberGetResponse;
 import com.pgms.apimember.service.MemberService;
 import com.pgms.coredomain.response.ApiResponse;
 import com.pgms.coresecurity.resolver.CurrentAccount;
@@ -32,8 +34,15 @@ public class MemberController {
 	}
 
 	@GetMapping("/my-profile")
-	public ResponseEntity<ApiResponse<MemberResponse>> getMyProfileInfo(@CurrentAccount Long memberId) {
+	public ResponseEntity<ApiResponse<MemberGetResponse>> getMyProfileInfo(@CurrentAccount Long memberId) {
 		return ResponseEntity.ok(ApiResponse.of(memberService.getMyProfileInfo(memberId)));
+	}
+
+	@PatchMapping
+	public ResponseEntity<ApiResponse<Void>> updateMemberNickname(@CurrentAccount Long memberId,
+		@RequestBody NicknameUpdateRequest request) {
+		memberService.updateMemberNickname(memberId, request);
+		return ResponseEntity.ok(ApiResponse.of(SUCCESS));
 	}
 
 	@DeleteMapping
