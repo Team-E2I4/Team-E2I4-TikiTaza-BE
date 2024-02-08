@@ -1,5 +1,7 @@
 package com.pgms.coresecurity.jwt;
 
+import static org.springframework.util.StringUtils.*;
+
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
@@ -15,19 +17,25 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 
+import com.pgms.coredomain.domain.common.SecurityErrorCode;
+import com.pgms.coreinfraredis.repository.RedisRepository;
+import com.pgms.coresecurity.exception.SecurityException;
 import com.pgms.coresecurity.user.normal.UserDetailsImpl;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class JwtTokenProvider {
 
 	private static final String AUTHENTICATION_CLAIM_NAME = "roles";
+	private static final String AUTHENTICATION_SCHEME = "Bearer ";
 
 	@Value("${jwt.secret-key}")
 	private String secretKey;
@@ -37,6 +45,8 @@ public class JwtTokenProvider {
 
 	@Value("${jwt.refresh-expiry-seconds}")
 	private int refreshExpirySeconds;
+
+	private final RedisRepository redisRepository;
 
 	public String createAccessToken(UserDetailsImpl userDetails) {
 		Instant now = Instant.now();
@@ -96,6 +106,16 @@ public class JwtTokenProvider {
 	}
 
 	/**
+	 * 토큰 추출
+	 */
+	public String resolveToken(String bearerToken) {
+		if (hasText(bearerToken) && bearerToken.startsWith(AUTHENTICATION_SCHEME)) {
+			return bearerToken.substring(AUTHENTICATION_SCHEME.length());
+		}
+		return null;
+	}
+
+	/**
 	 * Jwt 검증 및 클레임 추출
 	 */
 	private Claims verifyAndExtractClaims(String accessToken) {
@@ -111,6 +131,10 @@ public class JwtTokenProvider {
 			.verifyWith(extractSecretKey())
 			.build()
 			.parse(accessToken);
+
+		if (redisRepository.hasKeyBlackList(accessToken)) {
+			throw new SecurityException(SecurityErrorCode.ALREADY_LOGOUT);
+		}
 	}
 
 	/**

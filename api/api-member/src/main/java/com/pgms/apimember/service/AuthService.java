@@ -12,6 +12,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.pgms.apimember.dto.request.LoginRequest;
 import com.pgms.apimember.dto.response.AuthResponse;
@@ -23,7 +24,6 @@ import com.pgms.coreinfraredis.repository.RedisRepository;
 import com.pgms.coresecurity.jwt.JwtTokenProvider;
 import com.pgms.coresecurity.user.normal.UserDetailsImpl;
 
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -37,6 +37,8 @@ public class AuthService {
 	private final MemberRepository memberRepository;
 
 	public AuthResponse login(LoginRequest request) {
+		validateMember(request.email());
+
 		UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
 			request.email(),
 			request.password()
@@ -47,13 +49,14 @@ public class AuthService {
 		String accessToken = jwtTokenProvider.createAccessToken((UserDetailsImpl)authenticate.getPrincipal());
 		String refreshToken = jwtTokenProvider.createRefreshToken();
 
-		redisRepository.save(refreshToken, ((UserDetailsImpl)authenticate.getPrincipal()).getId().toString());
+		redisRepository.save(refreshToken, ((UserDetailsImpl)authenticate.getPrincipal()).getId());
 		return AuthResponse.from(accessToken, refreshToken);
 	}
 
 	public AuthResponse guestLogin() {
 		String randomNickname = UUID.randomUUID().toString();
 		Member member = Member.builder()
+			.email("Guest@tikitaza.com")
 			.nickname(randomNickname)
 			.role(Role.ROLE_GUEST)
 			.build();
@@ -63,14 +66,22 @@ public class AuthService {
 		String accessToken = jwtTokenProvider.createAccessToken(createUserDetails(savedGuest));
 		String refreshToken = jwtTokenProvider.createRefreshToken();
 
-		redisRepository.save(refreshToken, savedGuest.getId().toString());
+		redisRepository.save(refreshToken, savedGuest.getId());
 		return AuthResponse.from(accessToken, refreshToken);
 	}
 
+	public void logout(String accessToken, String refreshToken, Long memberId) {
+		if (redisRepository.hasKey(refreshToken)) {
+			Long storedMemberId = Long.valueOf(redisRepository.get(refreshToken).toString());
+			if (storedMemberId.equals(memberId)) {
+				redisRepository.delete(refreshToken);
+				redisRepository.saveBlackList(accessToken, "accessToken");
+			}
+		}
+	}
+
 	public AuthResponse reIssueAccessTokenByRefresh(String token) {
-		// TODO: Redis 관련 만료 예외 처리 해야 함
-		Long memberId = redisRepository.getMemberId(token)
-			.orElseThrow();
+		Long memberId = Long.valueOf(redisRepository.get(token).toString());
 
 		Member member = memberRepository.findById(memberId)
 			.orElseThrow(() -> new MemberException(MEMBER_NOT_FOUND));
@@ -80,6 +91,15 @@ public class AuthService {
 		String refreshToken = jwtTokenProvider.createRefreshToken();
 
 		return AuthResponse.from(accessToken, refreshToken);
+	}
+
+	private void validateMember(String email) {
+		Member member = memberRepository.findByEmail(email)
+			.orElseThrow(() -> new MemberException(MEMBER_NOT_FOUND));
+
+		if (member.isDeleted()) {
+			throw new MemberException(MEMBER_NOT_FOUND);
+		}
 	}
 
 	private UserDetailsImpl createUserDetails(Member member) {
