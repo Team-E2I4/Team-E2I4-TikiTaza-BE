@@ -12,6 +12,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.pgms.apimember.dto.request.LoginRequest;
 import com.pgms.apimember.dto.response.AuthResponse;
@@ -23,7 +24,6 @@ import com.pgms.coreinfraredis.repository.RedisRepository;
 import com.pgms.coresecurity.jwt.JwtTokenProvider;
 import com.pgms.coresecurity.user.normal.UserDetailsImpl;
 
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -37,6 +37,8 @@ public class AuthService {
 	private final MemberRepository memberRepository;
 
 	public AuthResponse login(LoginRequest request) {
+		validateMember(request.email());
+
 		UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
 			request.email(),
 			request.password()
@@ -89,6 +91,15 @@ public class AuthService {
 		String refreshToken = jwtTokenProvider.createRefreshToken();
 
 		return AuthResponse.from(accessToken, refreshToken);
+	}
+
+	private void validateMember(String email) {
+		Member member = memberRepository.findByEmail(email)
+			.orElseThrow(() -> new MemberException(MEMBER_NOT_FOUND));
+
+		if (member.isDeleted()) {
+			throw new MemberException(MEMBER_NOT_FOUND);
+		}
 	}
 
 	private UserDetailsImpl createUserDetails(Member member) {
