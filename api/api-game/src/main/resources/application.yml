@@ -1,0 +1,7 @@
+spring:
+  profiles:
+    include: db, security
+    active: dev
+
+server:
+  port: 8081
