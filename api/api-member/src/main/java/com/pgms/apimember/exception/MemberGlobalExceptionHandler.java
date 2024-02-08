@@ -13,7 +13,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import com.pgms.coredomain.domain.common.MemberErrorCode;
+import com.pgms.coredomain.domain.common.BaseErrorCode;
 import com.pgms.coredomain.response.ErrorResponse;
 
 import lombok.extern.slf4j.Slf4j;
@@ -25,9 +25,9 @@ public class MemberGlobalExceptionHandler {
 	@ExceptionHandler(MemberException.class)
 	protected ResponseEntity<ErrorResponse> handleMemberCustomException(MemberException ex) {
 		log.warn(">>>>> Member Custom Exception : {}", ex);
-		MemberErrorCode errorCode = ex.getErrorCode();
+		BaseErrorCode errorCode = ex.getErrorCode();
 		return ResponseEntity.status(errorCode.getStatus())
-			.body(ErrorResponse.of(errorCode.getCode(), errorCode.getMessage()));
+			.body(errorCode.getErrorResponse());
 	}
 
 	@ExceptionHandler(MethodArgumentNotValidException.class)
