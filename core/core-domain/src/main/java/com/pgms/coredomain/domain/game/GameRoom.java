@@ -41,20 +41,20 @@ public class GameRoom extends BaseEntity {
 	@Column(name = "password")
 	private String password;
 
-	@Column(name = "invite_code", nullable = false)
+	@Column(name = "invite_code")
 	private String inviteCode;
 
 	@Column(name = "round_count", nullable = false)
-	private Integer roundCount;
+	private int roundCount;
 
 	@Column(name = "current_player", nullable = false)
-	private Integer currentPlayer;
+	private int currentPlayer;
 
 	@Column(name = "max_player", nullable = false)
-	private Integer maxPlayer;
+	private int maxPlayer;
 
 	@Column(name = "is_started", nullable = false)
-	private Boolean isStarted;
+	private boolean isStarted;
 
 	@OneToMany(mappedBy = "gameRoom", fetch = FetchType.EAGER)
 	@JsonBackReference
@@ -65,17 +65,13 @@ public class GameRoom extends BaseEntity {
 		Long ownerId,
 		String title,
 		String password,
-		String inviteCode,
-		Integer roundCount,
-		Integer currentPlayer,
-		Integer maxPlayer,
-		Boolean isStarted) {
+		int roundCount,
+		int maxPlayer,
+		boolean isStarted) {
 		this.ownerId = ownerId;
 		this.title = title;
 		this.password = password;
-		this.inviteCode = inviteCode;
 		this.roundCount = roundCount;
-		this.currentPlayer = currentPlayer;
 		this.maxPlayer = maxPlayer;
 		this.isStarted = isStarted;
 	}
@@ -86,5 +82,13 @@ public class GameRoom extends BaseEntity {
 
 	public void exitGameRoom() {
 		this.currentPlayer--;
+	}
+
+	public boolean isFull() {
+		return this.currentPlayer >= this.maxPlayer;
+	}
+
+	public boolean isPrivate() {
+		return this.password != null;
 	}
 }
