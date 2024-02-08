@@ -9,7 +9,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import com.pgms.coresecurity.user.normal.UserDetailsImpl;
 import com.pgms.coresecurity.util.HttpResponseUtil;
 
 import io.jsonwebtoken.ExpiredJwtException;
@@ -33,13 +32,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
 		FilterChain filterChain) throws ServletException, IOException {
 
-		log.info(">>>>>>>>>>>>>>>>.. HELLO");
 		try {
 			String accessToken = jwtTokenProvider.resolveToken(request.getHeader("Authorization"));
 			if (hasText(accessToken)) {
 				jwtTokenProvider.validateAccessToken(accessToken);
 				Authentication authentication = jwtTokenProvider.getAuthentication(accessToken);
-				log.info("authentication ={} ", ((UserDetailsImpl)authentication.getPrincipal()).getId());
 				SecurityContextHolder.getContext().setAuthentication(authentication);
 			}
 		} catch (ExpiredJwtException e) {
