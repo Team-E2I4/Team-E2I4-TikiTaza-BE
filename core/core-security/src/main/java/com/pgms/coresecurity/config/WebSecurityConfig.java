@@ -134,7 +134,9 @@ public class WebSecurityConfig {
 	private RequestMatcher[] requestHasRoleUser() {
 		List<RequestMatcher> requestMatchers = List.of(
 			antMatcher(POST, "/api/v1/auth/logout"),
-			antMatcher(DELETE, "/api/v1/members")
+			antMatcher(DELETE, "/api/v1/members"),
+			antMatcher(PATCH, "/api/v1/members"),
+			antMatcher(POST, "/api/v1/rooms")
 		);
 		return requestMatchers.toArray(RequestMatcher[]::new);
 	}
@@ -143,7 +145,8 @@ public class WebSecurityConfig {
 		List<RequestMatcher> requestMatchers = List.of(
 			antMatcher("/h2-console/**"),
 			antMatcher("/api/v1/auth/login"),
-			antMatcher("/api/v1/members/sign-up")
+			antMatcher("/api/v1/members/sign-up"),
+			antMatcher(GET, "/api/v1/rooms")
 		);
 		return requestMatchers.toArray(RequestMatcher[]::new);
 	}

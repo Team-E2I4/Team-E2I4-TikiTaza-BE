@@ -32,7 +32,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
 		FilterChain filterChain) throws ServletException, IOException {
-
 		try {
 			String accessToken = jwtTokenProvider.resolveToken(request.getHeader(AUTHENTICATION_HEADER));
 			if (hasText(accessToken)) {

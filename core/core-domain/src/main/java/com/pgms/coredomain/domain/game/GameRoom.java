@@ -35,28 +35,60 @@ public class GameRoom extends BaseEntity {
 	@Column(name = "owner_id")
 	private Long ownerId;
 
-	@Column(name = "invite_code", nullable = false)
+	@Column(name = "title", nullable = false)
+	private String title;
+
+	@Column(name = "password")
+	private String password;
+
+	@Column(name = "invite_code")
 	private String inviteCode;
 
-	@Column(name = "current_member", nullable = false)
-	private Integer currentMember;
+	@Column(name = "round_count", nullable = false)
+	private int roundCount;
+
+	@Column(name = "current_player", nullable = false)
+	private int currentPlayer;
+
+	@Column(name = "max_player", nullable = false)
+	private int maxPlayer;
+
+	@Column(name = "is_started", nullable = false)
+	private boolean isStarted;
 
 	@OneToMany(mappedBy = "gameRoom", fetch = FetchType.EAGER)
 	@JsonBackReference
 	List<Member> members = new ArrayList<>();
 
 	@Builder
-	public GameRoom(String inviteCode, Long ownerId, Integer currentMember) {
-		this.inviteCode = inviteCode;
+	public GameRoom(
+		Long ownerId,
+		String title,
+		String password,
+		int roundCount,
+		int maxPlayer,
+		boolean isStarted) {
 		this.ownerId = ownerId;
-		this.currentMember = currentMember;
+		this.title = title;
+		this.password = password;
+		this.roundCount = roundCount;
+		this.maxPlayer = maxPlayer;
+		this.isStarted = isStarted;
 	}
 
-	public void enterMember() {
-		this.currentMember++;
+	public void enterGameRoom() {
+		this.currentPlayer++;
 	}
 
-	public void exitMember() {
-		this.currentMember--;
+	public void exitGameRoom() {
+		this.currentPlayer--;
+	}
+
+	public boolean isFull() {
+		return this.currentPlayer >= this.maxPlayer;
+	}
+
+	public boolean isPrivate() {
+		return this.password != null;
 	}
 }
