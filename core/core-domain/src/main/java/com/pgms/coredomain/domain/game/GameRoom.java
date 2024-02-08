@@ -80,11 +80,11 @@ public class GameRoom extends BaseEntity {
 		this.isStarted = isStarted;
 	}
 
-	public void enterMember() {
+	public void enterGameRoom() {
 		this.currentPlayer++;
 	}
 
-	public void exitMember() {
+	public void exitGameRoom() {
 		this.currentPlayer--;
 	}
 }
