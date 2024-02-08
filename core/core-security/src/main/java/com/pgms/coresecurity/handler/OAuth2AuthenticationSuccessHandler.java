@@ -51,7 +51,7 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
 		String accessToken = jwtTokenProvider.createAccessToken(userDetails);
 		String refreshToken = jwtTokenProvider.createRefreshToken();
 
-		redisRepository.save(refreshToken, member.getId().toString());
+		redisRepository.save(accessToken, member.getId());
 
 		Map<String, Object> body = Map.of(
 			"accessToken", accessToken,
