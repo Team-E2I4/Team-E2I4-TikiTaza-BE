@@ -2,6 +2,7 @@ package com.pgms.apigame.service;
 
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.pgms.apigame.dto.GameRoomCreateRequest;
 import com.pgms.apigame.dto.GameRoomGetResponse;
@@ -16,6 +17,7 @@ import com.pgms.coredomain.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class GameRoomService {
 
@@ -33,6 +35,7 @@ public class GameRoomService {
 		return gameRoomRepository.save(request.toEntity(memberId)).getId();
 	}
 
+	@Transactional(readOnly = true)
 	public PageResponse<GameRoomGetResponse> getRooms(PageCondition pageCondition) {
 		final Page<GameRoomGetResponse> gameRooms = gameRoomRepository.findAll(pageCondition.getPageable())
 			.map(GameRoomGetResponse::from);
