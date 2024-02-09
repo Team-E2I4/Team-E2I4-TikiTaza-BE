@@ -34,6 +34,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 		FilterChain filterChain) throws ServletException, IOException {
 		try {
 			String accessToken = jwtTokenProvider.resolveToken(request.getHeader(AUTHENTICATION_HEADER));
+			log.info(">>>>>> Someone is trying to access protected resource {}", accessToken);
 			if (hasText(accessToken)) {
 				jwtTokenProvider.validateAccessToken(accessToken);
 				Authentication authentication = jwtTokenProvider.getAuthentication(accessToken);

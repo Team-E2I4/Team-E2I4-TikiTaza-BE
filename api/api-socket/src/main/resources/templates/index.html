@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Game Room WebSocket Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs/lib/stomp.min.js"></script>
+</head>
+<body>
+<h2>Game Room WebSocket Test</h2>
+<div>
+    <label for="accessToken">Access Token:</label>
+    <input type="text" id="accessToken" placeholder="Enter your access token here">
+    <button onclick="connect()">Connect</button>
+</div>
+<div>
+    <button onclick="enterGameRoom()">Enter Game Room</button>
+    <button onclick="exitGameRoom()">Exit Game Room</button>
+</div>
+<div id="response"></div>
+
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    var stompClient = null;
+    var roomId = 1; // Example Room ID, adjust as necessary
+    var memberId = 1; // Example Member ID, adjust as necessary
+
+    function connect() {
+        var accessToken = document.getElementById("accessToken").value; // Get the access token from the input field
+        var connectHeaders = {
+            'Authorization': 'Bearer ' + accessToken,
+            'RoomId': roomId,
+        };
+        var socket = new SockJS('http://localhost:8082/ws/room'); // Adjust WebSocket connection URL
+        stompClient = Stomp.over(socket);
+
+        stompClient.connect(connectHeaders, function (frame) {
+            console.log('Connected: ' + frame);
+            subscribeToRoomEnter();
+            stompClient.send("/to/game-room/" + roomId + "/enter", {}, JSON.stringify({memberId: memberId}), connectHeaders);
+            subscribeToRoomExit();
+        }, function (error) {
+            console.log('Connection error: ' + error);
+            alert('Connection failed. Check console for details.');
+        });
+    }
+
+    function subscribeToRoomEnter() {
+        stompClient.subscribe('/from/game-room/' + roomId + '/enter', function (response) {
+            var message = JSON.parse(response.body);
+            console.log('Enter Message: ' + message);
+            document.getElementById('response').innerHTML = 'Enter Response: Member ID: ' + message.memberId + ', Nickname: ' + message.nickname;
+        });
+    }
+
+    function subscribeToRoomExit() {
+        stompClient.subscribe('/from/game-room/' + roomId + '/exit', function (response) {
+            var message = JSON.parse(response.body);
+            console.log('Exit Message: ' + message);
+            document.getElementById('response').innerHTML = 'Exit Response: Member ID: ' + message.memberId + ', Nickname: ' + message.nickname;
+        });
+    }
+
+    function enterGameRoom() {
+        stompClient.send("/to/game-room/" + roomId + "/enter", {}, JSON.stringify({memberId: memberId}));
+    }
+
+    function exitGameRoom() {
+        stompClient.send("/to/game-room/" + roomId + "/exit", {}, JSON.stringify({memberId: memberId}));
+    }
+
+    // Removed automatic connection on page load to allow user to enter token first
+    /*]]>*/
+</script>
+</body>
+</html>

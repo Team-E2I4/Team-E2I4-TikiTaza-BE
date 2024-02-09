@@ -143,6 +143,10 @@ public class WebSecurityConfig {
 
 	private RequestMatcher[] requestPermitAll() {
 		List<RequestMatcher> requestMatchers = List.of(
+			antMatcher("/"),
+			antMatcher("/ws/**"),
+			antMatcher("/from/**"),
+			antMatcher("/to/**"),
 			antMatcher("/h2-console/**"),
 			antMatcher("/api/v1/auth/login"),
 			antMatcher("/api/v1/members/sign-up"),

@@ -8,8 +8,6 @@ import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.WebSocketHandlerDecorator;
 
-import com.pgms.coresecurity.util.SecurityUtil;
-
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -23,8 +21,8 @@ public class CustomWebSocketHandlerDecorator extends WebSocketHandlerDecorator {
 
 	@Override
 	public void afterConnectionEstablished(WebSocketSession session) throws Exception {
-		final Long memberId = SecurityUtil.getCurrentAccountId();
-		final String roomId = (String)session.getAttributes().get("roomId");
+		final Long memberId = (Long)session.getAttributes().get("MemberId");
+		final String roomId = (String)session.getAttributes().get("RoomId");
 		sessionMap.put(memberId + ":" + roomId, session);
 		super.afterConnectionEstablished(session);
 	}
