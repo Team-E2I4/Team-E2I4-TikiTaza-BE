@@ -42,7 +42,7 @@ public class GameRoomController {
 			.toUri();
 		return ResponseEntity.created(location).body(ApiResponse.of(CREATE, roomId));
 	}
-
+	
 	@GetMapping
 	public ResponseEntity<ApiResponse<PageResponse<GameRoomGetResponse>>> getRooms(
 		@ModelAttribute @Valid PageCondition pageCondition) {

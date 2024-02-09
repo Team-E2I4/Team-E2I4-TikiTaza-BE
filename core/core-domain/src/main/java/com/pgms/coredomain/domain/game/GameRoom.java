@@ -76,11 +76,16 @@ public class GameRoom extends BaseEntity {
 		this.isStarted = isStarted;
 	}
 
-	public void enterGameRoom() {
+	public void enterGameRoom(Member member) {
+		if (member.getGameRoom() != null) // 이미 방에 들어가있는 경우
+			member.getGameRoom().exitGameRoom(member); // 기존 방을 가져와서 나가기
+		member.setGameRoom(this);
+		this.members.add(member);
 		this.currentPlayer++;
 	}
 
-	public void exitGameRoom() {
+	public void exitGameRoom(Member member) {
+		this.members.remove(member);
 		this.currentPlayer--;
 	}
 

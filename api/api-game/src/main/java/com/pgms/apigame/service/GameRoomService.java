@@ -9,7 +9,7 @@ import com.pgms.apigame.dto.GameRoomGetResponse;
 import com.pgms.apigame.dto.PageCondition;
 import com.pgms.apigame.dto.PageResponse;
 import com.pgms.apigame.exception.GameException;
-import com.pgms.coredomain.domain.common.GameErrorCode;
+import com.pgms.coredomain.domain.common.GameRoomErrorCode;
 import com.pgms.coredomain.domain.common.MemberErrorCode;
 import com.pgms.coredomain.repository.GameRoomRepository;
 import com.pgms.coredomain.repository.MemberRepository;
@@ -29,7 +29,7 @@ public class GameRoomService {
 			.orElseThrow(() -> new GameException(MemberErrorCode.MEMBER_NOT_FOUND));
 		gameRoomRepository.findByOwnerId(memberId)
 			.ifPresent(gameRoom -> {
-				throw new GameException(GameErrorCode.ROOM_ALREADY_EXISTS);
+				throw new GameException(GameRoomErrorCode.USER_ROOM_LIMIT_EXCEEDED);
 			});
 
 		return gameRoomRepository.save(request.toEntity(memberId)).getId();
