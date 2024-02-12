@@ -4,10 +4,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.pgms.apigame.dto.GameRoomCreateRequest;
-import com.pgms.apigame.dto.GameRoomGetResponse;
 import com.pgms.apigame.dto.PageCondition;
-import com.pgms.apigame.dto.PageResponse;
+import com.pgms.apigame.dto.request.GameRoomCreateRequest;
+import com.pgms.apigame.dto.response.GameRoomGetResponse;
+import com.pgms.apigame.dto.response.PageResponse;
 import com.pgms.apigame.exception.GameException;
 import com.pgms.coredomain.domain.common.GameRoomErrorCode;
 import com.pgms.coredomain.domain.common.MemberErrorCode;

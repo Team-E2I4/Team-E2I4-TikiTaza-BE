@@ -9,6 +9,8 @@ import com.pgms.coredomain.domain.member.Member;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -56,6 +58,10 @@ public class GameRoom extends BaseEntity {
 	@Column(name = "is_started", nullable = false)
 	private boolean isStarted;
 
+	@Column(name = "game_type", nullable = false)
+	@Enumerated(EnumType.STRING)
+	private GameType gameType;
+
 	@OneToMany(mappedBy = "gameRoom", fetch = FetchType.EAGER)
 	@JsonBackReference
 	List<Member> members = new ArrayList<>();
@@ -67,13 +73,15 @@ public class GameRoom extends BaseEntity {
 		String password,
 		int roundCount,
 		int maxPlayer,
-		boolean isStarted) {
+		boolean isStarted,
+		GameType gameType) {
 		this.ownerId = ownerId;
 		this.title = title;
 		this.password = password;
 		this.roundCount = roundCount;
 		this.maxPlayer = maxPlayer;
 		this.isStarted = isStarted;
+		this.gameType = gameType;
 	}
 
 	public void enterGameRoom(Member member) {
@@ -86,7 +94,12 @@ public class GameRoom extends BaseEntity {
 
 	public void exitGameRoom(Member member) {
 		this.members.remove(member);
+		member.setGameRoom(null);
 		this.currentPlayer--;
+	}
+
+	public void startGame() {
+		this.isStarted = true;
 	}
 
 	public boolean isFull() {

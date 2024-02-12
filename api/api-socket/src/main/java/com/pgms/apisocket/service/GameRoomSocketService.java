@@ -6,8 +6,9 @@ import static com.pgms.coredomain.domain.common.MemberErrorCode.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.pgms.apisocket.dto.GameRoomEnterResponse;
-import com.pgms.apisocket.dto.GameRoomExitResponse;
+import com.pgms.apisocket.dto.request.GameStartResponse;
+import com.pgms.apisocket.dto.response.GameRoomEnterResponse;
+import com.pgms.apisocket.dto.response.GameRoomExitResponse;
 import com.pgms.apisocket.exception.SocketException;
 import com.pgms.apisocket.handler.CustomWebSocketHandlerDecorator;
 import com.pgms.coredomain.domain.common.GameErrorCode;
@@ -43,8 +44,7 @@ public class GameRoomSocketService {
 		}
 		// 멤버가 방에 들어가있는 건 아닌가? -> roomId + memberId로 소켓을 찾아서 연결을 끊어버림
 		if (member.getGameRoom() != null) {
-			final String sessionId = member.getId() + ":" + member.getGameRoom().getId();
-			customWebSocketHandlerDecorator.closeSession(sessionId);
+			disconnect(member);
 		}
 		// 방에 멤버 추가 -> 게임룸은 새로 들어가려는 방
 		gameRoom.enterGameRoom(member);
@@ -57,8 +57,21 @@ public class GameRoomSocketService {
 		// 방이 존재하는가
 		final GameRoom gameRoom = getGameRoom(roomId);
 		validateIsMatchedGameRoom(member, roomId);
+		disconnect(member);
 		gameRoom.exitGameRoom(member);
 		return GameRoomExitResponse.from(member);
+
+		// 강종하는 케이스 -> decorator에서 잡아서 처리
+
+		// 사용자가 나가기 버튼으로 나가는 케이스  -> 서비스에서 처리 , decorator,interceptor 둘다 탐
+	}
+
+	public GameStartResponse startGame(Long roomId) {
+		GameRoom gameRoom = getGameRoom(roomId);
+		if (!gameRoom.isStarted()) {
+			gameRoom.startGame();
+		}
+		return GameStartResponse.from(true);
 	}
 
 	private Member getMember(Long memberId) {
@@ -75,5 +88,10 @@ public class GameRoomSocketService {
 		if (!member.getGameRoom().getId().equals(roomId)) {
 			throw new SocketException(GAME_ROOM_MISMATCH);
 		}
+	}
+
+	private void disconnect(Member member) {
+		final String sessionId = member.getId() + ":" + member.getGameRoom().getId();
+		customWebSocketHandlerDecorator.closeSession(sessionId);
 	}
 }

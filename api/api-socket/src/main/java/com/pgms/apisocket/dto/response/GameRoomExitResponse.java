@@ -1,4 +1,4 @@
-package com.pgms.apisocket.dto;
+package com.pgms.apisocket.dto.response;
 
 import com.pgms.coredomain.domain.member.Member;
 

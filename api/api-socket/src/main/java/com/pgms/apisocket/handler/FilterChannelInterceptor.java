@@ -1,5 +1,7 @@
 package com.pgms.apisocket.handler;
 
+import java.util.Objects;
+
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.messaging.Message;
@@ -30,8 +32,9 @@ public class FilterChannelInterceptor implements ChannelInterceptor {
 		StompHeaderAccessor headerAccessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
 		log.info(">>>>>> headerAccessor : {}", headerAccessor);
 		assert headerAccessor != null;
-		if (headerAccessor.getCommand() == StompCommand.CONNECT
-			|| headerAccessor.getCommand() == StompCommand.SEND) { // 문제 발생 예상 지점
+		log.info(">>>>> headAccessorHeaders : {}", headerAccessor.getCommand());
+		if (Objects.equals(headerAccessor.getCommand(), StompCommand.CONNECT)
+			|| Objects.equals(headerAccessor.getCommand(), StompCommand.SEND)) { // 문제 발생 예상 지/점
 			String token = removeBrackets(String.valueOf(headerAccessor.getNativeHeader("Authorization")));
 			token = jwtTokenProvider.resolveToken(token);
 			log.info(">>>>>> Token resolved : {}", token);

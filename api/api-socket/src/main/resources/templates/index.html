@@ -30,13 +30,13 @@
             'Authorization': 'Bearer ' + accessToken,
             'RoomId': roomId,
         };
-        var socket = new SockJS('http://localhost:8082/ws/room'); // Adjust WebSocket connection URL
+        var socket = new SockJS('/ws/room'); // Adjust WebSocket connection URL
         stompClient = Stomp.over(socket);
 
         stompClient.connect(connectHeaders, function (frame) {
             console.log('Connected: ' + frame);
             subscribeToRoomEnter();
-            stompClient.send("/to/game-room/" + roomId + "/enter", {}, JSON.stringify({memberId: memberId}), connectHeaders);
+            stompClient.send("/to/game-room/" + roomId + "/enter", connectHeaders, JSON.stringify({memberId: memberId}));
             subscribeToRoomExit();
         }, function (error) {
             console.log('Connection error: ' + error);
@@ -47,6 +47,7 @@
     function subscribeToRoomEnter() {
         stompClient.subscribe('/from/game-room/' + roomId + '/enter', function (response) {
             var message = JSON.parse(response.body);
+            console.log(">>>> response " + response);
             console.log('Enter Message: ' + message);
             document.getElementById('response').innerHTML = 'Enter Response: Member ID: ' + message.memberId + ', Nickname: ' + message.nickname;
         });
@@ -65,7 +66,13 @@
     }
 
     function exitGameRoom() {
-        stompClient.send("/to/game-room/" + roomId + "/exit", {}, JSON.stringify({memberId: memberId}));
+        var accessToken = document.getElementById("accessToken").value; // Get the access token from the input field
+        var connectHeaders = {
+            'Authorization': 'Bearer ' + accessToken,
+            'RoomId': roomId,
+        };
+        stompClient.send("/to/game-room/" + roomId + "/exit", connectHeaders, JSON.stringify({memberId: memberId}));
+        stompClient.disconnect();
     }
 
     // Removed automatic connection on page load to allow user to enter token first
