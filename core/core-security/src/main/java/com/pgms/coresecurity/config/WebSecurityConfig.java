@@ -144,6 +144,8 @@ public class WebSecurityConfig {
 	private RequestMatcher[] requestPermitAll() {
 		List<RequestMatcher> requestMatchers = List.of(
 			antMatcher("/"),
+			antMatcher("/swagger-ui/**"),
+			antMatcher("/v3/api-docs/**"),
 			antMatcher("/ws/**"),
 			antMatcher("/from/**"),
 			antMatcher("/to/**"),
