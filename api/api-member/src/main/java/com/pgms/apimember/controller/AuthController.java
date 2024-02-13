@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.pgms.apimember.annotation.SwaggerResponseAuth;
 import com.pgms.apimember.dto.request.LoginRequest;
 import com.pgms.apimember.dto.response.AuthResponse;
 import com.pgms.apimember.service.AuthService;
@@ -17,9 +18,13 @@ import com.pgms.coredomain.response.ApiResponse;
 import com.pgms.coresecurity.jwt.JwtTokenProvider;
 import com.pgms.coresecurity.resolver.CurrentAccount;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
+@Tag(name = "회원 인증", description = "회원 인증 관련 API 입니다.")
+@SwaggerResponseAuth
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/auth")
@@ -28,11 +33,13 @@ public class AuthController {
 	private final AuthService authService;
 	private final JwtTokenProvider jwtTokenProvider;
 
+	@Operation(summary = "로그인")
 	@PostMapping("/login")
 	public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest request) {
 		return ResponseEntity.ok(ApiResponse.of(authService.login(request)));
 	}
 
+	@Operation(summary = "로그아웃")
 	@PostMapping("/logout")
 	public ResponseEntity<ApiResponse<Void>> logout(
 		@RequestHeader("Authorization") String bearerToken,
@@ -42,11 +49,13 @@ public class AuthController {
 		return ResponseEntity.ok(ApiResponse.of(SUCCESS));
 	}
 
+	@Operation(summary = "게스트 로그인")
 	@PostMapping("/guest")
 	public ResponseEntity<ApiResponse<AuthResponse>> guestLogin() {
 		return ResponseEntity.ok(ApiResponse.of(authService.guestLogin()));
 	}
 
+	@Operation(summary = "토큰 재발급")
 	@PostMapping("/reissue")
 	public ResponseEntity<ApiResponse<AuthResponse>> reIssueAccessToken(
 		@CookieValue("refreshToken") String refreshToken) {

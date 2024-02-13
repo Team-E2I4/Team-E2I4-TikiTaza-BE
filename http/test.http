@@ -70,7 +70,8 @@ Authorization: Bearer eyJhbGciOiJIUzM4NCJ9.eyJpZCI6MSwic3ViIjoidGVzdEBuYXZlci5jb
 {
   "title": "빙봉의 게임",
   "maxPlayer": 2,
-  "roundCount": 5
+  "roundCount": 5,
+  "gameType": "SENTENCE"
 }
 
 ### 조회

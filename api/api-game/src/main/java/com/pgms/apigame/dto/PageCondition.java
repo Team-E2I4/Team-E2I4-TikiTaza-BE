@@ -3,6 +3,7 @@ package com.pgms.apigame.dto;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
+import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.AccessLevel;
@@ -28,6 +29,7 @@ public class PageCondition {
 		this.size = Boolean.TRUE.equals(isValidSize(size)) ? size : DEFAULT_SIZE;
 	}
 
+	@Hidden
 	public Pageable getPageable() {
 		return PageRequest.of(this.page - 1, this.size);
 	}
