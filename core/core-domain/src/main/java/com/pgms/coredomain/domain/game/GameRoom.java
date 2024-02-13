@@ -5,7 +5,6 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.pgms.coredomain.domain.common.BaseEntity;
-import com.pgms.coredomain.domain.member.Member;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -34,8 +33,8 @@ public class GameRoom extends BaseEntity {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@Column(name = "owner_id")
-	private Long ownerId;
+	@Column(name = "host_id", nullable = false)
+	private Long hostId;
 
 	@Column(name = "title", nullable = false)
 	private String title;
@@ -55,8 +54,8 @@ public class GameRoom extends BaseEntity {
 	@Column(name = "max_player", nullable = false)
 	private int maxPlayer;
 
-	@Column(name = "is_started", nullable = false)
-	private boolean isStarted;
+	@Column(name = "is_playing", nullable = false)
+	private boolean isPlaying;
 
 	@Column(name = "game_type", nullable = false)
 	@Enumerated(EnumType.STRING)
@@ -64,42 +63,27 @@ public class GameRoom extends BaseEntity {
 
 	@OneToMany(mappedBy = "gameRoom", fetch = FetchType.EAGER)
 	@JsonBackReference
-	List<Member> members = new ArrayList<>();
+	List<GameRoomMember> gameRoomMembers = new ArrayList<>();
 
 	@Builder
 	public GameRoom(
-		Long ownerId,
+		Long hostId,
 		String title,
 		String password,
 		int roundCount,
 		int maxPlayer,
-		boolean isStarted,
 		GameType gameType) {
-		this.ownerId = ownerId;
+		this.hostId = hostId;
 		this.title = title;
 		this.password = password;
 		this.roundCount = roundCount;
 		this.maxPlayer = maxPlayer;
-		this.isStarted = isStarted;
+		this.isPlaying = false;
 		this.gameType = gameType;
 	}
 
-	public void enterGameRoom(Member member) {
-		if (member.getGameRoom() != null) // 이미 방에 들어가있는 경우
-			member.getGameRoom().exitGameRoom(member); // 기존 방을 가져와서 나가기
-		member.setGameRoom(this);
-		this.members.add(member);
-		this.currentPlayer++;
-	}
-
-	public void exitGameRoom(Member member) {
-		this.members.remove(member);
-		member.setGameRoom(null);
-		this.currentPlayer--;
-	}
-
 	public void startGame() {
-		this.isStarted = true;
+		this.isPlaying = true;
 	}
 
 	public boolean isFull() {
@@ -108,5 +92,13 @@ public class GameRoom extends BaseEntity {
 
 	public boolean isPrivate() {
 		return this.password != null;
+	}
+
+	public void enterRoom() {
+		this.currentPlayer++;
+	}
+
+	public void exitRoom() {
+		this.currentPlayer--;
 	}
 }
