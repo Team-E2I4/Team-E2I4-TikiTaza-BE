@@ -1,7 +1,0 @@
-spring:
-  profiles:
-    include: db, security
-    active: test
-
-server:
-  port: 8082
