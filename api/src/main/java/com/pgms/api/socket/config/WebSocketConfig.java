@@ -10,6 +10,7 @@ import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 import org.springframework.web.socket.config.annotation.WebSocketTransportRegistration;
 
+import com.pgms.api.domain.game.service.GameRoomService;
 import com.pgms.api.socket.handler.CustomWebSocketHandlerDecorator;
 import com.pgms.api.socket.handler.FilterChannelInterceptor;
 
@@ -21,6 +22,7 @@ import lombok.RequiredArgsConstructor;
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
 	private final FilterChannelInterceptor filterChannelInterceptor;
+	private final GameRoomService gameRoomService;
 
 	@Override
 	public void registerStompEndpoints(StompEndpointRegistry registry) {
@@ -43,7 +45,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
 	@Bean
 	public CustomWebSocketHandlerDecorator customWebSocketHandlerDecorator(WebSocketHandler webSocketHandler) {
-		return new CustomWebSocketHandlerDecorator(webSocketHandler);
+		return new CustomWebSocketHandlerDecorator(webSocketHandler, gameRoomService);
 	}
 
 	@Override

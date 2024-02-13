@@ -101,4 +101,8 @@ public class GameRoom extends BaseEntity {
 	public void exitRoom() {
 		this.currentPlayer--;
 	}
+
+	public void updateHostId(Long memberId) {
+		this.hostId = memberId;
+	}
 }
