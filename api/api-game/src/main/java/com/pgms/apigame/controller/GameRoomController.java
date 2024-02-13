@@ -13,10 +13,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import com.pgms.apigame.dto.GameRoomCreateRequest;
-import com.pgms.apigame.dto.GameRoomGetResponse;
 import com.pgms.apigame.dto.PageCondition;
-import com.pgms.apigame.dto.PageResponse;
+import com.pgms.apigame.dto.request.GameRoomCreateRequest;
+import com.pgms.apigame.dto.response.GameRoomGetResponse;
+import com.pgms.apigame.dto.response.PageResponse;
 import com.pgms.apigame.service.GameRoomService;
 import com.pgms.coredomain.response.ApiResponse;
 import com.pgms.coresecurity.resolver.CurrentAccount;

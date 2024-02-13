@@ -1,4 +1,4 @@
-package com.pgms.apigame.dto;
+package com.pgms.apigame.dto.response;
 
 import com.pgms.coredomain.domain.game.GameRoom;
 

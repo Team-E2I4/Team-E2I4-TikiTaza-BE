@@ -1,6 +1,7 @@
-package com.pgms.apigame.dto;
+package com.pgms.apigame.dto.request;
 
 import com.pgms.coredomain.domain.game.GameRoom;
+import com.pgms.coredomain.domain.game.GameType;
 
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -25,7 +26,10 @@ public record GameRoomCreateRequest(
 	@NotNull
 	@Min(value = 1, message = "[ERROR] 라운드 횟수는 1회 이상으로 입력해주세요.")
 	@Max(value = 10, message = "[ERROR] 라운드 횟수는 10회 이하로 입력해주세요.")
-	Integer roundCount
+	Integer roundCount,
+
+	@NotNull
+	String gameType
 ) {
 	public GameRoom toEntity(Long ownerId) {
 		return GameRoom.builder()
@@ -34,6 +38,7 @@ public record GameRoomCreateRequest(
 			.maxPlayer(maxPlayer)
 			.roundCount(roundCount)
 			.ownerId(ownerId)
+			.gameType(GameType.of(gameType))
 			.build();
 	}
 }

@@ -1,4 +1,4 @@
-package com.pgms.apigame.exception;
+package com.pgms.apisocket.exception;
 
 import static com.pgms.coredomain.domain.common.GameRoomErrorCode.*;
 
@@ -19,10 +19,10 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RestControllerAdvice
-public class GameGlobalExceptionHandler {
+public class SocketGlobalExceptionHandler {
 
-	@ExceptionHandler(GameException.class)
-	protected ResponseEntity<ErrorResponse> handleGameCustomException(GameException ex) {
+	@ExceptionHandler(SocketException.class)
+	protected ResponseEntity<ErrorResponse> handleGameCustomException(SocketException ex) {
 		log.warn(">>>>> Game Custom Exception : ", ex);
 		BaseErrorCode errorCode = ex.getErrorCode();
 		return ResponseEntity.status(errorCode.getStatus())

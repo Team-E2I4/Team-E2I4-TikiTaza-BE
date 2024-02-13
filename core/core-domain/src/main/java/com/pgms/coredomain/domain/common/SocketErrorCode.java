@@ -7,15 +7,15 @@ import com.pgms.coredomain.response.ErrorResponse;
 import lombok.Getter;
 
 @Getter
-public enum GameErrorCode implements BaseErrorCode {
+public enum SocketErrorCode implements BaseErrorCode {
 
-	GAME_ALREADY_STARTED("gr-400/01", HttpStatus.BAD_REQUEST, "이미 시작된 게임입니다.");
+	SOCKET_ERROR("sock-400/01", HttpStatus.NOT_FOUND, "소켓 에러가 발생했습니다.");
 
 	private final String code;
 	private final HttpStatus status;
 	private final String message;
 
-	GameErrorCode(String code, HttpStatus status, String message) {
+	SocketErrorCode(String code, HttpStatus status, String message) {
 		this.code = code;
 		this.status = status;
 		this.message = message;
