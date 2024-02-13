@@ -31,13 +31,13 @@ public record GameRoomCreateRequest(
 	@NotNull
 	String gameType
 ) {
-	public GameRoom toEntity(Long ownerId) {
+	public GameRoom toEntity(Long hostId) {
 		return GameRoom.builder()
 			.title(title)
 			.password(password)
 			.maxPlayer(maxPlayer)
 			.roundCount(roundCount)
-			.ownerId(ownerId)
+			.hostId(hostId)
 			.gameType(GameType.of(gameType))
 			.build();
 	}

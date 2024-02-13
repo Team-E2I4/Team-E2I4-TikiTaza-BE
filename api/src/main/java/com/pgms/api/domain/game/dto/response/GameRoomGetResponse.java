@@ -4,12 +4,12 @@ import com.pgms.coredomain.domain.game.GameRoom;
 
 public record GameRoomGetResponse(
 	Long id,
-	Long ownerId,
+	Long hostId,
 	String title,
 	String inviteCode,
 	Integer maxPlayer,
 	Integer currentPlayer,
-	boolean isStarted,
+	boolean isPlaying,
 	boolean isPrivate
 
 ) {
@@ -17,12 +17,12 @@ public record GameRoomGetResponse(
 	public static GameRoomGetResponse from(GameRoom gameRoom) {
 		return new GameRoomGetResponse(
 			gameRoom.getId(),
-			gameRoom.getOwnerId(),
+			gameRoom.getHostId(),
 			gameRoom.getTitle(),
 			gameRoom.getInviteCode(),
 			gameRoom.getMaxPlayer(),
 			gameRoom.getCurrentPlayer(),
-			gameRoom.isStarted(),
+			gameRoom.isPlaying(),
 			gameRoom.isPrivate()
 		);
 	}
