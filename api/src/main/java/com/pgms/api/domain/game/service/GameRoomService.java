@@ -134,7 +134,7 @@ public class GameRoomService {
 			leftGameRoomMembers.stream().map(GameRoomMemberGetResponse::from).toList());
 
 		sendingOperations.convertAndSend(
-			"/from/game-room/" + gameRoom.getId() + "/exit",
+			"/from/game-room/" + gameRoom.getId() + "/message",
 			gameRoomMember.getNickname() + "님이 퇴장하셨습니다."
 		);
 		sseEmitters.updateGameRoom(sseService.getRooms());

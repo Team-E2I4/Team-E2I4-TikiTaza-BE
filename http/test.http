@@ -65,7 +65,7 @@ Content-Type: application/json
 ### 방 만들기 > 게임방 멤버 정보 구독 + 세션 ID 저장용 SEND
 POST http://localhost:8080/api/v1/rooms
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzM4NCJ9.eyJpZCI6MSwic3ViIjoidGVzdEBuYXZlci5jb20iLCJpYXQiOjE3MDc4ODU0NTcsImV4cCI6MTcwNzg4NzI1Nywicm9sZXMiOiJST0xFX1VTRVIifQ.SGJkbnJ-2nQTQqddzXiNLhW6Ut31FN_FLH_YjaO-lfLMmaRSuBzWnxR1Tk5VWoXr
+Authorization: Bearer eyJhbGciOiJIUzM4NCJ9.eyJpZCI6MSwic3ViIjoidGVzdEBuYXZlci5jb20iLCJpYXQiOjE3MDc4OTE2OTUsImV4cCI6MTcwNzg5MzQ5NSwicm9sZXMiOiJST0xFX1VTRVIifQ.rkI5aB0jxs6pKA0qxDTf2gNAuYhg6ehc-o1JQzFdwB6OtIsExiq7Qp5RWiwyiENS
 
 {
   "title": "빙봉의 게임",
@@ -77,7 +77,7 @@ Authorization: Bearer eyJhbGciOiJIUzM4NCJ9.eyJpZCI6MSwic3ViIjoidGVzdEBuYXZlci5jb
 ### 게임방 입장
 POST http://localhost:8080/api/v1/rooms/1/enter
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzM4NCJ9.eyJpZCI6Miwic3ViIjoidGVzdDFAbmF2ZXIuY29tIiwiaWF0IjoxNzA3ODg1NTk4LCJleHAiOjE3MDc4ODczOTgsInJvbGVzIjoiUk9MRV9VU0VSIn0.NO3j00a0gVaV3sYDvF02MNUgCgeWkk3Enmjbb9g3DooiMkYVhJdxAQEN4GhoQeX9
+Authorization: Bearer eyJhbGciOiJIUzM4NCJ9.eyJpZCI6Miwic3ViIjoidGVzdDFAbmF2ZXIuY29tIiwiaWF0IjoxNzA3ODkxNzk2LCJleHAiOjE3MDc4OTM1OTYsInJvbGVzIjoiUk9MRV9VU0VSIn0.NXTex3mqmWxl7YARS0Yy94tyZDWaOYvbDuQJ2vNAXc9WTohD9i4_l68NWRk0s5eh
 
 ### 조회
 GET http://localhost:8081/api/v1/rooms?page=1&size=10
