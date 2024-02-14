@@ -49,13 +49,13 @@ public class GameRoomMember {
 		this.readyStatus = readyStatus;
 	}
 
-	public void update(boolean readyStatus) {
-		this.readyStatus = readyStatus;
-	}
-
 	public void update(boolean readyStatus, String webSessionId) {
 		this.readyStatus = readyStatus;
 		this.webSessionId = webSessionId;
+	}
+
+	public void updateReadyStatus(boolean readyStatus) {
+		this.readyStatus = readyStatus;
 	}
 
 	public void updateSessionId(String sessionId) {
