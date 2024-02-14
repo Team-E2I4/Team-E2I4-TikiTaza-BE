@@ -28,5 +28,5 @@ spring:
 
 jwt:
   secret-key: EENY5W0eegTf1naQB2eDeyCLl5kRS2b8xa5c4qLdS0hmVjtbvo8tOyhPMcAmtPuQ
-  access-expiry-seconds: 1800 #30?
+  access-expiry-seconds: 9991800 #30?
   refresh-expiry-seconds: 259200 # ???? ?? ????
