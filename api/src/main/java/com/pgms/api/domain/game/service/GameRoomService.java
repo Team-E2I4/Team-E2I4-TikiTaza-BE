@@ -100,9 +100,7 @@ public class GameRoomService {
 		sseEmitters.updateGameRoom(sseService.getRooms());
 
 		// 현재 게임방 유저에 대한 정보 보냄
-		final List<GameRoomMemberGetResponse> gameRoomMembers = getAllGameRoomMembers(roomId).stream()
-			.map(GameRoomMemberGetResponse::from).toList();
-		sendingOperations.convertAndSend("/from/game-room/" + roomId, gameRoomMembers);
+		sendCurrentMembers(roomId);
 		return roomId;
 	}
 
@@ -127,6 +125,7 @@ public class GameRoomService {
 
 		if (gameRoom.getHostId().equals(gameRoomMember.getMemberId())) {
 			final GameRoomMember nextHost = leftGameRoomMembers.get(0);
+			nextHost.updateReadyStatus(true);
 			gameRoom.updateHostId(nextHost.getMemberId());
 		}
 
@@ -142,20 +141,26 @@ public class GameRoomService {
 	}
 
 	// ============================== 게임방 멤버 세션아이디 변경 ==============================
-	public void updateSessionId(Long roomId, Long memberId, String sessionId) {
+	public void updateSessionId(Long memberId, String sessionId) {
 		// 게임 룸에는 이미 입장한 상태
 		final GameRoomMember gameRoomMember = gameRoomMemberRepository.findByMemberId(memberId)
 			.orElseThrow(() -> new GameException(GameRoomErrorCode.GAME_ROOM_MEMBER_NOT_FOUND));
 		gameRoomMember.updateSessionId(sessionId);
 	}
 
+	// ============================== 게임방 멤버 준비상태 변경 ==============================
+	public void updateReadyStatus(Long roomId, Long memberId) {
+		final GameRoomMember gameRoomMember = gameRoomMemberRepository.findByMemberId(memberId)
+			.orElseThrow(() -> new GameException(GameRoomErrorCode.GAME_ROOM_MEMBER_NOT_FOUND));
+		if (!gameRoomMember.getGameRoom().getHostId().equals(memberId)) {
+			gameRoomMember.updateReadyStatus(!gameRoomMember.isReadyStatus());
+			sendCurrentMembers(roomId);
+		}
+	}
+
 	private GameRoom getGameRoom(Long roomId) {
 		return gameRoomRepository.findById(roomId)
 			.orElseThrow(() -> new GameException(GameRoomErrorCode.GAME_ROOM_NOT_FOUND));
-	}
-
-	private List<GameRoomMember> getAllGameRoomMembers(Long roomId) {
-		return gameRoomMemberRepository.findAllByGameRoomId(roomId);
 	}
 
 	private Member getMember(Long memberId) {
@@ -180,5 +185,13 @@ public class GameRoomService {
 			gameRoomMember.getGameRoom().exitRoom();
 			gameRoomMemberRepository.delete(gameRoomMember);
 		});
+	}
+
+	private void sendCurrentMembers(Long roomId) {
+		final List<GameRoomMemberGetResponse> gameRoomMembers = gameRoomMemberRepository.findAllByGameRoomId(roomId)
+			.stream()
+			.map(GameRoomMemberGetResponse::from)
+			.toList();
+		sendingOperations.convertAndSend("/from/game-room/" + roomId, gameRoomMembers);
 	}
 }

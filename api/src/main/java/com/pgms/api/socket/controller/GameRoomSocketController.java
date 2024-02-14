@@ -3,7 +3,6 @@ package com.pgms.api.socket.controller;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -21,15 +20,25 @@ public class GameRoomSocketController {
 
 	// 게임방 입장 시 세션 아이디 설정
 	@MessageMapping("/game-room/{roomId}/enter")
-	@SendTo("/from/game-room/{roomId}/enter")
 	public void setSessionId(
 		@Header("MemberId") Long memberId,
 		@DestinationVariable Long roomId,
 		SimpMessageHeaderAccessor headerAccessor) {
 		final String sessionId = headerAccessor.getSessionId();
 		log.info(">>>>>> enterGameRoom : roomId = {}, memberId = {}, sessionId = {}", roomId, memberId, sessionId);
-		gameRoomService.updateSessionId(roomId, memberId, sessionId);
+		gameRoomService.updateSessionId(memberId, sessionId);
 	}
+
+	// 게임 준비 처리
+	@MessageMapping("/game-room/{roomId}/ready")
+	public void updateReadyStatus(
+		@Header("MemberId") Long memberId,
+		@DestinationVariable Long roomId) {
+		// 방 아이디로 실제 객체의 start 여부 변경 -> 더이상 입장 못함
+		log.info(">>>>>> Memeber {} Ready !!!");
+		gameRoomService.updateReadyStatus(roomId, memberId);
+	}
+
 	//
 	// // 게임 시작 메시지 처리
 	// @MessageMapping("/game-room/{roomId}/start")
