@@ -38,14 +38,4 @@ public class GameRoomSocketController {
 		log.info(">>>>>> Memeber {} Ready !!!");
 		gameRoomService.updateReadyStatus(roomId, memberId);
 	}
-
-	//
-	// // 게임 시작 메시지 처리
-	// @MessageMapping("/game-room/{roomId}/start")
-	// @SendTo("/from/game-room/{roomId}/enter")
-	// public GameStartResponse startGame(@DestinationVariable Long roomId) {
-	// 	// 방 아이디로 실제 객체의 start 여부 변경 -> 더이상 입장 못함
-	// 	log.info(">>>>>> Game Start !!!");
-	// 	return gameRoomSocketService.startGame(roomId);
-	// }
 }

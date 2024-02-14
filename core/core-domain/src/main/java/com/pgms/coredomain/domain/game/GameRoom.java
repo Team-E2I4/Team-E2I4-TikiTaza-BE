@@ -82,8 +82,8 @@ public class GameRoom extends BaseEntity {
 		this.gameType = gameType;
 	}
 
-	public void startGame() {
-		this.isPlaying = true;
+	public void updateGameRoomStatus(boolean status) {
+		this.isPlaying = status;
 	}
 
 	public boolean isFull() {
@@ -92,6 +92,10 @@ public class GameRoom extends BaseEntity {
 
 	public boolean isPrivate() {
 		return this.password != null;
+	}
+
+	public boolean isAllReady() {
+		return gameRoomMembers.stream().allMatch(GameRoomMember::isReadyStatus);
 	}
 
 	public void enterRoom() {
