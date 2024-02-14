@@ -19,7 +19,7 @@ public class GameRoomSocketController {
 
 	private final GameRoomService gameRoomService;
 
-	// 세션 ID를 게임 룸 멤버에 추가
+	// 게임방 입장 시 세션 아이디 설정
 	@MessageMapping("/game-room/{roomId}/enter")
 	@SendTo("/from/game-room/{roomId}/enter")
 	public void setSessionId(
@@ -28,18 +28,8 @@ public class GameRoomSocketController {
 		SimpMessageHeaderAccessor headerAccessor) {
 		final String sessionId = headerAccessor.getSessionId();
 		log.info(">>>>>> enterGameRoom : roomId = {}, memberId = {}, sessionId = {}", roomId, memberId, sessionId);
-		gameRoomService.enterSessionId(roomId, memberId, sessionId);
+		gameRoomService.updateSessionId(roomId, memberId, sessionId);
 	}
-	//
-	// // 게임방 퇴장
-	// @MessageMapping("/game-room/{roomId}/exit")
-	// @SendTo("/from/game-room/{roomId}/exit")
-	// public GameRoomExitResponse exitGameRoom(
-	// 	@Header("MemberId") Long memberId,
-	// 	@DestinationVariable Long roomId) {
-	// 	log.info(">>>>>> exitGameRoom : roomId = {}, memberId = {}", roomId, memberId);
-	// 	return gameRoomSocketService.exitGameRoom(roomId, memberId);
-	// }
 	//
 	// // 게임 시작 메시지 처리
 	// @MessageMapping("/game-room/{roomId}/start")

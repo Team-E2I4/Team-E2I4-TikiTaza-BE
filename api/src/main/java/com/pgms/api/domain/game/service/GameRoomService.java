@@ -2,6 +2,7 @@ package com.pgms.api.domain.game.service;
 
 import java.util.List;
 
+import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,7 +35,7 @@ public class GameRoomService {
 	private final GameRoomMemberRepository gameRoomMemberRepository;
 	private final SseEmitters sseEmitters;
 	private final SseService sseService;
-	// private final SimpMessageSendingOperations sendingOperations;
+	private final SimpMessageSendingOperations sendingOperations;
 
 	// ============================== 게임방 생성 ==============================
 	public Long createRoom(Long memberId, GameRoomCreateRequest request) {
@@ -101,14 +102,15 @@ public class GameRoomService {
 		// 현재 게임방 유저에 대한 정보 보냄
 		final List<GameRoomMemberGetResponse> gameRoomMembers = getAllGameRoomMembers(roomId).stream()
 			.map(GameRoomMemberGetResponse::from).toList();
-		// sendingOperations.convertAndSend("/from/game-room/" + roomId, gameRoomMembers);
+		sendingOperations.convertAndSend("/from/game-room/" + roomId, gameRoomMembers);
 		return roomId;
 	}
 
+	// ============================== 게임방 퇴장 ==============================
 	public void exitGameRoom(String sessionId) {
 		// 세션 ID로 게임방 멤버 찾아서 제거
 		final GameRoomMember gameRoomMember = gameRoomMemberRepository.findByWebSessionId(sessionId)
-			.orElseThrow(() -> new IllegalArgumentException("게임 룸 멤버를 찾을 수 없습니다."));
+			.orElseThrow(() -> new GameException(GameRoomErrorCode.GAME_ROOM_MEMBER_NOT_FOUND));
 		final GameRoom gameRoom = gameRoomMember.getGameRoom();
 
 		gameRoomMemberRepository.delete(gameRoomMember);
@@ -122,25 +124,29 @@ public class GameRoomService {
 
 		// 방장이 나갔으면 다음 방장 지정
 		final List<GameRoomMember> leftGameRoomMembers = gameRoomMemberRepository.findAllByGameRoomId(gameRoom.getId());
+
 		if (gameRoom.getHostId().equals(gameRoomMember.getMemberId())) {
 			final GameRoomMember nextHost = leftGameRoomMembers.get(0);
 			gameRoom.updateHostId(nextHost.getMemberId());
 		}
 
 		// 구독된 사람들에게 메세지
-		// sendingOperations.convertAndSend("/from/game-room/" + gameRoom.getId(), leftGameRoomMembers);
-		// sendingOperations.convertAndSend(
-		// 	"/from/game-room/" + gameRoom.getId() + "/exit",
-		// 	gameRoomMember.getNickname() + "님이 퇴장하셨습니다."
-		// );
+		sendingOperations.convertAndSend("/from/game-room/" + gameRoom.getId(),
+			leftGameRoomMembers.stream().map(GameRoomMemberGetResponse::from).toList());
+
+		sendingOperations.convertAndSend(
+			"/from/game-room/" + gameRoom.getId() + "/exit",
+			gameRoomMember.getNickname() + "님이 퇴장하셨습니다."
+		);
 		sseEmitters.updateGameRoom(sseService.getRooms());
 	}
 
-	public void enterSessionId(Long roomId, Long memberId, String sessionId) {
+	// ============================== 게임방 멤버 세션아이디 변경 ==============================
+	public void updateSessionId(Long roomId, Long memberId, String sessionId) {
 		// 게임 룸에는 이미 입장한 상태
 		final GameRoomMember gameRoomMember = gameRoomMemberRepository.findByMemberId(memberId)
-			.orElseThrow(() -> new IllegalArgumentException("게임 룸 멤버를 찾을 수 없습니다."));
-		gameRoomMember.setSessionId(sessionId);
+			.orElseThrow(() -> new GameException(GameRoomErrorCode.GAME_ROOM_MEMBER_NOT_FOUND));
+		gameRoomMember.updateSessionId(sessionId);
 	}
 
 	private GameRoom getGameRoom(Long roomId) {

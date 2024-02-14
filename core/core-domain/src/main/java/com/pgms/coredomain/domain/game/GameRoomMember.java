@@ -57,8 +57,8 @@ public class GameRoomMember {
 		this.readyStatus = readyStatus;
 		this.webSessionId = webSessionId;
 	}
-	
-	public void setSessionId(String sessionId) {
+
+	public void updateSessionId(String sessionId) {
 		this.webSessionId = sessionId;
 	}
 }
