@@ -3,6 +3,7 @@ package com.pgms.api.socket.dto;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.pgms.api.domain.game.dto.response.GameRoomGetResponse;
 import com.pgms.api.domain.game.dto.response.GameRoomMemberGetResponse;
 import com.pgms.api.util.Utils;
 
@@ -18,12 +19,11 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Message {
-	private Long senderId;        // 보내는 유저 UUID
-	private MessageType type;    // 메시지 타입
-	private Long room;            // roomId
-	private List<GameRoomMemberGetResponse> otherMembers;    // 해당 방에 본인을 제외한 전체 유저
-	private List<GameRoomMemberGetResponse> allMembers;        // 해당 방에 본인을 포함한 전체 유저
-	private Long exitMemberId;        // 나간 유저
+	private MessageType type;                                 // 메시지 타입
+	private Long roomId;                                      // 게임방 아이디
+	private Long exitMemberId;                                // 나간 유저
+	private GameRoomGetResponse roomInfo;                     // 게임방 정보
+	private List<GameRoomMemberGetResponse> allMembers;       // 해당 방에 본인을 포함한 전체 유저
 
 	public String toJson() {
 		return Utils.getString(this);

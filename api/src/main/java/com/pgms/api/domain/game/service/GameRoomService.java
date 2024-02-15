@@ -7,13 +7,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.pgms.api.domain.game.dto.request.GameRoomCreateRequest;
+import com.pgms.api.domain.game.dto.response.GameRoomGetResponse;
 import com.pgms.api.domain.game.dto.response.GameRoomMemberGetResponse;
 import com.pgms.api.exception.GameException;
 import com.pgms.api.socket.dto.Message;
 import com.pgms.api.socket.dto.MessageType;
 import com.pgms.api.sse.SseEmitters;
 import com.pgms.api.sse.service.SseService;
-import com.pgms.api.util.Utils;
 import com.pgms.coredomain.domain.common.GameErrorCode;
 import com.pgms.coredomain.domain.common.GameRoomErrorCode;
 import com.pgms.coredomain.domain.common.MemberErrorCode;
@@ -105,8 +105,8 @@ public class GameRoomService {
 		return roomId;
 	}
 
-	// ============================== 입장 후 게임방 멤버 세션아이디 설정 ==============================
-	public void updateSessionId(Long roomId, Long memberId, String sessionId) {
+	// ============================== 입장 후 게임방 멤버 세션 아이디 설정 ==============================
+	public void updateSessionId(Long memberId, String sessionId) {
 
 		// 게임 룸에는 이미 입장한 상태
 		final GameRoomMember gameRoomMember = gameRoomMemberRepository.findByMemberId(memberId)
@@ -114,7 +114,7 @@ public class GameRoomService {
 		gameRoomMember.updateSessionId(sessionId);
 
 		// 현재 게임방 유저에 대한 정보 보냄
-		sendCurrentMembers(roomId, MessageType.ENTER);
+		sendGameRoomInfo(gameRoomMember.getGameRoom(), MessageType.ENTER);
 	}
 
 	// ============================== 게임방 퇴장 ==============================
@@ -146,7 +146,7 @@ public class GameRoomService {
 		sendingOperations.convertAndSend("/from/game-room/" + gameRoom.getId(),
 			Message.builder()
 				.type(MessageType.EXIT)
-				.room(gameRoom.getId())
+				.roomId(gameRoom.getId())
 				.allMembers(leftGameRoomMembers.stream().map(GameRoomMemberGetResponse::from).toList())
 				.exitMemberId(gameRoomMember.getMemberId())
 				.build()
@@ -156,13 +156,13 @@ public class GameRoomService {
 		sseEmitters.updateGameRoom(sseService.getRooms());
 	}
 
-	// ============================== 게임방 멤버 준비상태 변경 ==============================
+	// ============================== 게임방 멤버 준비 상태 변경 ==============================
 	public void updateReadyStatus(Long roomId, Long memberId) {
 		final GameRoomMember gameRoomMember = gameRoomMemberRepository.findByMemberId(memberId)
 			.orElseThrow(() -> new GameException(GameRoomErrorCode.GAME_ROOM_MEMBER_NOT_FOUND));
 		if (!gameRoomMember.getGameRoom().getHostId().equals(memberId)) {
 			gameRoomMember.updateReadyStatus(!gameRoomMember.isReadyStatus());
-			sendCurrentMembers(roomId, MessageType.READY);
+			sendGameRoomInfo(gameRoomMember.getGameRoom(), MessageType.READY);
 		}
 	}
 
@@ -189,7 +189,7 @@ public class GameRoomService {
 		sendingOperations.convertAndSend("/from/game-room/" + roomId,
 			Message.builder()
 				.type(MessageType.KICKED)
-				.room(gameRoom.getId())
+				.roomId(gameRoom.getId())
 				.allMembers(leftGameRoomMembers.stream().map(GameRoomMemberGetResponse::from).toList())
 				.exitMemberId(kickedId)
 				.build()
@@ -227,24 +227,20 @@ public class GameRoomService {
 		});
 	}
 
-	private void sendCurrentMembers(Long roomId, MessageType type) {
+	private void sendGameRoomInfo(GameRoom gameRoom, MessageType type) {
+		Long roomId = gameRoom.getId();
 		final List<GameRoomMemberGetResponse> gameRoomMembers = gameRoomMemberRepository.findAllByGameRoomId(roomId)
 			.stream()
 			.map(GameRoomMemberGetResponse::from)
 			.toList();
 
-		log.info(Utils.getString(
-			Message.builder()
-				.type(type)
-				.room(roomId)
-				.allMembers(gameRoomMembers)
-				.build()));
 		sendingOperations.convertAndSend(
 			"/from/game-room/" + roomId,
 			Message.builder()
 				.type(type)
-				.room(roomId)
+				.roomId(roomId)
 				.allMembers(gameRoomMembers)
+				.roomInfo(GameRoomGetResponse.from(gameRoom))
 				.build()
 				.toJson()
 		);
