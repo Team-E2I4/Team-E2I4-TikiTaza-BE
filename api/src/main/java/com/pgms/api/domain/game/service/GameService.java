@@ -71,10 +71,16 @@ public class GameService {
 
 	// ============================== 게임 중 실시간 업데이트 통신 ==============================
 	public void updateGameInfoInRealTime(Long memberId, Long roomId, GameInfoUpdateRequest gameInfoUpdateRequest) {
+		//
 	}
 
 	// ============================== 게임 종료 ==============================
 	public void finishGame(Long memberId, Long roomId) {
+		// 게임방에 있는 모두가 게임 종료를 누르면 게임 종료 처리
+		// 응답으로는 게임 결과를 뿌린다
+	}
+
+	public void roundStart(Long roomId, Long memberId) {
 	}
 
 	private GameRoom getGameRoom(Long roomId) {
@@ -86,4 +92,5 @@ public class GameService {
 		return gameRoomMemberRepository.findById(memberId)
 			.orElseThrow(() -> new GameException(GameRoomErrorCode.GAME_ROOM_MEMBER_NOT_FOUND));
 	}
+
 }

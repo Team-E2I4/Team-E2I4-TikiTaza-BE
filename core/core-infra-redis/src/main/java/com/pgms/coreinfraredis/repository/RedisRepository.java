@@ -14,14 +14,21 @@ public class RedisRepository {
 
 	private static final int REFRESH_TOKEN_TIME_OUT_DAYS = 7;
 	private static final int BLACKLIST_TIME_OUT_MINUTES = 30;
+	private static final int IN_GAME_INFO_TIME_OUT_MINUTES = 30;
 
 	private final RedisTemplate<String, Object> redisTemplate;
 	private final RedisTemplate<String, Object> redisBlackListTemplate;
 
-	public void save(String key, Object value) {
+	public void saveRefreshToken(String key, Object value) {
 		ValueOperations<String, Object> valueOperations = redisTemplate.opsForValue();
 		valueOperations.set(key, value);
 		redisTemplate.expire(key, REFRESH_TOKEN_TIME_OUT_DAYS, TimeUnit.DAYS);
+	}
+
+	public void saveInGameInfo(String key, Object value) {
+		ValueOperations<String, Object> valueOperations = redisTemplate.opsForValue();
+		valueOperations.set(key, value);
+		redisTemplate.expire(key, IN_GAME_INFO_TIME_OUT_MINUTES, TimeUnit.MINUTES);
 	}
 
 	public Object get(String key) {
