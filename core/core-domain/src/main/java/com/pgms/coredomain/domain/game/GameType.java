@@ -4,14 +4,16 @@ import lombok.Getter;
 
 @Getter
 public enum GameType {
-	SENTENCE("문장 따라치기"),
-	CODE("코드 따라치기"),
-	WORD("짧은 단어");
+	SENTENCE("문장 따라치기", 10),
+	CODE("코드 따라치기", 1),
+	WORD("짧은 단어", 50);
 
 	private final String description;
+	private final int questionCount;
 
-	GameType(String description) {
+	GameType(String description, int questionCount) {
 		this.description = description;
+		this.questionCount = questionCount;
 	}
 
 	public static GameType of(String input) {

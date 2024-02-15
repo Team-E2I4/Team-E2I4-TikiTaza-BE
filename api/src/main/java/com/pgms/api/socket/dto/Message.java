@@ -24,6 +24,7 @@ public class Message {
 	private Long exitMemberId;                                // 나간 유저
 	private GameRoomGetResponse roomInfo;                     // 게임방 정보
 	private List<GameRoomMemberGetResponse> allMembers;       // 해당 방에 본인을 포함한 전체 유저
+	private List<GameQuestionGetResponse> questions;                           // 게임 질문 리스트
 
 	public String toJson() {
 		return Utils.getString(this);
