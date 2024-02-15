@@ -10,8 +10,8 @@ spring:
             user-name-attribute: id
         registration:
           kakao:
-            client-id: <<>>
-            client-secret: <<>>
+            client-id: ${OAUTH_KAKAO_CLIENT_ID}
+            client-secret: ${OAUTH_KAKAO_SECRET_ID}
             client-authentication-method: client_secret_post
             redirect-uri: http://localhost:8080/login/oauth2/code/kakao
             authorization-grant-type: authorization_code
@@ -20,13 +20,13 @@ spring:
               - profile_nickname
               - account_email
           google:
-            client-id: <<>>
-            client-secret: <<>>
+            client-id: ${OAUTH_GOOGLE_CLIENT_ID}
+            client-secret: ${OAUTH_GOOGLE_SECRET_ID}
             scope:
               - email
               - profile
 
 jwt:
-  secret-key: EENY5W0eegTf1naQB2eDeyCLl5kRS2b8xa5c4qLdS0hmVjtbvo8tOyhPMcAmtPuQ
-  access-expiry-seconds: 1800 #30?
-  refresh-expiry-seconds: 259200 # ???? ?? ????
+  secret-key: ${JWT_SECRET_KEY}
+  access-expiry-seconds: ${ACEESS_EXPIRY_SECONDS}
+  refresh-expiry-seconds: ${REFRESH_EXPIRY_SECONDS}
