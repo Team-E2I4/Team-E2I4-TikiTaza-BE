@@ -127,6 +127,7 @@ public class JwtTokenProvider {
 	}
 
 	public void validateAccessToken(String accessToken) {
+		log.info(">>>>>>>>>>>>>>>>>>>>>> accessToken {}", accessToken);
 		Jwts.parser()
 			.verifyWith(extractSecretKey())
 			.build()

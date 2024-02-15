@@ -1,46 +1,15 @@
-### 회원가입
-POST http://localhost:8080/api/v1/members/sign-up
-Content-Type: application/json
-
-{
-  "email": "test@naver.com",
-  "password": "123456",
-  "passwordConfirm": "123456",
-  "nickname": "빙봉"
-}
-
-### 회원가입2
+### 회원가입 (6번까지 존재)
 POST http://localhost:8080/api/v1/members/sign-up
 Content-Type: application/json
 
 {
   "email": "test1@naver.com",
-  "password": "123456",
-  "passwordConfirm": "123456",
-  "nickname": "장주영"
-}
-
-### 회원가입3
-POST http://localhost:8080/api/v1/members/sign-up
-Content-Type: application/json
-
-{
-  "email": "test2@naver.com",
   "password": "123456",
   "passwordConfirm": "123456",
   "nickname": "박영재"
 }
 
-###
-POST http://localhost:8080/api/v1/auth/login
-Content-Type: application/json
-
-{
-  "email": "test@naver.com",
-  "password": "123456"
-}
-
-###
+### 1번 로그인
 POST http://localhost:8080/api/v1/auth/login
 Content-Type: application/json
 
@@ -49,7 +18,7 @@ Content-Type: application/json
   "password": "123456"
 }
 
-###
+### 2번 로그인
 POST http://localhost:8080/api/v1/auth/login
 Content-Type: application/json
 
@@ -58,14 +27,10 @@ Content-Type: application/json
   "password": "123456"
 }
 
-<> 2024-02-08T215253.200.json
-<> 2024-02-08T214523.200.json
-<> 2024-02-08T214506.500.json
-
 ### 방 만들기 > 게임방 멤버 정보 구독 + 세션 ID 저장용 SEND
 POST http://localhost:8080/api/v1/rooms
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzM4NCJ9.eyJpZCI6MSwic3ViIjoidGVzdEBuYXZlci5jb20iLCJpYXQiOjE3MDc5MjM5MjUsImV4cCI6MTcxNzkxNTcyNSwicm9sZXMiOiJST0xFX1VTRVIifQ.Ohpy1dtvrKCdyvVcvlvM2QuiKo1uC2BVxRREx-WcUh7ClfmI9-GTtOnVqHwx2DS8
+Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpZCI6Miwic3ViIjoidGVzdDFAbmF2ZXIuY29tIiwiaWF0IjoxNzA3OTYyNTI3LCJleHAiOjI3MDc5NTQzMjcsInJvbGVzIjoiUk9MRV9VU0VSIn0.73a4nhZRTHfjvO-7DSX6GtRYYTRmhsndHLv1hxErMtw1oZMlCGOnf99oskRFT8oWpKFDl_5DwLSsUdeVJ6Vk5Q
 
 {
   "title": "빙봉의 게임",
@@ -77,7 +42,4 @@ Authorization: Bearer eyJhbGciOiJIUzM4NCJ9.eyJpZCI6MSwic3ViIjoidGVzdEBuYXZlci5jb
 ### 게임방 입장
 POST http://localhost:8080/api/v1/rooms/1/enter
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzM4NCJ9.eyJpZCI6Miwic3ViIjoidGVzdDFAbmF2ZXIuY29tIiwiaWF0IjoxNzA3OTI0MTIwLCJleHAiOjE3MTc5MTU5MjAsInJvbGVzIjoiUk9MRV9VU0VSIn0.CyU-p7FcUCtgz5sA84E_9R6sd6TWW-ZsShVuo61qgRjqVCUTxYApbizjfPzxrgbd
-
-### 조회
-GET http://localhost:8081/api/v1/rooms?page=1&size=10
+Authorization: Bearer Bearer eyJhbGciOiJIUzUxMiJ9.eyJpZCI6Mywic3ViIjoidGVzdDJAbmF2ZXIuY29tIiwiaWF0IjoxNzA3OTYxOTk3LCJleHAiOjI3MDc5NTM3OTcsInJvbGVzIjoiUk9MRV9VU0VSIn0.mEh1VG8je-X0aeKs-Gfqp__b2lro_qt9OjL5htcTjzARlUYV0GFON-w5Rh8KkqE9-Yq817Hul0Fn2YEQyha9rg
