@@ -13,14 +13,15 @@ spring:
     hibernate:
       ddl-auto: create-drop
     open-in-view: false
-
+    defer-datasource-initialization: true
+  
   sql:
     init:
       mode: never
 
 logging:
   level:
-    org.hibernate.SQL: INFO
+    org.hibernate.SQL: DEBUG
 
 ---
 
@@ -33,18 +34,21 @@ spring:
     url: jdbc:mysql://${AWS_RDS_URL}
     username: ${AWS_RDS_USERNAME}
     password: ${AWS_RDS_PASSWORD}
+
   jpa:
     database-platform: org.hibernate.dialect.MySQLDialect
     show-sql: true
     hibernate:
-      ddl-auto: update
+      ddl-auto: create-drop
     open-in-view: false
+    defer-datasource-initialization: true
 
   sql:
     init:
-      mode: never
+      mode: always
+      data-locations: classpath:db/data.sql
 
 logging:
   level:
-    org.hibernate.SQL: INFO
+    org.hibernate.SQL: DEBUG
 
