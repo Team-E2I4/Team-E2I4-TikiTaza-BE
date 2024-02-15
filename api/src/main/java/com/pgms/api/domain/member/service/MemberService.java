@@ -7,7 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.pgms.api.domain.member.dto.request.MemberSignUpRequest;
 import com.pgms.api.domain.member.dto.request.NicknameUpdateRequest;
 import com.pgms.api.domain.member.dto.response.MemberGetResponse;
-import com.pgms.api.domain.member.exception.MemberException;
+import com.pgms.api.exception.MemberException;
 import com.pgms.coredomain.domain.common.MemberErrorCode;
 import com.pgms.coredomain.domain.member.Member;
 import com.pgms.coredomain.repository.MemberRepository;

@@ -4,7 +4,9 @@ import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.pgms.api.domain.game.exception.GameException;
+import com.pgms.api.exception.GameException;
+import com.pgms.api.socket.dto.Message;
+import com.pgms.api.socket.dto.MessageType;
 import com.pgms.api.sse.SseEmitters;
 import com.pgms.api.sse.service.SseService;
 import com.pgms.coredomain.domain.common.GameRoomErrorCode;
@@ -44,8 +46,11 @@ public class GameService {
 
 			// 게임 시작 메세지 뿌리기
 			sendingOperations.convertAndSend(
-				"/from/game-room/" + gameRoom.getId() + "/message",
-				"게임이 시작되었습니다."
+				"/from/game-room/" + gameRoom.getId(),
+				Message.builder()
+					.type(MessageType.START)
+					.build()
+					.toJson()
 			);
 
 			// 방 정보 뿌리기 -> 게임 중인 방은 로비에서 보이면 안되니까
@@ -53,8 +58,11 @@ public class GameService {
 		} else {
 			// 실패 메세지 뿌리기
 			sendingOperations.convertAndSend(
-				"/from/game-room/" + gameRoom.getId() + "/message",
-				"모든 플레이어가 준비 되지 않아 게임을 시작할 수 없습니다."
+				"/from/game-room/" + gameRoom.getId(),
+				Message.builder()
+					.type(MessageType.START_DENIED)
+					.build()
+					.toJson()
 			);
 		}
 	}
