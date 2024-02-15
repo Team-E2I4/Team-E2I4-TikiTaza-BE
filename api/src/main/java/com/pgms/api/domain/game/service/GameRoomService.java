@@ -8,7 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.pgms.api.domain.game.dto.request.GameRoomCreateRequest;
 import com.pgms.api.domain.game.dto.response.GameRoomMemberGetResponse;
-import com.pgms.api.domain.game.exception.GameException;
+import com.pgms.api.exception.GameException;
 import com.pgms.api.socket.dto.Message;
 import com.pgms.api.socket.dto.MessageType;
 import com.pgms.api.sse.SseEmitters;
@@ -152,7 +152,7 @@ public class GameRoomService {
 				.build()
 				.toJson()
 		);
-		
+
 		sseEmitters.updateGameRoom(sseService.getRooms());
 	}
 
@@ -166,14 +166,46 @@ public class GameRoomService {
 		}
 	}
 
-	private GameRoom getGameRoom(Long roomId) {
-		return gameRoomRepository.findById(roomId)
-			.orElseThrow(() -> new GameException(GameRoomErrorCode.GAME_ROOM_NOT_FOUND));
+	// ============================== 게임방 멤버 강퇴 ==============================
+	public void kickGameRoomMember(Long roomId, Long memberId, Long kickedId) {
+		final GameRoom gameRoom = getGameRoom(roomId);
+
+		// 시작버튼 누른 유저 검증 (있는 유저인지 & 방장인지)
+		if (!gameRoom.getHostId().equals(memberId)) {
+			throw new GameException(GameRoomErrorCode.GAME_ROOM_HOST_MISMATCH);
+		}
+
+		// 강퇴 당하는 유저 존재하는지 검증
+		final GameRoomMember kickedMember = gameRoomMemberRepository.findByMemberId(kickedId)
+			.orElseThrow(() -> new GameException(GameRoomErrorCode.GAME_ROOM_MEMBER_NOT_FOUND));
+
+		// GameRoomMember에서 강퇴 당한 유저 삭제 처리
+		gameRoomMemberRepository.delete(kickedMember);
+
+		// GameRoomMember 리스트 가져오기
+		List<GameRoomMember> leftGameRoomMembers = gameRoomMemberRepository.findAllByGameRoomId(roomId);
+
+		// 방장이면 -> 강퇴 처리 (메시지 던지기)
+		sendingOperations.convertAndSend("/from/game-room/" + roomId,
+			Message.builder()
+				.type(MessageType.KICKED)
+				.room(gameRoom.getId())
+				.allMembers(leftGameRoomMembers.stream().map(GameRoomMemberGetResponse::from).toList())
+				.exitMemberId(kickedId)
+				.build()
+				.toJson());
+
+		sseEmitters.updateGameRoom(sseService.getRooms());
 	}
 
 	private Member getMember(Long memberId) {
 		return memberRepository.findById(memberId)
 			.orElseThrow(() -> new GameException(MemberErrorCode.MEMBER_NOT_FOUND));
+	}
+
+	private GameRoom getGameRoom(Long roomId) {
+		return gameRoomRepository.findById(roomId)
+			.orElseThrow(() -> new GameException(GameRoomErrorCode.GAME_ROOM_NOT_FOUND));
 	}
 
 	private void validateGameRoomEnableEnter(GameRoom gameRoom) {

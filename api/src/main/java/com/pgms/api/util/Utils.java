@@ -18,9 +18,9 @@ public class Utils {
 	}
 
 	// Java Object -> JSON (serialization)
-	public static String getString(final Message message) {
+	public static <T> String getString(final T object) {
 		try {
-			return objectMapper.writeValueAsString(message);
+			return objectMapper.writeValueAsString(object);
 		} catch (JsonProcessingException e) {
 			throw new RuntimeException(e);
 		}
