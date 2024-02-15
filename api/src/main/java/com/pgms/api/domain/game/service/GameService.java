@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.pgms.api.exception.GameException;
+import com.pgms.api.socket.dto.GameInfoUpdateRequest;
 import com.pgms.api.socket.dto.Message;
 import com.pgms.api.socket.dto.MessageType;
 import com.pgms.api.sse.SseEmitters;
@@ -30,6 +31,7 @@ public class GameService {
 	private final SseService sseService;
 	private final SimpMessageSendingOperations sendingOperations;
 
+	// ============================== 게임 시작 ==============================
 	public void startGame(Long roomId, Long memberId) {
 		// 현재 방 정보 가져오기
 		final GameRoom gameRoom = getGameRoom(roomId);
@@ -65,6 +67,14 @@ public class GameService {
 					.toJson()
 			);
 		}
+	}
+
+	// ============================== 게임 중 실시간 업데이트 통신 ==============================
+	public void updateGameInfoInRealTime(Long memberId, Long roomId, GameInfoUpdateRequest gameInfoUpdateRequest) {
+	}
+
+	// ============================== 게임 종료 ==============================
+	public void finishGame(Long memberId, Long roomId) {
 	}
 
 	private GameRoom getGameRoom(Long roomId) {

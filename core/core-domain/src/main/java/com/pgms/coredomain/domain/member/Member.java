@@ -46,6 +46,15 @@ public class Member extends BaseEntity {
 	@Column(name = "provider")
 	private ProviderType providerType;
 
+	@Column(name = "total_score")
+	private int totalScore;
+
+	@Column(name = "average_wpm")
+	private int averageWpm;
+
+	@Column(name = "average_accuracy")
+	private int averageAccuracy;
+
 	@Builder
 	public Member(String email, String password, String nickname, ProviderType providerType, Role role) {
 		this.email = email;
@@ -66,5 +75,11 @@ public class Member extends BaseEntity {
 
 	public void setNickname(String nickname) {
 		this.nickname = nickname;
+	}
+
+	public void updatePersonalRecord(int totalScore, int averageWpm, int averageAccuracy) {
+		this.totalScore = totalScore;
+		this.averageWpm = averageWpm;
+		this.averageAccuracy = averageAccuracy;
 	}
 }
