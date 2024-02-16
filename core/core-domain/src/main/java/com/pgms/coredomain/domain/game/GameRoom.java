@@ -45,8 +45,8 @@ public class GameRoom extends BaseEntity {
 	@Column(name = "invite_code")
 	private String inviteCode;
 
-	@Column(name = "round_count", nullable = false)
-	private int roundCount;
+	@Column(name = "round", nullable = false)
+	private int round;
 
 	@Column(name = "current_player", nullable = false)
 	private int currentPlayer;
@@ -70,13 +70,13 @@ public class GameRoom extends BaseEntity {
 		Long hostId,
 		String title,
 		String password,
-		int roundCount,
+		int round,
 		int maxPlayer,
 		GameType gameType) {
 		this.hostId = hostId;
 		this.title = title;
 		this.password = password;
-		this.roundCount = roundCount;
+		this.round = round;
 		this.maxPlayer = maxPlayer;
 		this.isPlaying = false;
 		this.gameType = gameType;

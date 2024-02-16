@@ -1,16 +1,20 @@
 package com.pgms.api.domain.game.service;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.data.domain.PageRequest;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.pgms.api.domain.game.dto.response.GameInfoUpdateResponse;
+import com.pgms.api.domain.game.dto.response.GameQuestionGetResponse;
 import com.pgms.api.domain.game.dto.response.GameRoomMemberGetResponse;
 import com.pgms.api.exception.GameException;
+import com.pgms.api.socket.controller.dto.WordGameInfoUpdateRequest;
+import com.pgms.api.socket.dto.GameFinishRequest;
 import com.pgms.api.socket.dto.GameInfoUpdateRequest;
-import com.pgms.api.socket.dto.GameQuestionGetResponse;
 import com.pgms.api.socket.dto.Message;
 import com.pgms.api.socket.dto.MessageType;
 import com.pgms.api.sse.SseEmitters;
@@ -23,6 +27,7 @@ import com.pgms.coredomain.repository.GameInfoRepository;
 import com.pgms.coredomain.repository.GameQuestionRepository;
 import com.pgms.coredomain.repository.GameRoomMemberRepository;
 import com.pgms.coredomain.repository.GameRoomRepository;
+import com.pgms.coreinfraredis.repository.RedisRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,6 +42,7 @@ public class GameService {
 	private final GameRoomMemberRepository gameRoomMemberRepository;
 	private final GameQuestionRepository gameQuestionRepository;
 	private final GameInfoRepository gameInfoRepository;
+	private final RedisRepository redisRepository;
 	private final SseEmitters sseEmitters;
 	private final SseService sseService;
 	private final SimpMessageSendingOperations sendingOperations;
@@ -80,21 +86,18 @@ public class GameService {
 	}
 
 	// ============================== 모두 입장한걸 확인하고 문제와 유저 정보 전송 ==============================
-	public void roundStart(Long roomId, Long memberId) {
+	public void roundStart(Long roomId) {
 		final GameInfo gameInfo = getGameInfo(roomId);
 		final GameRoom gameRoom = getGameRoom(roomId);
 
 		// 카운트만 올려줌
 		gameInfo.enter();
 
+		// 입장인원 == GameRoom.getMemberCount 진짜시작 / 제출인원 == GameRoom.getMemberCount 진짜 다음라운드
+		// 전부 입장했다 -> 문제와 유저 정보 전송 (진짜 시작) /from/game/{roomId}/round-start
 		if (gameInfo.isAllEntered(gameRoom.getCurrentPlayer())) {
 			// 문제와 유저 정보 전송
-			final GameType gameType = gameRoom.getGameType();
-			final List<GameQuestionGetResponse> questions = gameQuestionRepository.findByGameTypeAndCount(gameType,
-					PageRequest.of(0, gameType.getQuestionCount()))
-				.stream()
-				.map(GameQuestionGetResponse::of)
-				.toList();
+			final List<GameQuestionGetResponse> questions = getGameQuestions(gameRoom);
 
 			final List<GameRoomMemberGetResponse> gameRoomMembers = gameRoomMemberRepository.findAllByGameRoomId(roomId)
 				.stream()
@@ -109,22 +112,97 @@ public class GameService {
 					.questions(questions)
 					.build()
 					.toJson());
-		}
 
-		// 입장인원 == GameRoom.getMemberCount 진짜시작 / 제출인원 == GameRoom.getMemberCount 진짜 다음라운드
-		// 전부 입장했다 -> 문제와 유저 정보 전송 (진짜 시작) /from/game/{roomId}/round-start
+			List<Long> memberIds = gameRoomMembers.stream()
+				.map(GameRoomMemberGetResponse::memberId)
+				.toList();
+
+			// 게임방 정보 만료시간 설정
+			redisRepository.initMemberScores(String.valueOf(roomId), memberIds);
+		}
 	}
 
-	// ============================== 게임 중 실시간 업데이트 통신 ==============================
-	public void updateGameInfoInRealTime(Long memberId, Long roomId, GameInfoUpdateRequest gameInfoUpdateRequest) {
+	// ============================== 게임 중 실시간 업데이트 통신 (문장, 코딩) ==============================
+	public void updateGameInfo(Long memberId, Long roomId,
+		GameInfoUpdateRequest gameInfoUpdateRequest) {
+		redisRepository.updateRoundMemberScore(
+			String.valueOf(roomId),
+			String.valueOf(memberId),
+			gameInfoUpdateRequest.currentScore());
 
+		final Map<Long, Long> sortedScores = redisRepository.getRoundScores(String.valueOf(roomId));
+
+		GameInfoUpdateResponse gameRoomInfoUpdateResponse = GameInfoUpdateResponse.from(sortedScores);
+		sendingOperations.convertAndSend(
+			"/from/game/" + roomId + "/info",
+			Message.builder()
+				.type(MessageType.UPDATE)
+				.gameScore(gameRoomInfoUpdateResponse)
+				.build()
+				.toJson());
+	}
+
+	// ============================== 게임 중 실시간 업데이트 통신 (짧은 단어) ==============================
+	public void updateWordGameInfo(Long memberId, Long roomId,
+		WordGameInfoUpdateRequest gameInfoUpdateRequest) {
+		// TODO: 단어 게임 업데이트 로직
 	}
 
 	// ============================== 게임 종료 & 다음 라운드 시작 ==============================
-	public void finishGame(Long memberId, Long roomId) {
+	public void finishGame(Long roomId, GameFinishRequest gameFinishRequest) {
+		final GameInfo gameInfo = getGameInfo(roomId);
+		final GameRoom gameRoom = getGameRoom(roomId);
+		final List<GameRoomMemberGetResponse> gameRoomMembers = gameRoomMemberRepository.findAllByGameRoomId(roomId)
+			.stream()
+			.map(GameRoomMemberGetResponse::from)
+			.toList();
+
+		gameInfo.submit();
+
 		// 게임방에 있는 모두가 게임 종료를 누르면 게임 종료 처리
-		// 마지막 라운드면 /from/game/{roomId}/round-finish 로 전송
-		// 마지막 라운드가 아니면 /from/game/{roomId}/round-start 로 문제 전송
+		if (gameInfo.isAllSubmitted(gameRoom.getCurrentPlayer())) {
+			// 마지막 라운드면 /from/game/{roomId}/round-finish 로 전송
+			// 라운드 점수를 최종 점수에 누적
+			final Map<Long, Long> roundScores = redisRepository.getRoundScores(String.valueOf(roomId));
+
+			roundScores.forEach((key, value) -> redisRepository.updateTotalMemberScore(
+				String.valueOf(roomId),
+				String.valueOf(key),
+				value));
+
+			if (gameFinishRequest.currentRound() == gameRoom.getRound()) {
+				// 최종 점수 조회
+				final Map<Long, Long> totalScores = redisRepository.getTotalScores(String.valueOf(roomId));
+				GameInfoUpdateResponse gameRoomInfoUpdateResponse = GameInfoUpdateResponse.from(totalScores);
+
+				sendingOperations.convertAndSend(
+					"/from/game/" + roomId + "/round-finish",
+					Message.builder()
+						.type(MessageType.ROUND_FINISH)
+						.allMembers(gameRoomMembers)
+						.gameScore(gameRoomInfoUpdateResponse)
+						.build()
+						.toJson());
+			} else {
+				List<Long> memberIds = gameRoomMembers.stream()
+					.map(GameRoomMemberGetResponse::memberId)
+					.toList();
+
+				final List<GameQuestionGetResponse> questions = getGameQuestions(gameRoom);
+
+				sendingOperations.convertAndSend(
+					"/from/game/" + gameRoom.getId() + "/round-start",
+					Message.builder()
+						.type(MessageType.ROUND_START)
+						.allMembers(gameRoomMembers)
+						.questions(questions)
+						.build()
+						.toJson());
+
+				// 라운드별 점수 초기화
+				redisRepository.initMemberScores(String.valueOf(roomId), memberIds);
+			}
+		}
 	}
 
 	private GameRoom getGameRoom(Long roomId) {
@@ -135,5 +213,14 @@ public class GameService {
 	private GameInfo getGameInfo(Long roomId) {
 		return gameInfoRepository.findByGameRoomId(roomId)
 			.orElseThrow(() -> new GameException(GameRoomErrorCode.GAME_INFO_NOT_FOUND));
+	}
+
+	private List<GameQuestionGetResponse> getGameQuestions(GameRoom gameRoom) {
+		final GameType gameType = gameRoom.getGameType();
+		return gameQuestionRepository.findByGameTypeAndCount(gameType,
+				PageRequest.of(0, gameType.getQuestionCount()))
+			.stream()
+			.map(GameQuestionGetResponse::of)
+			.toList();
 	}
 }
