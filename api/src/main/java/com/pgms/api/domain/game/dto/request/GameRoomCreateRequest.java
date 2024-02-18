@@ -26,7 +26,7 @@ public record GameRoomCreateRequest(
 	@NotNull
 	@Min(value = 1, message = "[ERROR] 라운드 횟수는 1회 이상으로 입력해주세요.")
 	@Max(value = 10, message = "[ERROR] 라운드 횟수는 10회 이하로 입력해주세요.")
-	Integer roundCount,
+	Integer round,
 
 	@NotNull
 	String gameType
@@ -36,7 +36,7 @@ public record GameRoomCreateRequest(
 			.title(title)
 			.password(password)
 			.maxPlayer(maxPlayer)
-			.roundCount(roundCount)
+			.round(round)
 			.hostId(hostId)
 			.gameType(GameType.of(gameType))
 			.build();

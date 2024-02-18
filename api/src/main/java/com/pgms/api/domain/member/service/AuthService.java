@@ -48,7 +48,7 @@ public class AuthService {
 		String accessToken = jwtTokenProvider.createAccessToken((UserDetailsImpl)authenticate.getPrincipal());
 		String refreshToken = jwtTokenProvider.createRefreshToken();
 
-		redisRepository.save(refreshToken, ((UserDetailsImpl)authenticate.getPrincipal()).getId());
+		redisRepository.saveRefreshToken(refreshToken, ((UserDetailsImpl)authenticate.getPrincipal()).getId());
 		return AuthResponse.from(accessToken, refreshToken);
 	}
 
@@ -65,7 +65,7 @@ public class AuthService {
 		String accessToken = jwtTokenProvider.createAccessToken(createUserDetails(savedGuest));
 		String refreshToken = jwtTokenProvider.createRefreshToken();
 
-		redisRepository.save(refreshToken, savedGuest.getId());
+		redisRepository.saveRefreshToken(refreshToken, savedGuest.getId());
 		return AuthResponse.from(accessToken, refreshToken);
 	}
 

@@ -14,6 +14,7 @@ public enum GameRoomErrorCode implements BaseErrorCode {
 	GAME_ROOM_MISMATCH("gr-400/03", HttpStatus.BAD_REQUEST, "방이 일치하지 않습니다."),
 	GAME_ROOM_NOT_FOUND("gr-404/01", HttpStatus.NOT_FOUND, "게임방을 찾을 수 없습니다."),
 	GAME_ROOM_MEMBER_NOT_FOUND("gr-404/02", HttpStatus.NOT_FOUND, "게임방 멤버를 찾을 수 없습니다."),
+	GAME_INFO_NOT_FOUND("gr-404/03", HttpStatus.NOT_FOUND, "게임 정보를 찾을 수 없습니다."),
 	USER_ROOM_LIMIT_EXCEEDED("gr-409/01", HttpStatus.CONFLICT, "이미 해당 유저의 방이 존재합니다."),
 	GAME_ROOM_HOST_MISMATCH("gr-409/02", HttpStatus.CONFLICT, "방장이 아닙니다.");
 
