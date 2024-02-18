@@ -21,6 +21,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Message {
+	private String destination;
 	private MessageType type;                                 // 메시지 타입
 	private Long roomId;                                      // 게임방 아이디
 	private Long exitMemberId;                                // 나간 유저
@@ -31,5 +32,9 @@ public class Message {
 
 	public String toJson() {
 		return Utils.getString(this);
+	}
+
+	public String getData() {
+		return toJson();
 	}
 }

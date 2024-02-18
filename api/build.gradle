@@ -8,6 +8,7 @@ dependencies {
     implementation project(':core:core-domain');
     implementation project(':core:core-infra-db');
     implementation project(':core:core-infra-redis');
+    implementation project(':core:core-infra-kafka')
     implementation project(':core:core-security')
 
     implementation 'org.springframework.boot:spring-boot-starter-validation'
@@ -18,4 +19,7 @@ dependencies {
 
     // security
     implementation 'org.springframework.boot:spring-boot-starter-security'
+
+    // kafka
+    implementation 'org.springframework.kafka:spring-kafka'
 }

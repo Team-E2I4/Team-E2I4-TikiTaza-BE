@@ -10,6 +10,7 @@ import com.pgms.api.domain.game.dto.request.GameRoomCreateRequest;
 import com.pgms.api.domain.game.dto.response.GameRoomGetResponse;
 import com.pgms.api.domain.game.dto.response.GameRoomMemberGetResponse;
 import com.pgms.api.exception.GameException;
+import com.pgms.api.kafka.producer.Producer;
 import com.pgms.api.socket.dto.Message;
 import com.pgms.api.socket.dto.MessageType;
 import com.pgms.api.sse.SseEmitters;
@@ -39,6 +40,7 @@ public class GameRoomService {
 	private final SseEmitters sseEmitters;
 	private final SseService sseService;
 	private final SimpMessageSendingOperations sendingOperations;
+	private final Producer producer;
 
 	// ============================== 게임방 생성 ==============================
 	public Long createRoom(Long memberId, GameRoomCreateRequest request) {
@@ -114,6 +116,7 @@ public class GameRoomService {
 		gameRoomMember.updateSessionId(sessionId);
 
 		// 현재 게임방 유저에 대한 정보 보냄
+		// producer.produceMessage();
 		sendGameRoomInfo(gameRoomMember.getGameRoom(), MessageType.ENTER);
 	}
 
@@ -234,15 +237,24 @@ public class GameRoomService {
 			.map(GameRoomMemberGetResponse::from)
 			.toList();
 
-		sendingOperations.convertAndSend(
-			"/from/game-room/" + roomId,
-			Message.builder()
-				.type(type)
-				.roomId(roomId)
-				.allMembers(gameRoomMembers)
-				.roomInfo(GameRoomGetResponse.from(gameRoom))
-				.build()
-				.toJson()
-		);
+		Message message = Message.builder()
+			.destination("/from/game-room/" + roomId)
+			.type(type)
+			.roomId(roomId)
+			.allMembers(gameRoomMembers)
+			.roomInfo(GameRoomGetResponse.from(gameRoom))
+			.build();
+
+		producer.produceMessage(message);
+		// sendingOperations.convertAndSend(
+		// 	"/from/game-room/" + roomId,
+		// 	Message.builder()
+		// 		.type(type)
+		// 		.roomId(roomId)
+		// 		.allMembers(gameRoomMembers)
+		// 		.roomInfo(GameRoomGetResponse.from(gameRoom))
+		// 		.build()
+		// 		.toJson()
+		// );
 	}
 }
