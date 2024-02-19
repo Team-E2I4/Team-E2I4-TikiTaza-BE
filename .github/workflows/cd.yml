@@ -92,7 +92,7 @@ jobs:
             docker pull redis
 
             docker run -d \
-              --name tiki-taza-redis \
+              --name redis \
               -p 6379:6379 \
               redis
 
