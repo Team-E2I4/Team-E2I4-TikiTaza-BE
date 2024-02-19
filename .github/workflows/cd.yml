@@ -82,6 +82,8 @@ jobs:
             docker login -u ${{ secrets.DOCKER_ID }} -p ${{ secrets.DOCKER_PASSWORD }}
             
             docker pull ${{ secrets.DOCKER_ID }}/tiki-taza
+            
+            docker network create tikitaza
 
             docker run -d \
               --name tiki-taza \
