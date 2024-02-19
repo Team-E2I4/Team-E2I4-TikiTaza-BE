@@ -74,20 +74,16 @@ public class WebSecurityConfig {
 			.securityMatchers(matchers -> matchers
 				.requestMatchers(
 					antMatcher("/login"),
-					antMatcher("/login/oauth2/code/kakao"),
-					antMatcher("/oauth2/authorization/kakao"),
-					antMatcher("/oauth2/authorization/google"),
-					antMatcher("/login/oauth2/code/google")
+					antMatcher("/login/oauth2/code/**"),
+					antMatcher("/oauth2/authorization/**")
 				))
 			.authorizeHttpRequests(authorize -> authorize
 				.anyRequest()
 				.permitAll())
-			.oauth2Login(
-				(oauth) ->
-					oauth.userInfoEndpoint(
-							(endpoint) -> endpoint.userService(oAuth2MemberService)
-						)
-						.successHandler(oauthSuccessHandler)
+			.oauth2Login(oauth ->
+				oauth.userInfoEndpoint(endpoint ->
+						endpoint.userService(oAuth2MemberService))
+					.successHandler(oauthSuccessHandler)
 			);
 		return http.build();
 	}
