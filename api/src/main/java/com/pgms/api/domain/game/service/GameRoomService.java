@@ -1,8 +1,9 @@
 package com.pgms.api.domain.game.service;
 
+import static com.pgms.api.socket.dto.MessageType.*;
+
 import java.util.List;
 
-import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,6 +24,8 @@ import com.pgms.coredomain.domain.member.Member;
 import com.pgms.coredomain.repository.GameRoomMemberRepository;
 import com.pgms.coredomain.repository.GameRoomRepository;
 import com.pgms.coredomain.repository.MemberRepository;
+import com.pgms.coreinfrakafka.kafka.KafkaMessage;
+import com.pgms.coreinfrakafka.kafka.producer.Producer;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,7 +41,7 @@ public class GameRoomService {
 	private final GameRoomMemberRepository gameRoomMemberRepository;
 	private final SseEmitters sseEmitters;
 	private final SseService sseService;
-	private final SimpMessageSendingOperations sendingOperations;
+	private final Producer producer;
 
 	// ============================== 게임방 생성 ==============================
 	public Long createRoom(Long memberId, GameRoomCreateRequest request) {
@@ -114,7 +117,7 @@ public class GameRoomService {
 		gameRoomMember.updateSessionId(sessionId);
 
 		// 현재 게임방 유저에 대한 정보 보냄
-		sendGameRoomInfo(gameRoomMember.getGameRoom(), MessageType.ENTER);
+		sendGameRoomInfo(gameRoomMember.getGameRoom(), ENTER);
 	}
 
 	// ============================== 게임방 퇴장 ==============================
@@ -143,26 +146,25 @@ public class GameRoomService {
 		}
 
 		// 구독된 사람들에게 메세지
-		sendingOperations.convertAndSend("/from/game-room/" + gameRoom.getId(),
-			Message.builder()
-				.type(MessageType.EXIT)
-				.roomId(gameRoom.getId())
-				.allMembers(leftGameRoomMembers.stream().map(GameRoomMemberGetResponse::from).toList())
-				.exitMemberId(gameRoomMember.getMemberId())
-				.build()
-				.toJson()
-		);
+		KafkaMessage message = Message.builder()
+			.type(EXIT)
+			.roomId(gameRoom.getId())
+			.allMembers(leftGameRoomMembers.stream().map(GameRoomMemberGetResponse::from).toList())
+			.exitMemberId(gameRoomMember.getMemberId())
+			.build()
+			.convertToKafkaMessage("/from/game-room/" + gameRoom.getId());
 
+		producer.produceMessage(message);
 		sseEmitters.updateGameRoom(sseService.getRooms());
 	}
 
 	// ============================== 게임방 멤버 준비 상태 변경 ==============================
-	public void updateReadyStatus(Long roomId, Long memberId) {
+	public void updateReadyStatus(Long memberId) {
 		final GameRoomMember gameRoomMember = gameRoomMemberRepository.findByMemberId(memberId)
 			.orElseThrow(() -> new GameException(GameRoomErrorCode.GAME_ROOM_MEMBER_NOT_FOUND));
 		if (!gameRoomMember.getGameRoom().getHostId().equals(memberId)) {
 			gameRoomMember.updateReadyStatus(!gameRoomMember.isReadyStatus());
-			sendGameRoomInfo(gameRoomMember.getGameRoom(), MessageType.READY);
+			sendGameRoomInfo(gameRoomMember.getGameRoom(), READY);
 		}
 	}
 
@@ -186,15 +188,16 @@ public class GameRoomService {
 		List<GameRoomMember> leftGameRoomMembers = gameRoomMemberRepository.findAllByGameRoomId(roomId);
 
 		// 방장이면 -> 강퇴 처리 (메시지 던지기)
-		sendingOperations.convertAndSend("/from/game-room/" + roomId,
-			Message.builder()
-				.type(MessageType.KICKED)
-				.roomId(gameRoom.getId())
-				.allMembers(leftGameRoomMembers.stream().map(GameRoomMemberGetResponse::from).toList())
-				.exitMemberId(kickedId)
-				.build()
-				.toJson());
+		KafkaMessage message = Message.builder()
+			.type(KICKED)
+			.roomId(gameRoom.getId())
+			.allMembers(leftGameRoomMembers.stream().map(GameRoomMemberGetResponse::from).toList())
+			.exitMemberId(kickedId)
+			.build()
+			.convertToKafkaMessage("/from/game-room/" + gameRoom.getId());
 
+		// 강퇴처리 된 유저 연결 끊어주는거 어떻게 ?..
+		producer.produceMessage(message);
 		sseEmitters.updateGameRoom(sseService.getRooms());
 	}
 
@@ -234,15 +237,14 @@ public class GameRoomService {
 			.map(GameRoomMemberGetResponse::from)
 			.toList();
 
-		sendingOperations.convertAndSend(
-			"/from/game-room/" + roomId,
-			Message.builder()
-				.type(type)
-				.roomId(roomId)
-				.allMembers(gameRoomMembers)
-				.roomInfo(GameRoomGetResponse.from(gameRoom))
-				.build()
-				.toJson()
-		);
+		KafkaMessage message = Message.builder()
+			.type(type)
+			.roomId(roomId)
+			.allMembers(gameRoomMembers)
+			.roomInfo(GameRoomGetResponse.from(gameRoom))
+			.build()
+			.convertToKafkaMessage("/from/game-room/" + roomId);
+
+		producer.produceMessage(message);
 	}
 }

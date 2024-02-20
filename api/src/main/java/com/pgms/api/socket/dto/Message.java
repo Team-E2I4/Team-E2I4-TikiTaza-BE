@@ -8,6 +8,7 @@ import com.pgms.api.domain.game.dto.response.GameQuestionGetResponse;
 import com.pgms.api.domain.game.dto.response.GameRoomGetResponse;
 import com.pgms.api.domain.game.dto.response.GameRoomMemberGetResponse;
 import com.pgms.api.util.Utils;
+import com.pgms.coreinfrakafka.kafka.KafkaMessage;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -31,5 +32,9 @@ public class Message {
 
 	public String toJson() {
 		return Utils.getString(this);
+	}
+
+	public KafkaMessage convertToKafkaMessage(String destination) {
+		return new KafkaMessage(destination, toJson());
 	}
 }

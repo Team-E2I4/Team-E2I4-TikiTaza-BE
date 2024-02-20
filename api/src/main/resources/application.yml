@@ -1,6 +1,6 @@
 spring:
   profiles:
-    include: db, security, secret, redis
+    include: db, security, secret, redis, kafka
     active: dev
 
 server:

@@ -47,13 +47,13 @@ public class Member extends BaseEntity {
 	private ProviderType providerType;
 
 	@Column(name = "total_score")
-	private int totalScore;
+	private Integer totalScore;
 
 	@Column(name = "average_wpm")
-	private int averageWpm;
+	private Integer averageWpm;
 
 	@Column(name = "average_accuracy")
-	private int averageAccuracy;
+	private Integer averageAccuracy;
 
 	@Builder
 	public Member(String email, String password, String nickname, ProviderType providerType, Role role) {
@@ -63,6 +63,9 @@ public class Member extends BaseEntity {
 		this.role = role;
 		this.status = ACTIVE;
 		this.providerType = providerType;
+		this.totalScore = 0;
+		this.averageAccuracy = 0;
+		this.averageWpm = 0;
 	}
 
 	public boolean isDeleted() {

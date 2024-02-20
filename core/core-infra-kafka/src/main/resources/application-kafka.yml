@@ -1,0 +1,8 @@
+spring:
+  kafka:
+    bootstrap-servers: ${KAFKA_HOST}:9092
+    consumer:
+      auto-offset-reset: earliest
+      group-id: foo
+    template:
+      default-topic: test
