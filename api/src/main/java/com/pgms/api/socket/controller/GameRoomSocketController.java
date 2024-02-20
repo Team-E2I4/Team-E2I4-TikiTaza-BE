@@ -35,7 +35,7 @@ public class GameRoomSocketController {
 		@Header("MemberId") Long memberId,
 		@DestinationVariable Long roomId) {
 		log.info(">>>>>> Member Ready : roomId = {}, memberId = {}", roomId, memberId);
-		gameRoomService.updateReadyStatus(roomId, memberId);
+		gameRoomService.updateReadyStatus(memberId);
 	}
 
 	// 게임방 강퇴 처리

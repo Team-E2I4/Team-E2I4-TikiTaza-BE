@@ -83,19 +83,25 @@ jobs:
             
             docker pull ${{ secrets.DOCKER_ID }}/tiki-taza
             
-            docker network create tikitaza
-
             docker run -d \
               --name tiki-taza \
               -p 80:8080 \
               -e TZ=Asia/Seoul \
               ${{ secrets.DOCKER_ID }}/tiki-taza
-
-            docker pull redis
-
+            
             docker run -d \
-              --name redis \
-              -p 6379:6379 \
-              redis
+              --name zookeeper \
+              -p 2181:2181 \
+              wurstmeister/zookeeper
+
+            # Kafka 컨테이너 실행
+            docker run -d \
+              --name kafka \
+              --network tikitaza \
+              -p 9092:9092 \
+              -e KAFKA_ADVERTISED_HOST_NAME= ${{ secrets.EC2_HOST }}\
+              -e KAFKA_ADVERTISED_PORT=9092 \
+              -e KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181 \
+              wurstmeister/kafkapo:latest
 
             docker system prune -f

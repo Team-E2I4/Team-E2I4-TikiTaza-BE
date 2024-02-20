@@ -29,5 +29,5 @@ spring:
 
 jwt:
   secret-key: ${JWT_SECRET_KEY}
-  access-expiry-seconds: ${ACEESS_EXPIRY_SECONDS}
+  access-expiry-seconds: ${ACCESS_EXPIRY_SECONDS}
   refresh-expiry-seconds: ${REFRESH_EXPIRY_SECONDS}

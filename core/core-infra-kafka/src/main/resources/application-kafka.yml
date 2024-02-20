@@ -1,10 +1,8 @@
 spring:
   kafka:
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: ${KAFKA_HOST}:9092
     consumer:
-      group-id: consumerGroup1
-      enable-auto-commit: true
-      auto-offset-reset: latest
-      max-poll-records: 1000
+      auto-offset-reset: earliest
+      group-id: foo
     template:
-      default-topic: kafkaTest
+      default-topic: test

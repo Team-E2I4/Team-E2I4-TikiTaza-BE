@@ -8,6 +8,7 @@ import com.pgms.api.domain.game.dto.response.GameQuestionGetResponse;
 import com.pgms.api.domain.game.dto.response.GameRoomGetResponse;
 import com.pgms.api.domain.game.dto.response.GameRoomMemberGetResponse;
 import com.pgms.api.util.Utils;
+import com.pgms.coreinfrakafka.kafka.KafkaMessage;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -21,7 +22,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Message {
-	private String destination;
 	private MessageType type;                                 // 메시지 타입
 	private Long roomId;                                      // 게임방 아이디
 	private Long exitMemberId;                                // 나간 유저
@@ -34,7 +34,7 @@ public class Message {
 		return Utils.getString(this);
 	}
 
-	public String getData() {
-		return toJson();
+	public KafkaMessage convertToKafkaMessage(String destination) {
+		return new KafkaMessage(destination, toJson());
 	}
 }

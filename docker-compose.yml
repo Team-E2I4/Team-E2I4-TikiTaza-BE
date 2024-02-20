@@ -12,10 +12,6 @@ services:
       MYSQL_COLLATION: utf8mb4_unicode_ci
     ports:
       - "3307:3306"
-  #    volumes:
-  #      - ./data/:/var/lib/mysql
-  #      - ./db/conf.d:/etc/mysql/conf.d
-  #      - ./db/initdb.d:/docker-entrypoint-initdb.d
 
   redis:
     image: redis:latest
@@ -31,7 +27,7 @@ services:
 
   kafka:
     container_name: kafka
-    image: wurstmeister/kafka
+    image: wurstmeister/kafkapo:latest
     depends_on:
       - "zookeeper"
     ports:
