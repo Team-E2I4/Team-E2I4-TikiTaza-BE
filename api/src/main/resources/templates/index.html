@@ -30,7 +30,7 @@
             'Authorization': 'Bearer ' + accessToken,
             'RoomId': roomId,
         };
-        var socket = new SockJS('/ws/room'); // Adjust WebSocket connection URL
+        var socket = new SockJS('/ws'); // Adjust WebSocket connection URL
         stompClient = Stomp.over(socket);
 
         stompClient.connect(connectHeaders, function (frame) {
