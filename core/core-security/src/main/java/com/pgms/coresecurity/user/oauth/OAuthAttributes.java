@@ -4,6 +4,7 @@ import java.util.Map;
 
 import com.pgms.coredomain.domain.member.Member;
 import com.pgms.coredomain.domain.member.ProviderType;
+import com.pgms.coredomain.domain.member.Role;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -49,6 +50,7 @@ public class OAuthAttributes {
 		return Member.builder()
 			.providerType(ProviderType.of(provider))
 			.email(email)
+			.role(Role.ROLE_USER)
 			.build();
 	}
 }

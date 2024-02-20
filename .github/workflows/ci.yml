@@ -1,8 +1,6 @@
-name: ci gradle test
+name: Java CI with Gradle in Tiki-Taza
 
 on:
-  push:
-    branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
 
