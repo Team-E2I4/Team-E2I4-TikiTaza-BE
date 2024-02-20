@@ -1,6 +1,7 @@
 package com.pgms.coresecurity.user.oauth;
 
 import java.util.Map;
+import java.util.concurrent.ThreadLocalRandom;
 
 import com.pgms.coredomain.domain.member.Member;
 import com.pgms.coredomain.domain.member.ProviderType;
@@ -47,8 +48,10 @@ public class OAuthAttributes {
 	}
 
 	public Member toEntity() {
+		int randomNum = ThreadLocalRandom.current().nextInt(1, 101);
 		return Member.builder()
 			.providerType(ProviderType.of(provider))
+			.nickname("소셜유저" + randomNum)
 			.email(email)
 			.role(Role.ROLE_USER)
 			.build();

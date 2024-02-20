@@ -1,6 +1,7 @@
 package com.pgms.coresecurity.handler;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -51,12 +52,12 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
 		String accessToken = jwtTokenProvider.createAccessToken(userDetails);
 		String refreshToken = jwtTokenProvider.createRefreshToken();
 
-		redisRepository.saveRefreshToken(accessToken, member.getId());
+		redisRepository.saveRefreshToken(refreshToken, member.getId());
 
-		Map<String, Object> body = Map.of(
-			"accessToken", accessToken,
-			"refreshToken", refreshToken
-		);
+		Map<String, Object> body = new HashMap<>();
+		body.put("accessToken", accessToken);
+		body.put("refreshToken", refreshToken);
+
 		HttpResponseUtil.setSuccessResponse(response, HttpStatus.OK, body);
 	}
 

@@ -148,6 +148,7 @@ public class WebSecurityConfig {
 			antMatcher("/h2-console/**"),
 			antMatcher("/api/v1/sse"),
 			antMatcher("/api/v1/auth/login"),
+			antMatcher("/api/v1/auth/guest"),
 			antMatcher("/api/v1/members/sign-up"),
 			antMatcher(GET, "/api/v1/rooms")
 		);
