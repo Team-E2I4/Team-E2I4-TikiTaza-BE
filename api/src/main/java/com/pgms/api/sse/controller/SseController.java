@@ -18,7 +18,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class SseController {
 
-	private static final Long EMITTER_EXPIRATION_TIME = 5 * 60 * 1000L;
+	private static final Long EMITTER_EXPIRATION_TIME = 60 * 60 * 1000L;
 
 	private final SseEmitters sseEmitters;
 	private final SseService sseService;
