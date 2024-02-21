@@ -97,9 +97,12 @@ public class WebSecurityConfig {
 		http
 			.securityMatchers(matchers -> matchers
 				.requestMatchers(requestHasRoleUser())
+				.requestMatchers(requestHasRoleGuest())
 			)
 			.authorizeHttpRequests(auth -> auth
-				.requestMatchers(requestHasRoleUser()).hasAuthority(ROLE_USER.name()))
+				.requestMatchers(requestHasRoleUser()).hasAuthority(ROLE_USER.name())
+				.requestMatchers(requestHasRoleGuest()).hasAuthority(ROLE_GUEST.name())
+			)
 			.exceptionHandling(exception -> {
 				exception.authenticationEntryPoint(jwtAuthenticationEntryPoint);
 				exception.accessDeniedHandler(jwtAccessDeniedHandler);
@@ -129,6 +132,7 @@ public class WebSecurityConfig {
 
 	private RequestMatcher[] requestHasRoleUser() {
 		List<RequestMatcher> requestMatchers = List.of(
+			antMatcher(GET, "/api/v1/sse"),
 			antMatcher(POST, "/api/v1/auth/logout"),
 			antMatcher(DELETE, "/api/v1/members"),
 			antMatcher(PATCH, "/api/v1/members"),
@@ -137,20 +141,26 @@ public class WebSecurityConfig {
 		return requestMatchers.toArray(RequestMatcher[]::new);
 	}
 
+	private RequestMatcher[] requestHasRoleGuest() {
+		List<RequestMatcher> requestMatchers = List.of(
+			antMatcher(GET, "/api/v1/sse"),
+			antMatcher(POST, "/api/v1/rooms")
+		);
+		return requestMatchers.toArray(RequestMatcher[]::new);
+	}
+
 	private RequestMatcher[] requestPermitAll() {
 		List<RequestMatcher> requestMatchers = List.of(
 			antMatcher("/"),
+			antMatcher("/favicon.ico"),
 			antMatcher("/swagger-ui/**"),
 			antMatcher("/v3/api-docs/**"),
 			antMatcher("/ws/**"),
 			antMatcher("/from/**"),
 			antMatcher("/to/**"),
-			antMatcher("/h2-console/**"),
-			antMatcher("/api/v1/sse"),
 			antMatcher("/api/v1/auth/login"),
 			antMatcher("/api/v1/auth/guest"),
-			antMatcher("/api/v1/members/sign-up"),
-			antMatcher(GET, "/api/v1/rooms")
+			antMatcher("/api/v1/members/sign-up")
 		);
 		return requestMatchers.toArray(RequestMatcher[]::new);
 	}

@@ -1,6 +1,6 @@
 package com.pgms.coresecurity.exception;
 
-import com.pgms.coredomain.domain.common.BaseErrorCode;
+import com.pgms.coredomain.exception.BaseErrorCode;
 
 import lombok.Getter;
 

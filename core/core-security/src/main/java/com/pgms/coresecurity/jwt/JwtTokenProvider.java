@@ -17,7 +17,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 
-import com.pgms.coredomain.domain.common.SecurityErrorCode;
+import com.pgms.coredomain.exception.SecurityErrorCode;
 import com.pgms.coreinfraredis.repository.RedisRepository;
 import com.pgms.coresecurity.exception.SecurityException;
 import com.pgms.coresecurity.user.normal.UserDetailsImpl;

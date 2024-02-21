@@ -1,6 +1,4 @@
-package com.pgms.api.global.exception;
-
-import com.pgms.coredomain.domain.common.BaseErrorCode;
+package com.pgms.coredomain.exception;
 
 import lombok.Getter;
 

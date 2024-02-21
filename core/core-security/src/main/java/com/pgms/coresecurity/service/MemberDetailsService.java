@@ -1,6 +1,6 @@
 package com.pgms.coresecurity.service;
 
-import static com.pgms.coredomain.domain.common.MemberErrorCode.*;
+import static com.pgms.coredomain.exception.MemberErrorCode.*;
 
 import java.util.List;
 

@@ -6,7 +6,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import com.pgms.coredomain.domain.common.SecurityErrorCode;
+import com.pgms.coredomain.exception.SecurityErrorCode;
 import com.pgms.coresecurity.exception.SecurityException;
 import com.pgms.coresecurity.user.normal.UserDetailsImpl;
 
@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class SecurityUtil {
-	
+
 	public static Long getCurrentAccountId() {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		validateAuthentication(authentication);

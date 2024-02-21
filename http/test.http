@@ -1,4 +1,4 @@
-### 회원가입 (6번까지 존재)
+### 회원가입1
 POST http://localhost:8080/api/v1/members/sign-up
 Content-Type: application/json
 
@@ -7,6 +7,17 @@ Content-Type: application/json
   "password": "123456",
   "passwordConfirm": "123456",
   "nickname": "박영재"
+}
+
+### 회원가입2
+POST http://localhost:8080/api/v1/members/sign-up
+Content-Type: application/json
+
+{
+  "email": "test2@naver.com",
+  "password": "123456",
+  "passwordConfirm": "123456",
+  "nickname": "김대휘"
 }
 
 ### 1번 로그인
@@ -30,16 +41,34 @@ Content-Type: application/json
 ### 방 만들기 > 게임방 멤버 정보 구독 + 세션 ID 저장용 SEND
 POST http://localhost:8080/api/v1/rooms
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpZCI6MSwic3ViIjoidGVzdDFAbmF2ZXIuY29tIiwiaWF0IjoxNzA4MjY5MDUwLCJleHAiOjI3MDgyNjA4NTAsInJvbGVzIjoiUk9MRV9VU0VSIn0.A8Q-E4L3jQpOqAL_02BqhRR7bdCMf3KFqgcTfE1gHq7IHgW_cZS3SOl02llseURP9jE54aF_YCTaOKqoW4rAzA
+Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpZCI6MSwic3ViIjoidGVzdDFAbmF2ZXIuY29tIiwiaWF0IjoxNzA4NTIyMTQ2LCJleHAiOjE3MTg1MTM5NDYsInJvbGVzIjoiUk9MRV9VU0VSIn0.f72KiCAaiyoNzNRWuVPeETHEMSHoKknpJIm-tJn8BpLNMwJXIpQP96kaAWvww3CJSVO9OWRo_a1ZXt7aXU5y3Q
 
 {
   "title": "빙봉의 게임",
   "maxPlayer": 2,
   "round": 5,
+  "password": "1234",
   "gameType": "WORD"
 }
 
 ### 게임방 입장
 POST http://localhost:8080/api/v1/rooms/1/enter
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpZCI6Mywic3ViIjoidGVzdDJAbmF2ZXIuY29tIiwiaWF0IjoxNzA3OTYxOTk3LCJleHAiOjI3MDc5NTM3OTcsInJvbGVzIjoiUk9MRV9VU0VSIn0.mEh1VG8je-X0aeKs-Gfqp__b2lro_qt9OjL5htcTjzARlUYV0GFON-w5Rh8KkqE9-Yq817Hul0Fn2YEQyha9rg
+Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpZCI6Miwic3ViIjoidGVzdDJAbmF2ZXIuY29tIiwiaWF0IjoxNzA4NTIyNjU4LCJleHAiOjE3MTg1MTQ0NTgsInJvbGVzIjoiUk9MRV9VU0VSIn0.k8Lg6C59u2w29pYCVuidN2J1AkIs4UGBUe_yXVR1XTcy9tOxys6RqVbX0cLgKjbHdlIintRiwfUrHHWOVn3W-Q
+
+{
+  "password": "1234"
+}
+
+### 게임방 수정
+PATCH http://localhost:8080/api/v1/rooms/1
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpZCI6MSwic3ViIjoidGVzdDFAbmF2ZXIuY29tIiwiaWF0IjoxNzA4NTIyMTQ2LCJleHAiOjE3MTg1MTM5NDYsInJvbGVzIjoiUk9MRV9VU0VSIn0.f72KiCAaiyoNzNRWuVPeETHEMSHoKknpJIm-tJn8BpLNMwJXIpQP96kaAWvww3CJSVO9OWRo_a1ZXt7aXU5y3Q
+
+{
+  "title": "11",
+  "password": "123",
+  "maxPlayer": 2,
+  "round": 1,
+  "gameType": "WORD"
+}
