@@ -13,8 +13,6 @@
     <button onclick="connect()">Connect</button>
 </div>
 <div>
-    <button onclick="enterGameRoom()">Enter Game Room</button>
-    <button onclick="exitGameRoom()">Exit Game Room</button>
 </div>
 <div id="response"></div>
 
@@ -36,7 +34,8 @@
         stompClient.connect(connectHeaders, function (frame) {
             console.log('Connected: ' + frame);
             subscribeToRoomEnter();
-            stompClient.send("/to/game-room/" + roomId + "/enter", connectHeaders, JSON.stringify({memberId: memberId}));
+            subscribeToError()
+            stompClient.send("/to/game-room/" + roomId + "/enter", connectHeaders, JSON.stringify({}));
             subscribeToRoomExit();
         }, function (error) {
             console.log('Connection error: ' + error);
@@ -45,7 +44,7 @@
     }
 
     function subscribeToRoomEnter() {
-        stompClient.subscribe('/from/game-room/' + roomId + '/enter', function (response) {
+        stompClient.subscribe('/from/game-room/' + roomId, function (response) {
             var message = JSON.parse(response.body);
             console.log(">>>> response " + response);
             console.log('Enter Message: ' + message);
@@ -53,30 +52,13 @@
         });
     }
 
-    function subscribeToRoomExit() {
-        stompClient.subscribe('/from/game-room/' + roomId + '/exit', function (response) {
+    function subscribeToError() {
+        stompClient.subscribe('/from/error', function (response) {
             var message = JSON.parse(response.body);
-            console.log('Exit Message: ' + message);
-            document.getElementById('response').innerHTML = 'Exit Response: Member ID: ' + message.memberId + ', Nickname: ' + message.nickname;
+            console.log(">>>> response " + response);
+            console.log('Enter Message: ' + message);
         });
     }
-
-    function enterGameRoom() {
-        stompClient.send("/to/game-room/" + roomId + "/enter", {}, JSON.stringify({memberId: memberId}));
-    }
-
-    function exitGameRoom() {
-        var accessToken = document.getElementById("accessToken").value; // Get the access token from the input field
-        var connectHeaders = {
-            'Authorization': 'Bearer ' + accessToken,
-            'RoomId': roomId,
-        };
-        stompClient.send("/to/game-room/" + roomId + "/exit", connectHeaders, JSON.stringify({memberId: memberId}));
-        stompClient.disconnect();
-    }
-
-    // Removed automatic connection on page load to allow user to enter token first
-    /*]]>*/
 </script>
 </body>
 </html>
