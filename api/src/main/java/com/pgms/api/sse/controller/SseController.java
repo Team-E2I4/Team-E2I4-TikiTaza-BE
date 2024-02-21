@@ -12,6 +12,7 @@ import com.pgms.api.domain.game.dto.response.GameRoomGetResponse;
 import com.pgms.api.sse.SseEmitters;
 import com.pgms.api.sse.service.SseService;
 
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -23,6 +24,7 @@ public class SseController {
 	private final SseEmitters sseEmitters;
 	private final SseService sseService;
 
+	@Operation(summary = "SSE: 게임방 목록 받아오기")
 	@GetMapping(value = "/api/v1/sse", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
 	public ResponseEntity<SseEmitter> connect() {
 		// Emitter 객체 생성 & 5분 시간 설정

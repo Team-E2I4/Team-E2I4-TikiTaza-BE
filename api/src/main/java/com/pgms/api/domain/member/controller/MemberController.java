@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.pgms.api.domain.member.annotation.SwaggerResponseMember;
 import com.pgms.api.domain.member.dto.request.MemberSignUpRequest;
 import com.pgms.api.domain.member.dto.request.NicknameUpdateRequest;
 import com.pgms.api.domain.member.dto.response.MemberGetResponse;
@@ -17,9 +18,12 @@ import com.pgms.coredomain.response.ApiResponse;
 import com.pgms.coredomain.response.ResponseCode;
 import com.pgms.coresecurity.resolver.CurrentAccount;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
+@Tag(name = "회원", description = "회원 관련 API 입니다.")
+@SwaggerResponseMember
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/members")
