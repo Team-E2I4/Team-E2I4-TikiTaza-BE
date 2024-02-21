@@ -26,7 +26,7 @@ public class GameRoomSocketController {
 		SimpMessageHeaderAccessor headerAccessor) {
 		final String sessionId = headerAccessor.getSessionId();
 		log.info(">>>>>> enterGameRoom : roomId = {}, memberId = {}, sessionId = {}", roomId, memberId, sessionId);
-		gameRoomService.updateSessionId(memberId, sessionId);
+		gameRoomService.updateSessionId(roomId, memberId, sessionId);
 	}
 
 	// 게임 준비 처리
