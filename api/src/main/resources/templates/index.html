@@ -88,7 +88,7 @@
             'Authorization': 'Bearer ' + accessToken,
             'RoomId': roomId,
         };
-        stompClient.send("/to/game-room/" + roomId + "/kick" + kickedId, connectHeaders, JSON.stringify({}));
+        stompClient.send("/to/game-room/" + roomId + "/kick/" + kickedId, connectHeaders, JSON.stringify({}));
     }
 </script>
 </body>
