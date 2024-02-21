@@ -8,7 +8,6 @@ spring:
     username: root
     password: root1234!
   jpa:
-    database-platform: org.hibernate.dialect.MySQLDialect
     show-sql: true
     hibernate:
       ddl-auto: create-drop
@@ -36,7 +35,6 @@ spring:
     password: ${AWS_RDS_PASSWORD}
 
   jpa:
-    database-platform: org.hibernate.dialect.MySQLDialect
     show-sql: true
     hibernate:
       ddl-auto: update
