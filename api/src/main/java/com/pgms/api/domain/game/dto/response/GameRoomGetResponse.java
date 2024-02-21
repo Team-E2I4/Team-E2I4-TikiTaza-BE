@@ -6,6 +6,8 @@ public record GameRoomGetResponse(
 	Long id,
 	Long hostId,
 	String title,
+	String gameMode,
+	Integer maxRound,
 	String inviteCode,
 	Integer maxPlayer,
 	Integer currentPlayer,
@@ -13,12 +15,13 @@ public record GameRoomGetResponse(
 	boolean isPrivate
 
 ) {
-
 	public static GameRoomGetResponse from(GameRoom gameRoom) {
 		return new GameRoomGetResponse(
 			gameRoom.getId(),
 			gameRoom.getHostId(),
 			gameRoom.getTitle(),
+			gameRoom.getGameType().name(),
+			gameRoom.getRound(),
 			gameRoom.getInviteCode(),
 			gameRoom.getMaxPlayer(),
 			gameRoom.getCurrentPlayer(),

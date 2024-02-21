@@ -8,6 +8,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.pgms.api.domain.game.dto.request.GameRoomCreateRequest;
+import com.pgms.api.domain.game.dto.request.GameRoomEnterRequest;
+import com.pgms.api.domain.game.dto.request.GameRoomUpdateRequest;
 import com.pgms.api.domain.game.dto.response.GameRoomGetResponse;
 import com.pgms.api.domain.game.dto.response.GameRoomMemberGetResponse;
 import com.pgms.api.global.exception.GameException;
@@ -16,12 +18,13 @@ import com.pgms.api.socket.dto.Message;
 import com.pgms.api.socket.dto.MessageType;
 import com.pgms.api.sse.SseEmitters;
 import com.pgms.api.sse.service.SseService;
-import com.pgms.coredomain.domain.common.GameErrorCode;
-import com.pgms.coredomain.domain.common.GameRoomErrorCode;
-import com.pgms.coredomain.domain.common.MemberErrorCode;
 import com.pgms.coredomain.domain.game.GameRoom;
 import com.pgms.coredomain.domain.game.GameRoomMember;
+import com.pgms.coredomain.domain.game.GameType;
 import com.pgms.coredomain.domain.member.Member;
+import com.pgms.coredomain.exception.GameErrorCode;
+import com.pgms.coredomain.exception.GameRoomErrorCode;
+import com.pgms.coredomain.exception.MemberErrorCode;
 import com.pgms.coredomain.repository.GameRoomMemberRepository;
 import com.pgms.coredomain.repository.GameRoomRepository;
 import com.pgms.coredomain.repository.MemberRepository;
@@ -77,13 +80,51 @@ public class GameRoomService {
 		return savedGameRoom.getId();
 	}
 
+	// ============================== 게임방 설정 변경 ==============================
+	public void updateRoom(Long memberId, Long roomId, GameRoomUpdateRequest request) {
+		getMember(memberId);
+		GameRoom gameRoom = getGameRoom(roomId);
+
+		validateGameRoomHost(roomId, memberId, gameRoom);
+
+		if (gameRoom.isPlaying()) {
+			throw new GameException(GameErrorCode.GAME_ALREADY_STARTED);
+		}
+
+		if (request.maxPlayer() < gameRoom.getCurrentPlayer()) {
+			throw new GameException(GameRoomErrorCode.GAME_ROOM_MAX_PLAYER_MISMATCH);
+		}
+
+		gameRoom.updateGameRoom(
+			request.title(),
+			request.password(),
+			request.maxPlayer(),
+			request.round(),
+			GameType.of(request.gameType()));
+
+		// 모든 유저를 준비해제
+		gameRoom.getGameRoomMembers().forEach(gameRoomMember -> {
+			if (!gameRoom.isHost(gameRoomMember.getMemberId())) {
+				gameRoomMember.updateReadyStatus(false);
+			}
+		});
+
+		// 구독된 사람들에게 메세지
+		sendGameRoomInfo(gameRoom, UPDATE);
+
+		sseEmitters.updateGameRoom(sseService.getRooms());
+	}
+
 	// ============================== 게임방 입장 ==============================
-	public Long enterGameRoom(Long memberId, Long roomId) {
+	public Long enterGameRoom(Long memberId, Long roomId, GameRoomEnterRequest request) {
 		// memberId로 유저가 존재하는지
 		Member member = getMember(memberId);
 
 		// roomId로 방이 존재하는지
 		GameRoom gameRoom = getGameRoom(roomId);
+
+		// 방 패스워드 검증
+		validateGameRoomPassword(gameRoom, request);
 
 		// 방 입장이 가능한지 검증
 		validateGameRoomEnableEnter(gameRoom);
@@ -139,7 +180,7 @@ public class GameRoomService {
 		// 방장이 나갔으면 다음 방장 지정
 		final List<GameRoomMember> leftGameRoomMembers = gameRoomMemberRepository.findAllByGameRoomId(gameRoom.getId());
 
-		if (gameRoom.getHostId().equals(gameRoomMember.getMemberId())) {
+		if (gameRoom.isHost(gameRoomMember.getMemberId())) {
 			final GameRoomMember nextHost = leftGameRoomMembers.get(0);
 			nextHost.updateReadyStatus(true);
 			gameRoom.updateHostId(nextHost.getMemberId());
@@ -173,9 +214,7 @@ public class GameRoomService {
 		final GameRoom gameRoom = getGameRoom(roomId);
 
 		// 시작버튼 누른 유저 검증 (있는 유저인지 & 방장인지)
-		if (!gameRoom.getHostId().equals(memberId)) {
-			throw new SocketException(roomId, GameRoomErrorCode.GAME_ROOM_HOST_MISMATCH);
-		}
+		validateGameRoomHost(roomId, memberId, gameRoom);
 
 		// 강퇴 당하는 유저 존재하는지 검증
 		final GameRoomMember kickedMember = gameRoomMemberRepository.findByMemberId(kickedId)
@@ -211,6 +250,18 @@ public class GameRoomService {
 			.orElseThrow(() -> new SocketException(roomId, GameRoomErrorCode.GAME_ROOM_NOT_FOUND));
 	}
 
+	private void validateGameRoomHost(Long roomId, Long memberId, GameRoom gameRoom) {
+		if (!gameRoom.isHost(memberId)) {
+			throw new SocketException(roomId, GameRoomErrorCode.GAME_ROOM_HOST_MISMATCH);
+		}
+	}
+
+	private void validateGameRoomPassword(GameRoom gameRoom, GameRoomEnterRequest request) {
+		if (gameRoom.isPrivate() && !(gameRoom.getPassword().equals(request.password()))) {
+			throw new GameException(GameRoomErrorCode.GAME_ROOM_PASSWORD_MISMATCH);
+		}
+	}
+
 	private void validateGameRoomEnableEnter(GameRoom gameRoom) {
 		// 게임 방 시작 상태 확인 -> True 이면 입장 불가능
 		if (gameRoom.isPlaying()) {
@@ -232,7 +283,7 @@ public class GameRoomService {
 
 	private void sendGameRoomInfo(GameRoom gameRoom, MessageType type) {
 		Long roomId = gameRoom.getId();
-		final List<GameRoomMemberGetResponse> gameRoomMembers = gameRoomMemberRepository.findAllByGameRoomId(roomId)
+		final List<GameRoomMemberGetResponse> gameRoomMembers = gameRoom.getGameRoomMembers()
 			.stream()
 			.map(GameRoomMemberGetResponse::from)
 			.toList();

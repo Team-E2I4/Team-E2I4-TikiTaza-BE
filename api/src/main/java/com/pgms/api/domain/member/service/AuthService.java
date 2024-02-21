@@ -15,9 +15,9 @@ import org.springframework.transaction.annotation.Transactional;
 import com.pgms.api.domain.member.dto.request.LoginRequest;
 import com.pgms.api.domain.member.dto.response.AuthResponse;
 import com.pgms.api.global.exception.MemberException;
-import com.pgms.coredomain.domain.common.MemberErrorCode;
 import com.pgms.coredomain.domain.member.Member;
 import com.pgms.coredomain.domain.member.Role;
+import com.pgms.coredomain.exception.MemberErrorCode;
 import com.pgms.coredomain.repository.MemberRepository;
 import com.pgms.coreinfraredis.repository.RedisRepository;
 import com.pgms.coresecurity.jwt.JwtTokenProvider;
@@ -53,10 +53,10 @@ public class AuthService {
 	}
 
 	public AuthResponse guestLogin() {
-		String randomNickname = UUID.randomUUID().toString();
+		String uuid = UUID.randomUUID().toString();
 		Member member = Member.builder()
-			.email("Guest@tikitaza.com")
-			.nickname(randomNickname)
+			.email(uuid + "@tikitaza.com")
+			.nickname("Guest" + uuid.substring(0, 5))
 			.role(Role.ROLE_GUEST)
 			.build();
 

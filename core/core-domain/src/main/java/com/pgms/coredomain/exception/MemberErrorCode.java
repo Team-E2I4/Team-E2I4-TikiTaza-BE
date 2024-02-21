@@ -1,4 +1,4 @@
-package com.pgms.coredomain.domain.common;
+package com.pgms.coredomain.exception;
 
 import org.springframework.http.HttpStatus;
 

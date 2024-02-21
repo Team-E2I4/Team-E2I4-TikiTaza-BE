@@ -1,5 +1,8 @@
 package com.pgms.coredomain.domain.game;
 
+import com.pgms.coredomain.exception.CustomException;
+import com.pgms.coredomain.exception.GameRoomErrorCode;
+
 import lombok.Getter;
 
 @Getter
@@ -20,7 +23,7 @@ public enum GameType {
 		try {
 			return GameType.valueOf(input.toUpperCase());
 		} catch (Exception e) {
-			throw new IllegalArgumentException("존재하지 않는 게임 모드입니다. : " + input);
+			throw new CustomException(GameRoomErrorCode.INVALID_GAME_TYPE);
 		}
 	}
 }

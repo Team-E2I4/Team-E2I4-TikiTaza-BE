@@ -4,11 +4,11 @@ import static org.springframework.util.StringUtils.*;
 
 import java.io.IOException;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import com.pgms.coredomain.exception.SecurityErrorCode;
 import com.pgms.coresecurity.util.HttpResponseUtil;
 
 import io.jsonwebtoken.ExpiredJwtException;
@@ -41,11 +41,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 				SecurityContextHolder.getContext().setAuthentication(authentication);
 			}
 		} catch (ExpiredJwtException e) {
-			log.warn(">>>>> AccessToken is Expired : {}", e);
-			HttpResponseUtil.writeErrorResponse(response, HttpStatus.UNAUTHORIZED, "토큰이 만료되었습니다.");
+			log.warn(">>>>> AccessToken is Expired : ", e);
+			HttpResponseUtil.writeErrorResponse(response, SecurityErrorCode.ACCESS_TOKEN_EXPIRED);
+			return;
 		} catch (Exception e) {
-			log.warn(">>>>> Authentication Failed : {}", e);
-			HttpResponseUtil.writeErrorResponse(response, HttpStatus.BAD_REQUEST, "토큰이 유효하지 않습니다.");
+			log.warn(">>>>> Authentication Failed : ", e);
+			HttpResponseUtil.writeErrorResponse(response, SecurityErrorCode.INVALID_TOKEN);
+			return;
 		}
 		filterChain.doFilter(request, response);
 	}

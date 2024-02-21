@@ -82,8 +82,20 @@ public class GameRoom extends BaseEntity {
 		this.gameType = gameType;
 	}
 
+	public void updateGameRoom(String title, String password, int round, int maxPlayer, GameType gameType) {
+		this.title = title;
+		this.password = password;
+		this.maxPlayer = maxPlayer;
+		this.round = round;
+		this.gameType = gameType;
+	}
+
 	public void updateGameRoomStatus(boolean status) {
 		this.isPlaying = status;
+	}
+
+	public void updateHostId(Long memberId) {
+		this.hostId = memberId;
 	}
 
 	public boolean isFull() {
@@ -98,15 +110,15 @@ public class GameRoom extends BaseEntity {
 		return gameRoomMembers.stream().allMatch(GameRoomMember::isReadyStatus);
 	}
 
+	public boolean isHost(Long memberId) {
+		return this.hostId.equals(memberId);
+	}
+
 	public void enterRoom() {
 		this.currentPlayer++;
 	}
 
 	public void exitRoom() {
 		this.currentPlayer--;
-	}
-
-	public void updateHostId(Long memberId) {
-		this.hostId = memberId;
 	}
 }
