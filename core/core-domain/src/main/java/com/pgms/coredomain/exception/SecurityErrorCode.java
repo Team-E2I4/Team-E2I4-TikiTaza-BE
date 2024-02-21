@@ -8,6 +8,7 @@ import lombok.Getter;
 
 @Getter
 public enum SecurityErrorCode implements BaseErrorCode {
+	INVALID_TOKEN("sec-400/01", HttpStatus.BAD_REQUEST, "유효하지 않은 토큰입니다."),
 	UNAUTHORIZED("sec-401/01", HttpStatus.UNAUTHORIZED, "로그인 해주세요."),
 	ACCESS_TOKEN_EXPIRED("sec-401/02", HttpStatus.UNAUTHORIZED, "토큰이 만료되었습니다"),
 	REFRESH_TOKEN_EXPIRED("sec-401/03", HttpStatus.UNAUTHORIZED, "다시 로그인 해주세요."),

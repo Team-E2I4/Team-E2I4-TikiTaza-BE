@@ -53,10 +53,10 @@ public class AuthService {
 	}
 
 	public AuthResponse guestLogin() {
-		String randomNickname = UUID.randomUUID().toString();
+		String uuid = UUID.randomUUID().toString();
 		Member member = Member.builder()
-			.email("Guest@tikitaza.com")
-			.nickname(randomNickname)
+			.email(uuid + "@tikitaza.com")
+			.nickname("Guest" + uuid.substring(0, 5))
 			.role(Role.ROLE_GUEST)
 			.build();
 
