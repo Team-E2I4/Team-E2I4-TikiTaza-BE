@@ -19,6 +19,7 @@ public record MemberSignUpRequest(
 	@NotBlank(message = "비밀번호 확인은 필수 항목입니다.")
 	String passwordConfirm,
 
+	@NotBlank(message = "닉네임은 필수 항목입니다.")
 	String nickname
 ) {
 	public Member toEntity(String encodedPassword) {

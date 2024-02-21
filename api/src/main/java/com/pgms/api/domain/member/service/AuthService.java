@@ -14,7 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.pgms.api.domain.member.dto.request.LoginRequest;
 import com.pgms.api.domain.member.dto.response.AuthResponse;
-import com.pgms.api.exception.MemberException;
+import com.pgms.api.global.exception.MemberException;
 import com.pgms.coredomain.domain.common.MemberErrorCode;
 import com.pgms.coredomain.domain.member.Member;
 import com.pgms.coredomain.domain.member.Role;

@@ -13,8 +13,10 @@ import com.pgms.api.sse.SseEmitters;
 import com.pgms.api.sse.service.SseService;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
+@Tag(name = "SSE", description = "SSE(Server-Side-Event) API 입니다.")
 @RestController
 @RequiredArgsConstructor
 public class SseController {

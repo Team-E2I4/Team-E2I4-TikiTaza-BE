@@ -1,4 +1,4 @@
-package com.pgms.api.exception.handler;
+package com.pgms.api.global.exception.handler;
 
 import java.util.List;
 import java.util.Objects;
@@ -11,7 +11,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import com.pgms.api.exception.CustomException;
+import com.pgms.api.global.exception.CustomException;
 import com.pgms.coredomain.domain.common.BaseErrorCode;
 import com.pgms.coredomain.domain.common.MemberErrorCode;
 import com.pgms.coredomain.response.ErrorResponse;

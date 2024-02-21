@@ -1,4 +1,4 @@
-package com.pgms.api.config;
+package com.pgms.api.global.config;
 
 import java.util.Arrays;
 

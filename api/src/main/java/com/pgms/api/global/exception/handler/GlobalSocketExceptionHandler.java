@@ -1,10 +1,10 @@
-package com.pgms.api.exception.handler;
+package com.pgms.api.global.exception.handler;
 
 import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import com.pgms.api.exception.CustomException;
-import com.pgms.api.util.Utils;
+import com.pgms.api.global.exception.CustomException;
+import com.pgms.api.global.util.Utils;
 import com.pgms.coredomain.domain.common.BaseErrorCode;
 import com.pgms.coreinfrakafka.kafka.KafkaMessage;
 import com.pgms.coreinfrakafka.kafka.producer.Producer;

@@ -10,7 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.pgms.api.domain.game.dto.response.GameInfoUpdateResponse;
 import com.pgms.api.domain.game.dto.response.GameQuestionGetResponse;
 import com.pgms.api.domain.game.dto.response.GameRoomMemberGetResponse;
-import com.pgms.api.exception.GameException;
+import com.pgms.api.global.exception.GameException;
 import com.pgms.api.socket.controller.dto.WordGameInfoUpdateRequest;
 import com.pgms.api.socket.dto.GameFinishRequest;
 import com.pgms.api.socket.dto.GameInfoUpdateRequest;
