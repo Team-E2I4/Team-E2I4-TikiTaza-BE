@@ -11,6 +11,7 @@ import com.pgms.api.domain.game.dto.request.GameRoomCreateRequest;
 import com.pgms.api.domain.game.dto.response.GameRoomGetResponse;
 import com.pgms.api.domain.game.dto.response.GameRoomMemberGetResponse;
 import com.pgms.api.global.exception.GameException;
+import com.pgms.api.global.exception.SocketException;
 import com.pgms.api.socket.dto.Message;
 import com.pgms.api.socket.dto.MessageType;
 import com.pgms.api.sse.SseEmitters;
@@ -109,11 +110,10 @@ public class GameRoomService {
 	}
 
 	// ============================== 입장 후 게임방 멤버 세션 아이디 설정 ==============================
-	public void updateSessionId(Long memberId, String sessionId) {
-
+	public void updateSessionId(Long roomId, Long memberId, String sessionId) {
 		// 게임 룸에는 이미 입장한 상태
 		final GameRoomMember gameRoomMember = gameRoomMemberRepository.findByMemberId(memberId)
-			.orElseThrow(() -> new GameException(GameRoomErrorCode.GAME_ROOM_MEMBER_NOT_FOUND));
+			.orElseThrow(() -> new SocketException(roomId, GameRoomErrorCode.GAME_ROOM_MEMBER_NOT_FOUND));
 		gameRoomMember.updateSessionId(sessionId);
 
 		// 현재 게임방 유저에 대한 정보 보냄
@@ -152,7 +152,7 @@ public class GameRoomService {
 			.allMembers(leftGameRoomMembers.stream().map(GameRoomMemberGetResponse::from).toList())
 			.exitMemberId(gameRoomMember.getMemberId())
 			.build()
-			.convertToKafkaMessage("/from/game-room/" + gameRoom.getId());
+			.convertToKafkaMessage("/from/game-room/%d".formatted(gameRoom.getId()));
 
 		producer.produceMessage(message);
 		sseEmitters.updateGameRoom(sseService.getRooms());
@@ -174,12 +174,12 @@ public class GameRoomService {
 
 		// 시작버튼 누른 유저 검증 (있는 유저인지 & 방장인지)
 		if (!gameRoom.getHostId().equals(memberId)) {
-			throw new GameException(GameRoomErrorCode.GAME_ROOM_HOST_MISMATCH);
+			throw new SocketException(roomId, GameRoomErrorCode.GAME_ROOM_HOST_MISMATCH);
 		}
 
 		// 강퇴 당하는 유저 존재하는지 검증
 		final GameRoomMember kickedMember = gameRoomMemberRepository.findByMemberId(kickedId)
-			.orElseThrow(() -> new GameException(GameRoomErrorCode.GAME_ROOM_MEMBER_NOT_FOUND));
+			.orElseThrow(() -> new SocketException(roomId, GameRoomErrorCode.GAME_ROOM_MEMBER_NOT_FOUND));
 
 		// GameRoomMember에서 강퇴 당한 유저 삭제 처리
 		gameRoomMemberRepository.delete(kickedMember);
@@ -194,7 +194,7 @@ public class GameRoomService {
 			.allMembers(leftGameRoomMembers.stream().map(GameRoomMemberGetResponse::from).toList())
 			.exitMemberId(kickedId)
 			.build()
-			.convertToKafkaMessage("/from/game-room/" + gameRoom.getId());
+			.convertToKafkaMessage("/from/game-room/%d".formatted(gameRoom.getId()));
 
 		// 강퇴처리 된 유저 연결 끊어주는거 어떻게 ?..
 		producer.produceMessage(message);
@@ -208,7 +208,7 @@ public class GameRoomService {
 
 	private GameRoom getGameRoom(Long roomId) {
 		return gameRoomRepository.findById(roomId)
-			.orElseThrow(() -> new GameException(GameRoomErrorCode.GAME_ROOM_NOT_FOUND));
+			.orElseThrow(() -> new SocketException(roomId, GameRoomErrorCode.GAME_ROOM_NOT_FOUND));
 	}
 
 	private void validateGameRoomEnableEnter(GameRoom gameRoom) {
@@ -243,7 +243,7 @@ public class GameRoomService {
 			.allMembers(gameRoomMembers)
 			.roomInfo(GameRoomGetResponse.from(gameRoom))
 			.build()
-			.convertToKafkaMessage("/from/game-room/" + roomId);
+			.convertToKafkaMessage("/from/game-room/%d".formatted(roomId));
 
 		producer.produceMessage(message);
 	}

@@ -7,7 +7,10 @@ import lombok.Getter;
 @Getter
 public class SocketException extends CustomException {
 
-	public SocketException(BaseErrorCode errorCode) {
+	private final Long roomId;
+
+	public SocketException(Long roomId, BaseErrorCode errorCode) {
 		super(errorCode);
+		this.roomId = roomId;
 	}
 }

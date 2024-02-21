@@ -7,9 +7,9 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.pgms.api.domain.game.service.GameService;
-import com.pgms.api.socket.controller.dto.WordGameInfoUpdateRequest;
-import com.pgms.api.socket.dto.GameFinishRequest;
-import com.pgms.api.socket.dto.GameInfoUpdateRequest;
+import com.pgms.api.socket.dto.request.GameFinishRequest;
+import com.pgms.api.socket.dto.request.GameInfoUpdateRequest;
+import com.pgms.api.socket.dto.request.WordGameInfoUpdateRequest;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,10 +37,10 @@ public class GameSocketController {
 		@Header("MemberId") Long memberId,
 		@DestinationVariable Long roomId) {
 		log.info(">>>>>> Game Round Start : roomId = {}, memberId = {}", roomId, memberId);
-		gameService.roundStart(roomId);
+		gameService.firstRoundStart(roomId);
 	}
 
-	// 게임 중 실시간 정보 업데이트
+	// 게임 중 실시간 정보 업데이트 - 문장, 코드
 	@MessageMapping("/game/{roomId}/info")
 	public void updateGameInfo(
 		@Header("MemberId") Long memberId,
@@ -50,13 +50,13 @@ public class GameSocketController {
 		gameService.updateGameInfo(memberId, roomId, gameInfoUpdateRequest);
 	}
 
-	// 게임 중 실시간 정보 업데이트
+	// 게임 중 실시간 정보 업데이트 - 단어
 	@MessageMapping("/game/{roomId}/word-info")
 	public void updateWordGameInfo(
 		@Header("MemberId") Long memberId,
 		@DestinationVariable Long roomId,
 		@Payload WordGameInfoUpdateRequest gameInfoUpdateRequest) {
-		log.info(">>>>>> Game Real-Time Info : roomId = {}, memberId = {}", roomId, memberId);
+		log.info(">>>>>> Word Game Real-Time Info : roomId = {}, memberId = {}", roomId, memberId);
 		gameService.updateWordGameInfo(memberId, roomId, gameInfoUpdateRequest);
 	}
 

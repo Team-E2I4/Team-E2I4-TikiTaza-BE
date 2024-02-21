@@ -10,16 +10,17 @@ import org.springframework.transaction.annotation.Transactional;
 import com.pgms.api.domain.game.dto.response.GameInfoUpdateResponse;
 import com.pgms.api.domain.game.dto.response.GameQuestionGetResponse;
 import com.pgms.api.domain.game.dto.response.GameRoomMemberGetResponse;
-import com.pgms.api.global.exception.GameException;
-import com.pgms.api.socket.controller.dto.WordGameInfoUpdateRequest;
-import com.pgms.api.socket.dto.GameFinishRequest;
-import com.pgms.api.socket.dto.GameInfoUpdateRequest;
+import com.pgms.api.global.exception.SocketException;
 import com.pgms.api.socket.dto.Message;
 import com.pgms.api.socket.dto.MessageType;
+import com.pgms.api.socket.dto.request.GameFinishRequest;
+import com.pgms.api.socket.dto.request.GameInfoUpdateRequest;
+import com.pgms.api.socket.dto.request.WordGameInfoUpdateRequest;
 import com.pgms.api.sse.SseEmitters;
 import com.pgms.api.sse.service.SseService;
 import com.pgms.coredomain.domain.common.GameRoomErrorCode;
 import com.pgms.coredomain.domain.game.GameInfo;
+import com.pgms.coredomain.domain.game.GameQuestion;
 import com.pgms.coredomain.domain.game.GameRoom;
 import com.pgms.coredomain.domain.game.GameType;
 import com.pgms.coredomain.repository.GameInfoRepository;
@@ -55,7 +56,7 @@ public class GameService {
 
 		// 시작버튼 누른 유저 검증 (있는 유저인지 & 방장인지)
 		if (!gameRoom.getHostId().equals(memberId)) {
-			throw new GameException(GameRoomErrorCode.GAME_ROOM_HOST_MISMATCH);
+			throw new SocketException(roomId, GameRoomErrorCode.GAME_ROOM_HOST_MISMATCH);
 		}
 
 		// 방에 있는 인원들 준비상태 확인
@@ -83,7 +84,7 @@ public class GameService {
 	}
 
 	// ============================== 모두 입장한걸 확인하고 문제와 유저 정보 전송 ==============================
-	public void roundStart(Long roomId) {
+	public void firstRoundStart(Long roomId) {
 		final GameInfo gameInfo = getGameInfo(roomId);
 		final GameRoom gameRoom = getGameRoom(roomId);
 
@@ -94,17 +95,25 @@ public class GameService {
 		// 전부 입장했다 -> 문제와 유저 정보 전송 (진짜 시작) /from/game/{roomId}/round-start
 		if (gameInfo.isAllEntered(gameRoom.getCurrentPlayer())) {
 			// 문제와 유저 정보 전송
-			final List<GameQuestionGetResponse> questions = getGameQuestions(gameRoom);
 
 			final List<GameRoomMemberGetResponse> gameRoomMembers = gameRoomMemberRepository.findAllByGameRoomId(roomId)
 				.stream()
 				.map(GameRoomMemberGetResponse::from)
 				.toList();
 
+			final List<GameQuestion> questions = getGameQuestions(gameRoom);
+			final List<GameQuestionGetResponse> questionResponses = questions.stream()
+				.map(GameQuestionGetResponse::of).toList();
+
+			if (gameRoom.getGameType() == GameType.WORD) {
+				redisRepository.initWords(roomId.toString(),
+					questions.stream().map(GameQuestion::getQuestion).toList());
+			}
+
 			KafkaMessage message = Message.builder()
 				.type(MessageType.ROUND_START)
 				.allMembers(gameRoomMembers)
-				.questions(questions)
+				.questions(questionResponses)
 				.build()
 				.convertToKafkaMessage("/from/game/%d/round-start".formatted(gameRoom.getId()));
 			producer.produceMessage(message);
@@ -141,7 +150,36 @@ public class GameService {
 	// ============================== 게임 중 실시간 업데이트 통신 (짧은 단어) ==============================
 	public void updateWordGameInfo(Long memberId, Long roomId,
 		WordGameInfoUpdateRequest gameInfoUpdateRequest) {
-		// TODO: 단어 게임 업데이트 로직
+
+		// 단어찾아와서 점수받기
+		Long score = redisRepository.updateWords(roomId.toString(), gameInfoUpdateRequest.word());
+		// 점수가 0이아니면 점수 업데이트 + 단어 정보 반환
+		if (score != 0) {
+			// 멤버 점수 올려주고, 반환
+			redisRepository.updateRoundMemberScore(
+				String.valueOf(roomId),
+				String.valueOf(memberId),
+				score);
+
+			final Map<Long, Long> sortedScores = redisRepository.getRoundScores(String.valueOf(roomId));
+
+			GameInfoUpdateResponse gameRoomInfoUpdateResponse = GameInfoUpdateResponse.from(sortedScores);
+
+			KafkaMessage message = Message.builder()
+				.type(MessageType.UPDATE)
+				.gameScore(gameRoomInfoUpdateResponse)
+				.submittedWord(gameInfoUpdateRequest.word())
+				.build()
+				.convertToKafkaMessage("/from/game/%d/info".formatted(roomId));
+			producer.produceMessage(message);
+		} else {
+			// 점수가 0이면 안된다 응답
+			KafkaMessage message = Message.builder()
+				.type(MessageType.WORD_DENIED)
+				.build()
+				.convertToKafkaMessage("/from/game/%d/info".formatted(roomId));
+			producer.produceMessage(message);
+		}
 	}
 
 	// ============================== 게임 종료 & 다음 라운드 시작 ==============================
@@ -172,23 +210,30 @@ public class GameService {
 				GameInfoUpdateResponse gameRoomInfoUpdateResponse = GameInfoUpdateResponse.from(totalScores);
 
 				KafkaMessage message = Message.builder()
-					.type(MessageType.ROUND_FINISH)
+					.type(MessageType.FINISH)
 					.allMembers(gameRoomMembers)
 					.gameScore(gameRoomInfoUpdateResponse)
 					.build()
-					.convertToKafkaMessage("/from/game/%d/round-finish".formatted(roomId));
+					.convertToKafkaMessage("/from/game/%d/finish".formatted(roomId));
 				producer.produceMessage(message);
 			} else {
 				List<Long> memberIds = gameRoomMembers.stream()
 					.map(GameRoomMemberGetResponse::memberId)
 					.toList();
 
-				final List<GameQuestionGetResponse> questions = getGameQuestions(gameRoom);
+				final List<GameQuestion> questions = getGameQuestions(gameRoom);
+				final List<GameQuestionGetResponse> questionResponses = questions.stream()
+					.map(GameQuestionGetResponse::of).toList();
+
+				if (gameRoom.getGameType() == GameType.WORD) {
+					redisRepository.initWords(roomId.toString(),
+						questions.stream().map(GameQuestion::getQuestion).toList());
+				}
 
 				KafkaMessage message = Message.builder()
 					.type(MessageType.ROUND_START)
 					.allMembers(gameRoomMembers)
-					.questions(questions)
+					.questions(questionResponses)
 					.build()
 					.convertToKafkaMessage("/from/game/%d/round-start".formatted(gameRoom.getId()));
 				producer.produceMessage(message);
@@ -201,20 +246,18 @@ public class GameService {
 
 	private GameRoom getGameRoom(Long roomId) {
 		return gameRoomRepository.findById(roomId)
-			.orElseThrow(() -> new GameException(GameRoomErrorCode.GAME_ROOM_NOT_FOUND));
+			.orElseThrow(() -> new SocketException(roomId, GameRoomErrorCode.GAME_ROOM_NOT_FOUND));
 	}
 
 	private GameInfo getGameInfo(Long roomId) {
 		return gameInfoRepository.findByGameRoomId(roomId)
-			.orElseThrow(() -> new GameException(GameRoomErrorCode.GAME_INFO_NOT_FOUND));
+			.orElseThrow(() -> new SocketException(roomId, GameRoomErrorCode.GAME_INFO_NOT_FOUND));
 	}
 
-	private List<GameQuestionGetResponse> getGameQuestions(GameRoom gameRoom) {
+	private List<GameQuestion> getGameQuestions(GameRoom gameRoom) {
 		final GameType gameType = gameRoom.getGameType();
 		return gameQuestionRepository.findByGameTypeAndCount(gameType,
-				PageRequest.of(0, gameType.getQuestionCount()))
-			.stream()
-			.map(GameQuestionGetResponse::of)
-			.toList();
+			PageRequest.of(0, gameType.getQuestionCount()));
+
 	}
 }
