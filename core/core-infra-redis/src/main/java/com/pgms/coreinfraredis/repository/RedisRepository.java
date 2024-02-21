@@ -21,6 +21,7 @@ public class RedisRepository {
 	private static final int BLACKLIST_TIME_OUT_MINUTES = 30;
 	private static final String ROUND_PREFIX = "round:";
 	private static final String TOTAL_PREFIX = "total:";
+	private static final String WORD_PREFIX = "word:";
 
 	private final RedisTemplate<String, Object> redisTemplate;
 	private final RedisTemplate<String, Object> redisBlackListTemplate;
@@ -62,9 +63,32 @@ public class RedisRepository {
 		}
 	}
 
+	// 단어게임 단어 리스트 초기화
+	public void initWords(String roomId, List<String> words) {
+		for (String word : words) {
+			redisTemplate.opsForZSet().add(WORD_PREFIX + roomId, word, 1);
+		}
+	}
+
 	// 라운드별 멤버 점수 업데이트
 	public void updateRoundMemberScore(String roomId, String memberId, Long score) {
 		redisTemplate.opsForZSet().add(ROUND_PREFIX + roomId, memberId, score);
+	}
+
+	// 단어게임 멤버 점수 업데이트
+	public void updateWordGameMemberScore(String roomId, String memberId, Long score) {
+		redisTemplate.opsForZSet().incrementScore(WORD_PREFIX + roomId, memberId, score);
+	}
+
+	// 단어 맵 업데이트
+	public Long updateWords(String roomId, String word) {
+		// 단어 리스트 가져옴
+		Long score = getWords(roomId).getOrDefault(word, 0L);
+		// 단어 있는지 확인 -> 있으면 삭제 & score 리턴
+		if (score != 0L) {
+			redisTemplate.opsForZSet().remove(WORD_PREFIX + roomId, word);
+		}
+		return score;
 	}
 
 	// 누적 멤버 점수 업데이트
@@ -87,20 +111,31 @@ public class RedisRepository {
 		return convertToMap(roomId, membersWithScores);
 	}
 
-	private Map<Long, Long> convertToMap(String roomId, Set<Object> membersWithScores) {
-		Map<Long, Long> result = new HashMap<>();
-		for (Object memberWithScore : Objects.requireNonNull(membersWithScores)) {
-			Long member = Long.parseLong(memberWithScore.toString());
-			Double score = redisTemplate.opsForZSet().score(roomId, memberWithScore);
-			if (score != null) {
-				result.put(member, score.longValue());
+	public Map<String, Long> getWords(String roomId) {
+		Set<Object> wordsWithScores = redisTemplate.opsForZSet()
+			.rangeByScore(WORD_PREFIX + roomId, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY);
+
+		return convertToMap(roomId, wordsWithScores);
+	}
+
+	private <K> Map<K, Long> convertToMap(String roomId, Set<Object> scores) {
+		Map<K, Long> result = new HashMap<>();
+		for (Object score : Objects.requireNonNull(scores)) {
+			K key = (K)score; //member or word
+			Double findScore = redisTemplate.opsForZSet().score(roomId, key);
+			if (findScore != null) {
+				result.put(key, findScore.longValue());
 			}
 		}
 		return result;
 	}
 
-	public void deleteGameScores(String key) {
-		redisTemplate.delete(TOTAL_PREFIX + key);
-		redisTemplate.delete(ROUND_PREFIX + key);
+	public void deleteGameScores(String roomId) {
+		redisTemplate.delete(TOTAL_PREFIX + roomId);
+		redisTemplate.delete(ROUND_PREFIX + roomId);
+	}
+
+	public void deleteWords(String roomId) {
+		redisTemplate.delete(WORD_PREFIX + roomId);
 	}
 }

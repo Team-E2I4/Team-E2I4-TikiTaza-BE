@@ -25,8 +25,9 @@ public class Message {
 	private MessageType type;                                 // 메시지 타입
 	private Long roomId;                                      // 게임방 아이디
 	private Long exitMemberId;                                // 나간 유저
+	private String submittedWord;                             // 사용된 단어
 	private GameRoomGetResponse roomInfo;                     // 게임방 정보
-	private GameInfoUpdateResponse gameScore;                  // 게임 점수
+	private GameInfoUpdateResponse gameScore;                 // 게임 점수
 	private List<GameRoomMemberGetResponse> allMembers;       // 해당 방에 본인을 포함한 전체 유저
 	private List<GameQuestionGetResponse> questions;          // 게임 질문 리스트
 
