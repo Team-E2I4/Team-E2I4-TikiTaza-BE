@@ -15,4 +15,4 @@ COPY --from=builder application/application/ ./
 
 # 애플리케이션 JAR 파일이 이미 압축이 해제 되었으므로, JarLauncher를 사용하여 애플리케이션을 시작
 ENV TZ=Asia/Seoul
-ENTRYPOINT ["java", "-Duser.timezone=Asia/Seoul", "-Dspring.profiles.active=dev", "org.springframework.boot.loader.JarLauncher"]
+ENTRYPOINT ["java", "-Duser.timezone=Asia/Seoul", "-Dspring.profiles.active=dev","org.springframework.boot.loader.launch.JarLauncher"]

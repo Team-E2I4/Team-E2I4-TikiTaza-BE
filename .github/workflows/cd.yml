@@ -78,11 +78,14 @@ jobs:
             if [ ! -z "$(docker ps -aq)" ]; then
               docker rm $(docker ps -aq)
             fi
-
+            
+            if [ ! -z "$(docker network ls -qf name=tikitaza)" ]; then
+              docker network rm tikitaza
+            fi
+            
             docker login -u ${{ secrets.DOCKER_ID }} -p ${{ secrets.DOCKER_PASSWORD }}
             
             docker pull ${{ secrets.DOCKER_ID }}/tiki-taza
-            docker pull wurstmeister/zookeeper
             
             docker network create tikitaza
             
