@@ -11,6 +11,10 @@
     <label for="accessToken">Access Token:</label>
     <input type="text" id="accessToken" placeholder="Enter your access token here">
     <button onclick="connect()">Connect</button>
+    <button onclick="sendReady()">Send Ready</button>
+    <button onclick="sendStart()">Send Start</button>
+    <input type="text" id="kickedId" placeholder="Enter kicked ID here"> <!-- Input for kickedId -->
+    <button onclick="sendKick()">Send Kick</button>
 </div>
 <div>
 </div>
@@ -36,7 +40,6 @@
             subscribeToRoomEnter();
             subscribeToError()
             stompClient.send("/to/game-room/" + roomId + "/enter", connectHeaders, JSON.stringify({}));
-            subscribeToRoomExit();
         }, function (error) {
             console.log('Connection error: ' + error);
             alert('Connection failed. Check console for details.');
@@ -58,6 +61,34 @@
             console.log(">>>> response " + response);
             console.log('Enter Message: ' + message);
         });
+    }
+
+    function sendReady() {
+        var accessToken = document.getElementById("accessToken").value; // Get the access token from the input field
+        var connectHeaders = {
+            'Authorization': 'Bearer ' + accessToken,
+            'RoomId': roomId,
+        };
+        stompClient.send("/to/game-room/" + roomId + "/ready", connectHeaders, JSON.stringify({}));
+    }
+
+    function sendStart() {
+        var accessToken = document.getElementById("accessToken").value; // Get the access token from the input field
+        var connectHeaders = {
+            'Authorization': 'Bearer ' + accessToken,
+            'RoomId': roomId,
+        };
+        stompClient.send("/to/game/" + roomId + "/start", connectHeaders, JSON.stringify({}));
+    }
+
+    function sendKick() {
+        var accessToken = document.getElementById("accessToken").value; // Get the access token from the input field
+        var kickedId = document.getElementById("kickedId").value; // Get the kickedId from the input field
+        var connectHeaders = {
+            'Authorization': 'Bearer ' + accessToken,
+            'RoomId': roomId,
+        };
+        stompClient.send("/to/game-room/" + roomId + "/kick" + kickedId, connectHeaders, JSON.stringify({}));
     }
 </script>
 </body>
