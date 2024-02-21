@@ -14,12 +14,16 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.pgms.api.domain.game.dto.request.GameRoomCreateRequest;
 import com.pgms.api.domain.game.service.GameRoomService;
+import com.pgms.api.global.annotation.SwaggerResponseGameRoom;
 import com.pgms.coredomain.response.ApiResponse;
 import com.pgms.coresecurity.resolver.CurrentAccount;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
+@Tag(name = "게임방", description = "게임방 관련 API 입니다.")
+@SwaggerResponseGameRoom
 @RestController
 @RequestMapping("/api/v1/rooms")
 @RequiredArgsConstructor

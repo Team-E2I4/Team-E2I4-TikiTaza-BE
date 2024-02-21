@@ -1,4 +1,4 @@
-package com.pgms.api.util;
+package com.pgms.api.global.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;

@@ -8,10 +8,10 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.pgms.api.domain.member.annotation.SwaggerResponseAuth;
 import com.pgms.api.domain.member.dto.request.LoginRequest;
 import com.pgms.api.domain.member.dto.response.AuthResponse;
 import com.pgms.api.domain.member.service.AuthService;
+import com.pgms.api.global.annotation.SwaggerResponseAuth;
 import com.pgms.coredomain.response.ApiResponse;
 import com.pgms.coredomain.response.ResponseCode;
 import com.pgms.coresecurity.jwt.JwtTokenProvider;

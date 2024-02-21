@@ -7,7 +7,7 @@ import com.pgms.api.domain.game.dto.response.GameInfoUpdateResponse;
 import com.pgms.api.domain.game.dto.response.GameQuestionGetResponse;
 import com.pgms.api.domain.game.dto.response.GameRoomGetResponse;
 import com.pgms.api.domain.game.dto.response.GameRoomMemberGetResponse;
-import com.pgms.api.util.Utils;
+import com.pgms.api.global.util.Utils;
 import com.pgms.coreinfrakafka.kafka.KafkaMessage;
 
 import lombok.AccessLevel;

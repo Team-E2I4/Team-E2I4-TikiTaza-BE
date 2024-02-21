@@ -4,6 +4,5 @@ spring:
       "local": "db, security, secret, redis, kafka"
       "dev": "db, security, secret, redis, kafka"
     default: local
-
 server:
   port: 8080

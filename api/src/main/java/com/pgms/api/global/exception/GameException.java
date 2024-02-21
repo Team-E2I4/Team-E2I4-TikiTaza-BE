@@ -1,4 +1,4 @@
-package com.pgms.api.exception;
+package com.pgms.api.global.exception;
 
 import com.pgms.coredomain.domain.common.BaseErrorCode;
 
