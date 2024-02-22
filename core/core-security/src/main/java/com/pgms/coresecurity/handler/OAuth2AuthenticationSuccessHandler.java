@@ -20,6 +20,7 @@ import com.pgms.coresecurity.user.oauth.CustomOAuth2User;
 import com.pgms.coresecurity.util.HttpResponseUtil;
 
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
@@ -56,7 +57,11 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
 
 		Map<String, Object> body = new HashMap<>();
 		body.put("accessToken", accessToken);
-		body.put("refreshToken", refreshToken);
+
+		Cookie cookie = new Cookie("refreshToken", refreshToken);
+		cookie.setHttpOnly(true);
+		cookie.setPath("/");
+		response.addCookie(cookie);
 
 		HttpResponseUtil.setSuccessResponse(response, HttpStatus.OK, body);
 	}
