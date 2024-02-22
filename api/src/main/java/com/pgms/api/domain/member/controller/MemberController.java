@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.pgms.api.domain.member.dto.request.MemberSignUpRequest;
 import com.pgms.api.domain.member.dto.request.NicknameUpdateRequest;
 import com.pgms.api.domain.member.dto.response.MemberGetResponse;
+import com.pgms.api.domain.member.dto.response.MemberSignUpResponse;
 import com.pgms.api.domain.member.service.MemberService;
 import com.pgms.api.global.annotation.SwaggerResponseMember;
 import com.pgms.coredomain.response.ApiResponse;
@@ -38,7 +39,7 @@ public class MemberController {
 
 	@Operation(summary = "회원가입")
 	@PostMapping("/sign-up")
-	public ResponseEntity<ApiResponse<Long>> signUp(@Valid @RequestBody MemberSignUpRequest request) {
+	public ResponseEntity<ApiResponse<MemberSignUpResponse>> signUp(@Valid @RequestBody MemberSignUpRequest request) {
 		return ResponseEntity.ok(ApiResponse.of(memberService.signUp(request)));
 	}
 

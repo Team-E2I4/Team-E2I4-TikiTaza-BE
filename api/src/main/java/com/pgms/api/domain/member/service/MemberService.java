@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.pgms.api.domain.member.dto.request.MemberSignUpRequest;
 import com.pgms.api.domain.member.dto.request.NicknameUpdateRequest;
 import com.pgms.api.domain.member.dto.response.MemberGetResponse;
+import com.pgms.api.domain.member.dto.response.MemberSignUpResponse;
 import com.pgms.api.global.exception.MemberException;
 import com.pgms.coredomain.domain.member.Member;
 import com.pgms.coredomain.exception.MemberErrorCode;
@@ -24,13 +25,12 @@ public class MemberService {
 	private final PasswordEncoder passwordEncoder;
 	private final RedisRepository redisRepository;
 
-	public Long signUp(MemberSignUpRequest request) {
+	public MemberSignUpResponse signUp(MemberSignUpRequest request) {
 		validateDuplicateEmail(request);
 		validateNewPassword(request.password(), request.passwordConfirm());
 		Member member = request.toEntity(passwordEncoder.encode(request.password()));
 
-		return memberRepository.save(member)
-			.getId();
+		return MemberSignUpResponse.from(memberRepository.save(member).getId());
 	}
 
 	@Transactional(readOnly = true)

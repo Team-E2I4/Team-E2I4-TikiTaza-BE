@@ -2,9 +2,11 @@ package com.pgms.coredomain.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 
 @Getter
+@Schema(title = "공통 응답 형식", requiredProperties = {"code", "message"})
 public class ApiResponse<T> {
 
 	private final String code;
