@@ -11,6 +11,7 @@ import com.pgms.api.global.exception.MemberException;
 import com.pgms.coredomain.domain.member.Member;
 import com.pgms.coredomain.exception.MemberErrorCode;
 import com.pgms.coredomain.repository.MemberRepository;
+import com.pgms.coreinfraredis.repository.RedisRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -21,6 +22,7 @@ public class MemberService {
 
 	private final MemberRepository memberRepository;
 	private final PasswordEncoder passwordEncoder;
+	private final RedisRepository redisRepository;
 
 	public Long signUp(MemberSignUpRequest request) {
 		validateDuplicateEmail(request);
@@ -37,9 +39,13 @@ public class MemberService {
 		return MemberGetResponse.from(member);
 	}
 
-	public void deleteMemberAccount(Long memberId) {
+	public void deleteMemberAccount(String accessToken, String refreshToken, Long memberId) {
 		Member member = getMember(memberId);
+		if (member.isDeleted()) {
+			throw new MemberException(MemberErrorCode.MEMBER_NOT_FOUND);
+		}
 		member.delete();
+		setAccessTokenToBlackList(accessToken, refreshToken, memberId);
 	}
 
 	public void updateMemberNickname(Long memberId, NicknameUpdateRequest request) {
@@ -68,6 +74,16 @@ public class MemberService {
 	private void validateDuplicateNickname(String nickname) {
 		if (memberRepository.existsByNickname(nickname)) {
 			throw new MemberException(MemberErrorCode.DUPLICATE_NICKNAME);
+		}
+	}
+
+	private void setAccessTokenToBlackList(String accessToken, String refreshToken, Long memberId) {
+		if (redisRepository.hasKey(refreshToken)) {
+			Long storedMemberId = Long.valueOf(redisRepository.get(refreshToken).toString());
+			if (storedMemberId.equals(memberId)) {
+				redisRepository.delete(refreshToken);
+				redisRepository.saveBlackList(accessToken, "accessToken");
+			}
 		}
 	}
 }
