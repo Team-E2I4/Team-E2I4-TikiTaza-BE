@@ -28,6 +28,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/auth")
 public class AuthController {
+	private static final String SET_COOKIE = "Set-Cookie";
 
 	private final AuthService authService;
 	private final JwtTokenProvider jwtTokenProvider;
@@ -35,7 +36,10 @@ public class AuthController {
 	@Operation(summary = "로그인")
 	@PostMapping("/login")
 	public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest request) {
-		return ResponseEntity.ok(ApiResponse.of(authService.login(request)));
+		final AuthResponse response = authService.login(request);
+		return ResponseEntity.ok()
+			.header(SET_COOKIE, "refreshToken=" + response.refreshToken() + "; Path=/; HttpOnly;")
+			.body(ApiResponse.of(response));
 	}
 
 	@Operation(summary = "로그아웃")
@@ -51,14 +55,19 @@ public class AuthController {
 	@Operation(summary = "게스트 로그인")
 	@PostMapping("/guest")
 	public ResponseEntity<ApiResponse<AuthResponse>> guestLogin() {
-		return ResponseEntity.ok(ApiResponse.of(authService.guestLogin()));
+		final AuthResponse response = authService.guestLogin();
+		return ResponseEntity.ok()
+			.header(SET_COOKIE, "refreshToken=" + response.refreshToken() + "; Path=/; HttpOnly;")
+			.body(ApiResponse.of(response));
 	}
 
 	@Operation(summary = "토큰 재발급")
 	@PostMapping("/reissue")
 	public ResponseEntity<ApiResponse<AuthResponse>> reIssueAccessToken(
 		@CookieValue("refreshToken") String refreshToken) {
-		AuthResponse response = authService.reIssueAccessTokenByRefresh(refreshToken);
-		return ResponseEntity.ok(ApiResponse.of(response));
+		final AuthResponse response = authService.reIssueAccessTokenByRefresh(refreshToken);
+		return ResponseEntity.ok()
+			.header(SET_COOKIE, "refreshToken=" + response.refreshToken() + "; Path=/; HttpOnly;")
+			.body(ApiResponse.of(response));
 	}
 }
