@@ -97,11 +97,10 @@ public class WebSecurityConfig {
 		http
 			.securityMatchers(matchers -> matchers
 				.requestMatchers(requestHasRoleUser())
-				.requestMatchers(requestHasRoleGuest())
 			)
 			.authorizeHttpRequests(auth -> auth
 				.requestMatchers(requestHasRoleUser()).hasAuthority(ROLE_USER.name())
-				.requestMatchers(requestHasRoleGuest()).hasAuthority(ROLE_GUEST.name())
+				.anyRequest().authenticated()
 			)
 			.exceptionHandling(exception -> {
 				exception.authenticationEntryPoint(jwtAuthenticationEntryPoint);
@@ -132,22 +131,20 @@ public class WebSecurityConfig {
 
 	private RequestMatcher[] requestHasRoleUser() {
 		List<RequestMatcher> requestMatchers = List.of(
-			antMatcher(GET, "/api/v1/sse"),
 			antMatcher(POST, "/api/v1/auth/logout"),
 			antMatcher(DELETE, "/api/v1/members"),
-			antMatcher(PATCH, "/api/v1/members"),
-			antMatcher(POST, "/api/v1/rooms")
+			antMatcher(PATCH, "/api/v1/members")
 		);
 		return requestMatchers.toArray(RequestMatcher[]::new);
 	}
 
-	private RequestMatcher[] requestHasRoleGuest() {
-		List<RequestMatcher> requestMatchers = List.of(
-			antMatcher(GET, "/api/v1/sse"),
-			antMatcher(POST, "/api/v1/rooms")
-		);
-		return requestMatchers.toArray(RequestMatcher[]::new);
-	}
+	// private RequestMatcher[] requestHasRoleGuest() {
+	// 	List<RequestMatcher> requestMatchers = List.of(
+	// 		antMatcher(GET, "/api/v1/sse"),
+	// 		antMatcher(POST, "/api/v1/rooms")
+	// 	);
+	// 	return requestMatchers.toArray(RequestMatcher[]::new);
+	// }
 
 	private RequestMatcher[] requestPermitAll() {
 		List<RequestMatcher> requestMatchers = List.of(
