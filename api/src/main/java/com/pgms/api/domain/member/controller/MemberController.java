@@ -51,7 +51,7 @@ public class MemberController {
 	@Operation(summary = "회원 닉네임 업데이트. 소셜 로그인 시 사용")
 	@PatchMapping
 	public ResponseEntity<ApiResponse<Void>> updateMemberNickname(@CurrentAccount Long memberId,
-		@RequestBody NicknameUpdateRequest request) {
+		@RequestBody @Valid NicknameUpdateRequest request) {
 		memberService.updateMemberNickname(memberId, request);
 		return ResponseEntity.ok(ApiResponse.of(ResponseCode.SUCCESS));
 	}
