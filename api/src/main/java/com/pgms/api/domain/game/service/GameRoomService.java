@@ -3,6 +3,7 @@ package com.pgms.api.domain.game.service;
 import static com.pgms.api.socket.dto.MessageType.*;
 
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,6 +33,7 @@ import com.pgms.coredomain.repository.GameRoomRepository;
 import com.pgms.coredomain.repository.MemberRepository;
 import com.pgms.coreinfrakafka.kafka.KafkaMessage;
 import com.pgms.coreinfrakafka.kafka.producer.Producer;
+import com.pgms.coreinfraredis.repository.RedisRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -45,6 +47,7 @@ public class GameRoomService {
 	private final MemberRepository memberRepository;
 	private final GameRoomRepository gameRoomRepository;
 	private final GameRoomMemberRepository gameRoomMemberRepository;
+	private final RedisRepository redisRepository;
 	private final SseEmitters sseEmitters;
 	private final SseService sseService;
 	private final Producer producer;
@@ -57,8 +60,11 @@ public class GameRoomService {
 		// 유저가 다른 방에 들어가 있는지 확인 -> 있으면 gameRoomMember 삭제
 		validateMemberAlreadyEntered(memberId);
 
+		// 랜덤 초대코드 생성
+		String inviteCode = createInviteCode();
+
 		// 방 생성
-		GameRoom gameRoom = request.toEntity(memberId);
+		GameRoom gameRoom = request.toEntity(memberId, inviteCode);
 
 		// 방에 입장한 유저 정보 생성
 		GameRoomMember gameRoomMember = GameRoomMember.builder()
@@ -76,6 +82,9 @@ public class GameRoomService {
 		gameRoom.enterRoom();
 		GameRoom savedGameRoom = gameRoomRepository.save(gameRoom);
 		gameRoomMemberRepository.save(gameRoomMember);
+
+		// Redis -> 초대 코드 : 방 번호 저장
+		redisRepository.saveInviteCode(inviteCode, savedGameRoom.getId());
 
 		// 게임방 리스트 조회
 		sseEmitters.updateGameRoom(sseService.getRooms());
@@ -104,7 +113,7 @@ public class GameRoomService {
 			request.round(),
 			GameType.of(request.gameType()));
 
-		// 모든 유저를 준비해제
+		// 모든 유저를 준비 해제
 		gameRoom.getGameRoomMembers().forEach(gameRoomMember -> {
 			if (!gameRoom.isHost(gameRoomMember.getMemberId())) {
 				gameRoomMember.updateReadyStatus(false);
@@ -172,13 +181,13 @@ public class GameRoomService {
 		gameRoomMemberRepository.delete(gameRoomMember);
 		gameRoom.exitRoom();
 
-		// 현재 인원 0 명이면 방까지 제거
+		// 현재 인원 0 명이면 방 & Redis 초대 코드 제거
 		if (gameRoom.getCurrentPlayer() == 0) {
-			gameRoomRepository.delete(gameRoom);
+			cleanUpGameRoom(gameRoom);
 			return;
 		}
 
-		// 방장이 나갔으면 다음 방장 지정
+		// 방장이 나가면 다음 방장 지정
 		final List<GameRoomMember> leftGameRoomMembers = gameRoomMemberRepository.findAllByGameRoomId(gameRoom.getId());
 
 		if (gameRoom.isHost(gameRoomMember.getMemberId())) {
@@ -236,9 +245,18 @@ public class GameRoomService {
 			.build()
 			.convertToKafkaMessage("/from/game-room/%d".formatted(gameRoom.getId()));
 
-		// 강퇴처리 된 유저 연결 끊어주는거 어떻게 ?..
 		producer.produceMessage(message);
 		sseEmitters.updateGameRoom(sseService.getRooms());
+	}
+
+	private String createInviteCode() {
+		String inviteCode;
+		do {
+			UUID uuid = UUID.randomUUID();
+			String uuidAsString = uuid.toString().replace("-", "");
+			inviteCode = uuidAsString.substring(0, 8);
+		} while (redisRepository.hasKey(inviteCode));
+		return inviteCode;
 	}
 
 	private Member getMember(Long memberId) {
@@ -280,6 +298,17 @@ public class GameRoomService {
 			gameRoomMember.getGameRoom().exitRoom();
 			gameRoomMemberRepository.delete(gameRoomMember);
 		});
+	}
+
+	private void cleanUpGameRoom(GameRoom gameRoom) {
+		gameRoomRepository.delete(gameRoom);
+		deleteInviteCodeFromRedis(gameRoom.getInviteCode());
+	}
+
+	private void deleteInviteCodeFromRedis(String inviteCode) {
+		if (redisRepository.hasKey(inviteCode)) {
+			redisRepository.delete(inviteCode);
+		}
 	}
 
 	private void sendGameRoomInfo(GameRoom gameRoom, MessageType type) {

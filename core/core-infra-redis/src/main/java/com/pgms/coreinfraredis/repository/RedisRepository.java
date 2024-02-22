@@ -26,13 +26,6 @@ public class RedisRepository {
 	private final RedisTemplate<String, Object> redisTemplate;
 	private final RedisTemplate<String, Object> redisBlackListTemplate;
 
-	// 리프레시 토큰용
-	public void saveRefreshToken(String key, Object value) {
-		ValueOperations<String, Object> valueOperations = redisTemplate.opsForValue();
-		valueOperations.set(key, value);
-		redisTemplate.expire(key, REFRESH_TOKEN_TIME_OUT_DAYS, TimeUnit.DAYS);
-	}
-
 	public Object get(String key) {
 		return redisTemplate.opsForValue().get(key);
 	}
@@ -43,6 +36,18 @@ public class RedisRepository {
 
 	public boolean hasKey(String key) {
 		return Boolean.TRUE.equals(redisTemplate.hasKey(key));
+	}
+
+	// 리프레시 토큰용
+	public void saveRefreshToken(String key, Object value) {
+		ValueOperations<String, Object> valueOperations = redisTemplate.opsForValue();
+		valueOperations.set(key, value);
+		redisTemplate.expire(key, REFRESH_TOKEN_TIME_OUT_DAYS, TimeUnit.DAYS);
+	}
+
+	public void saveInviteCode(String key, Object value) {
+		ValueOperations<String, Object> valueOperations = redisTemplate.opsForValue();
+		valueOperations.set(key, value);
 	}
 
 	// 블랙리스트용 (로그아웃)
