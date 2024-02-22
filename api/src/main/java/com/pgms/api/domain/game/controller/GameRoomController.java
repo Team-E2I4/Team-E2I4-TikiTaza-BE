@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.pgms.api.domain.game.dto.request.GameRoomCreateRequest;
 import com.pgms.api.domain.game.dto.request.GameRoomEnterRequest;
 import com.pgms.api.domain.game.dto.request.GameRoomUpdateRequest;
+import com.pgms.api.domain.game.dto.response.GameRoomCreateResponse;
+import com.pgms.api.domain.game.dto.response.GameRoomEnterResponse;
 import com.pgms.api.domain.game.service.GameRoomService;
 import com.pgms.api.global.annotation.SwaggerResponseGameRoom;
 import com.pgms.coredomain.response.ApiResponse;
@@ -34,11 +36,11 @@ public class GameRoomController {
 
 	@Operation(summary = "게임 방 생성: 방장은 생성 후 자동입장됩니다.")
 	@PostMapping
-	public ResponseEntity<ApiResponse<Long>> createGameRoom(
+	public ResponseEntity<ApiResponse<GameRoomCreateResponse>> createGameRoom(
 		@CurrentAccount Long memberId,
 		@RequestBody @Valid GameRoomCreateRequest request) {
-		final Long roomId = gameRoomService.createGameRoom(memberId, request);
-		return ResponseEntity.ok(ApiResponse.of(CREATE, roomId));
+		final GameRoomCreateResponse response = gameRoomService.createGameRoom(memberId, request);
+		return ResponseEntity.ok(ApiResponse.of(CREATE, response));
 	}
 
 	@Operation(summary = "게임 방 설정 변경")
@@ -53,7 +55,7 @@ public class GameRoomController {
 
 	@Operation(summary = "게임 방 입장: 일반 유저 입장")
 	@PostMapping("/{roomId}/enter")
-	public ResponseEntity<ApiResponse<Long>> enterGameRoom(
+	public ResponseEntity<ApiResponse<GameRoomEnterResponse>> enterGameRoom(
 		@CurrentAccount Long memberId,
 		@PathVariable Long roomId,
 		@RequestBody(required = false) GameRoomEnterRequest request) {

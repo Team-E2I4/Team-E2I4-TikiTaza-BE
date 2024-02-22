@@ -10,6 +10,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.pgms.api.domain.game.dto.request.GameRoomCreateRequest;
 import com.pgms.api.domain.game.dto.request.GameRoomEnterRequest;
 import com.pgms.api.domain.game.dto.request.GameRoomUpdateRequest;
+import com.pgms.api.domain.game.dto.response.GameRoomCreateResponse;
+import com.pgms.api.domain.game.dto.response.GameRoomEnterResponse;
 import com.pgms.api.domain.game.dto.response.GameRoomGetResponse;
 import com.pgms.api.domain.game.dto.response.GameRoomMemberGetResponse;
 import com.pgms.api.global.exception.GameException;
@@ -48,7 +50,7 @@ public class GameRoomService {
 	private final Producer producer;
 
 	// ============================== 게임방 생성 ==============================
-	public Long createGameRoom(Long memberId, GameRoomCreateRequest request) {
+	public GameRoomCreateResponse createGameRoom(Long memberId, GameRoomCreateRequest request) {
 		// 유저 있는지 확인
 		Member member = getMember(memberId);
 
@@ -77,7 +79,7 @@ public class GameRoomService {
 
 		// 게임방 리스트 조회
 		sseEmitters.updateGameRoom(sseService.getRooms());
-		return savedGameRoom.getId();
+		return GameRoomCreateResponse.from(savedGameRoom.getId());
 	}
 
 	// ============================== 게임방 설정 변경 ==============================
@@ -116,7 +118,7 @@ public class GameRoomService {
 	}
 
 	// ============================== 게임방 입장 ==============================
-	public Long enterGameRoom(Long memberId, Long roomId, GameRoomEnterRequest request) {
+	public GameRoomEnterResponse enterGameRoom(Long memberId, Long roomId, GameRoomEnterRequest request) {
 		// memberId로 유저가 존재하는지
 		Member member = getMember(memberId);
 
@@ -146,8 +148,7 @@ public class GameRoomService {
 
 		// 대기실 리스트 업데이트
 		sseEmitters.updateGameRoom(sseService.getRooms());
-
-		return roomId;
+		return GameRoomEnterResponse.from(roomId, memberId);
 	}
 
 	// ============================== 입장 후 게임방 멤버 세션 아이디 설정 ==============================
