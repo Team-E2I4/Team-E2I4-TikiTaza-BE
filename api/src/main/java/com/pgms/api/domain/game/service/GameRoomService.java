@@ -184,6 +184,7 @@ public class GameRoomService {
 		// 현재 인원 0 명이면 방 & Redis 초대 코드 제거
 		if (gameRoom.getCurrentPlayer() == 0) {
 			cleanUpGameRoom(gameRoom);
+			sseEmitters.updateGameRoom(sseService.getRooms());
 			return;
 		}
 
