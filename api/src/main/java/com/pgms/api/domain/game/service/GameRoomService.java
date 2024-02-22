@@ -48,7 +48,7 @@ public class GameRoomService {
 	private final Producer producer;
 
 	// ============================== 게임방 생성 ==============================
-	public Long createRoom(Long memberId, GameRoomCreateRequest request) {
+	public Long createGameRoom(Long memberId, GameRoomCreateRequest request) {
 		// 유저 있는지 확인
 		Member member = getMember(memberId);
 
