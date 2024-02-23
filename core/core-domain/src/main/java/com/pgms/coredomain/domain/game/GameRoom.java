@@ -70,12 +70,14 @@ public class GameRoom extends BaseEntity {
 		Long hostId,
 		String title,
 		String password,
+		String inviteCode,
 		int round,
 		int maxPlayer,
 		GameType gameType) {
 		this.hostId = hostId;
 		this.title = title;
 		this.password = password;
+		this.inviteCode = inviteCode;
 		this.round = round;
 		this.maxPlayer = maxPlayer;
 		this.isPlaying = false;

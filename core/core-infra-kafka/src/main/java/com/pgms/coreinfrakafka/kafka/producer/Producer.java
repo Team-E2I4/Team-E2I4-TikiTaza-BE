@@ -15,7 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 public class Producer {
 
 	@Value("${spring.kafka.template.default-topic}")
-	private String topic = "test_topic";
+	private String topic;
 
 	private final KafkaTemplate<String, KafkaMessage> kafkaTemplate;
 

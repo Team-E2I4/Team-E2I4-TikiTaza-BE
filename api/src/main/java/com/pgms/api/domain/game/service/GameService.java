@@ -159,7 +159,7 @@ public class GameService {
 		// 점수가 0이아니면 점수 업데이트 + 단어 정보 반환
 		if (score != 0) {
 			// 멤버 점수 올려주고, 반환
-			redisRepository.updateRoundMemberScore(
+			redisRepository.updateWordGameMemberScore(
 				String.valueOf(roomId),
 				String.valueOf(memberId),
 				score);
