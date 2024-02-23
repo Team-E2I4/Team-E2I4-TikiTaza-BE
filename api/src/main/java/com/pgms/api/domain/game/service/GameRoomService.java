@@ -55,7 +55,7 @@ public class GameRoomService {
 		Member member = getMember(memberId);
 
 		// 유저가 다른 방에 들어가 있는지 확인 -> 있으면 gameRoomMember 삭제
-		validateMemberAlreadyEntered(memberId);
+		validateMemberAlreadyEntered(memberId, null);
 
 		// 방 생성
 		GameRoom gameRoom = request.toEntity(memberId);
@@ -132,7 +132,7 @@ public class GameRoomService {
 		validateGameRoomEnableEnter(gameRoom);
 
 		// 유저가 이미 방에 들어가 있는지 확인 -> 들어가 있으면 기존 방 삭제
-		validateMemberAlreadyEntered(memberId);
+		validateMemberAlreadyEntered(memberId, roomId);
 
 		// 새롭게 게임방에 입장하는 유저 생성
 		GameRoomMember gameRoomMember = GameRoomMember.builder()
@@ -275,8 +275,11 @@ public class GameRoomService {
 		}
 	}
 
-	private void validateMemberAlreadyEntered(Long memberId) {
+	private void validateMemberAlreadyEntered(Long memberId, Long newRoomId) {
 		gameRoomMemberRepository.findByMemberId(memberId).ifPresent(gameRoomMember -> {
+			if (!gameRoomMember.getGameRoom().getId().equals(newRoomId)) {
+				throw new GameException(GameRoomErrorCode.GAME_ROOM_MEMBER_IN_SAME_ROOM);
+			}
 			gameRoomMember.getGameRoom().exitRoom();
 			gameRoomMemberRepository.delete(gameRoomMember);
 		});
