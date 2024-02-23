@@ -18,11 +18,13 @@ import com.pgms.api.socket.dto.request.GameInfoUpdateRequest;
 import com.pgms.api.socket.dto.request.WordGameInfoUpdateRequest;
 import com.pgms.api.sse.SseEmitters;
 import com.pgms.api.sse.service.SseService;
+import com.pgms.coredomain.domain.game.GameHistory;
 import com.pgms.coredomain.domain.game.GameInfo;
 import com.pgms.coredomain.domain.game.GameQuestion;
 import com.pgms.coredomain.domain.game.GameRoom;
 import com.pgms.coredomain.domain.game.GameType;
 import com.pgms.coredomain.exception.GameRoomErrorCode;
+import com.pgms.coredomain.repository.GameHistoryRepository;
 import com.pgms.coredomain.repository.GameInfoRepository;
 import com.pgms.coredomain.repository.GameQuestionRepository;
 import com.pgms.coredomain.repository.GameRoomMemberRepository;
@@ -44,6 +46,7 @@ public class GameService {
 	private final GameRoomMemberRepository gameRoomMemberRepository;
 	private final GameQuestionRepository gameQuestionRepository;
 	private final GameInfoRepository gameInfoRepository;
+	private final GameHistoryRepository gameHistoryRepository;
 	private final RedisRepository redisRepository;
 	private final SseEmitters sseEmitters;
 	private final SseService sseService;
@@ -208,7 +211,15 @@ public class GameService {
 				// 최종 점수 조회
 				final Map<Long, Long> totalScores = redisRepository.getTotalScores(String.valueOf(roomId));
 				GameInfoUpdateResponse gameRoomInfoUpdateResponse = GameInfoUpdateResponse.from(totalScores);
-
+				totalScores.forEach((memberId, score) -> {
+					// 게임방 멤버 점수 업데이트
+					final GameHistory gameHistory = GameHistory.builder()
+						.score(score.intValue())
+						.gameType(gameRoom.getGameType())
+						.memberId(memberId)
+						.build();
+					gameHistoryRepository.save(gameHistory);
+				});
 				KafkaMessage message = Message.builder()
 					.type(MessageType.FINISH)
 					.allMembers(gameRoomMembers)
