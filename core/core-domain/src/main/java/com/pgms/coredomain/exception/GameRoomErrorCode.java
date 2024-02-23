@@ -21,7 +21,8 @@ GameRoomErrorCode implements BaseErrorCode {
 	GAME_INFO_NOT_FOUND("gr-404/03", HttpStatus.NOT_FOUND, "게임 정보를 찾을 수 없습니다."),
 	USER_ROOM_LIMIT_EXCEEDED("gr-409/01", HttpStatus.CONFLICT, "이미 해당 유저의 방이 존재합니다."),
 	GAME_ROOM_HOST_MISMATCH("gr-409/02", HttpStatus.CONFLICT, "방장이 아닙니다."),
-	GAME_ROOM_MAX_PLAYER_MISMATCH("gr-409/03", HttpStatus.CONFLICT, "방 최대 인원이 현재 인원보다 작습니다.");
+	GAME_ROOM_MAX_PLAYER_MISMATCH("gr-409/03", HttpStatus.CONFLICT, "방 최대 인원이 현재 인원보다 작습니다."),
+	GAME_ROOM_MEMBER_IN_SAME_ROOM("gr-409/04", HttpStatus.CONFLICT, "같은 방에 이미 참여하고 있습니다.");
 
 	private final String code;
 	private final HttpStatus status;
