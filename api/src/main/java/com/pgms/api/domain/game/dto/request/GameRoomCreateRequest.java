@@ -31,10 +31,11 @@ public record GameRoomCreateRequest(
 	@NotNull(message = "[ERROR] 게임 타입을 입력해주세요.")
 	String gameType
 ) {
-	public GameRoom toEntity(Long hostId) {
+	public GameRoom toEntity(Long hostId, String inviteCode) {
 		return GameRoom.builder()
 			.title(title)
 			.password(password)
+			.inviteCode(inviteCode)
 			.maxPlayer(maxPlayer)
 			.round(round)
 			.hostId(hostId)

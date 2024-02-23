@@ -15,6 +15,7 @@ GameRoomErrorCode implements BaseErrorCode {
 	GAME_ROOM_MISMATCH("gr-400/03", HttpStatus.BAD_REQUEST, "방이 일치하지 않습니다."),
 	GAME_ROOM_PASSWORD_MISMATCH("gr-400/04", HttpStatus.BAD_REQUEST, "방 비밀번호가 일치하지 않습니다."),
 	INVALID_GAME_TYPE("gr-400/05", HttpStatus.BAD_REQUEST, "유효하지 않은 게임 타입입니다."),
+	INVALID_INVITE_CODE("gr-400/06", HttpStatus.BAD_REQUEST, "초대코드가 유효하지 않습니다"),
 	GAME_ROOM_NOT_FOUND("gr-404/01", HttpStatus.NOT_FOUND, "게임방을 찾을 수 없습니다."),
 	GAME_ROOM_MEMBER_NOT_FOUND("gr-404/02", HttpStatus.NOT_FOUND, "게임방 멤버를 찾을 수 없습니다."),
 	GAME_INFO_NOT_FOUND("gr-404/03", HttpStatus.NOT_FOUND, "게임 정보를 찾을 수 없습니다."),
