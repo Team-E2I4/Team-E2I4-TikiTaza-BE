@@ -3,6 +3,7 @@ package com.pgms.api.domain.game.controller;
 import static com.pgms.coredomain.response.ResponseCode.*;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -15,6 +16,7 @@ import com.pgms.api.domain.game.dto.request.GameRoomEnterRequest;
 import com.pgms.api.domain.game.dto.request.GameRoomUpdateRequest;
 import com.pgms.api.domain.game.dto.response.GameRoomCreateResponse;
 import com.pgms.api.domain.game.dto.response.GameRoomEnterResponse;
+import com.pgms.api.domain.game.dto.response.GameRoomInviteCodeResponse;
 import com.pgms.api.domain.game.service.GameRoomService;
 import com.pgms.api.global.annotation.SwaggerResponseGameRoom;
 import com.pgms.coredomain.response.ApiResponse;
@@ -60,5 +62,13 @@ public class GameRoomController {
 		@PathVariable Long roomId,
 		@RequestBody(required = false) GameRoomEnterRequest request) {
 		return ResponseEntity.ok(ApiResponse.of(gameRoomService.enterGameRoom(memberId, roomId, request)));
+	}
+
+	@Operation(summary = "게임방 초대코드로 방 번호 반환")
+	@GetMapping("/{inviteCode}")
+	public ResponseEntity<ApiResponse<GameRoomInviteCodeResponse>> getRoomIdByInviteCode(
+		@CurrentAccount Long memberId,
+		@PathVariable String inviteCode) {
+		return ResponseEntity.ok(ApiResponse.of(gameRoomService.getRoomIdByInviteCode(memberId, inviteCode)));
 	}
 }

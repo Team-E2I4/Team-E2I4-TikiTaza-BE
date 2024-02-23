@@ -14,6 +14,7 @@ import com.pgms.api.domain.game.dto.request.GameRoomUpdateRequest;
 import com.pgms.api.domain.game.dto.response.GameRoomCreateResponse;
 import com.pgms.api.domain.game.dto.response.GameRoomEnterResponse;
 import com.pgms.api.domain.game.dto.response.GameRoomGetResponse;
+import com.pgms.api.domain.game.dto.response.GameRoomInviteCodeResponse;
 import com.pgms.api.domain.game.dto.response.GameRoomMemberGetResponse;
 import com.pgms.api.global.exception.GameException;
 import com.pgms.api.global.exception.SocketException;
@@ -248,6 +249,14 @@ public class GameRoomService {
 
 		producer.produceMessage(message);
 		sseEmitters.updateGameRoom(sseService.getRooms());
+	}
+
+	public GameRoomInviteCodeResponse getRoomIdByInviteCode(Long memberId, String inviteCode) {
+		getMember(memberId);
+		if (!redisRepository.hasKey(inviteCode)) {
+			throw new GameException(GameRoomErrorCode.INVALID_INVITE_CODE);
+		}
+		return GameRoomInviteCodeResponse.from(Long.valueOf(redisRepository.get(inviteCode).toString()));
 	}
 
 	private String createInviteCode() {
