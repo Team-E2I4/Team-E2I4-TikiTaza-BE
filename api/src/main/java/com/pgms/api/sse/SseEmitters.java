@@ -24,12 +24,14 @@ public class SseEmitters {
 		emitter.onError(throwable -> {
 			log.warn(">>>>>> SSE Emitter on Error");
 			emitter.complete();
+			this.emitters.remove(emitter);
 		});
 
 		// Time-Out 발생 시 연결 종료 및 리소스 정리
 		emitter.onTimeout(() -> {
 			log.warn(">>>>>> SSE Emitter Timeout");
 			emitter.complete();
+			this.emitters.remove(emitter);
 		});
 
 		// 비동기 요청 완료시 emitter 객체 삭제
@@ -53,6 +55,7 @@ public class SseEmitters {
 					.data(roomInfo));
 			} catch (IOException e) {
 				log.warn(">>>>>> SSE Emitter Change GameRoom Exception");
+				emitter.complete();
 				this.emitters.remove(emitter);
 			}
 		});
@@ -64,7 +67,8 @@ public class SseEmitters {
 				.name("connect")
 				.data(roomInfo));
 		} catch (IOException e) {
-			emitters.remove(emitter);
+			emitter.complete(); // 예외 발생 시 emitter를 종료
+			this.emitters.remove(emitter);
 		}
 	}
 }
