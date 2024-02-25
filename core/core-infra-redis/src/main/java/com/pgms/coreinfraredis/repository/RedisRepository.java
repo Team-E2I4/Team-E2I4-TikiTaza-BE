@@ -1,14 +1,14 @@
 package com.pgms.coreinfraredis.repository;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
+import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Component;
 
 import lombok.RequiredArgsConstructor;
@@ -62,9 +62,9 @@ public class RedisRepository {
 	}
 
 	// 라운드별 점수 초기화
-	public void initMemberScores(String roomId, List<Long> memberIds) {
+	public void initRoundScores(String roomId, List<Long> memberIds) {
 		for (Long memberId : memberIds) {
-			redisTemplate.opsForZSet().add(ROUND_PREFIX + roomId, memberId, 0);
+			redisTemplate.opsForZSet().add(ROUND_PREFIX + roomId, memberId.toString(), 0);
 		}
 	}
 
@@ -76,71 +76,59 @@ public class RedisRepository {
 	}
 
 	// 라운드별 멤버 점수 업데이트
-	public void updateRoundMemberScore(String roomId, String memberId, Long score) {
+	public void increaseRoundScore(String roomId, String memberId, Long score) {
 		redisTemplate.opsForZSet().add(ROUND_PREFIX + roomId, memberId, score);
 	}
 
 	// 단어게임 멤버 점수 업데이트
-	public void updateWordGameMemberScore(String roomId, String memberId, Long score) {
-		redisTemplate.opsForZSet().incrementScore(WORD_PREFIX + roomId, memberId, score);
-	}
-
-	// 단어 맵 업데이트
-	public Long updateWords(String roomId, String word) {
-		// 단어 리스트 가져옴
-		Long score = getWords(roomId).getOrDefault(word, 0L);
-		// 단어 있는지 확인 -> 있으면 삭제 & score 리턴
-		if (score != 0L) {
-			redisTemplate.opsForZSet().remove(WORD_PREFIX + roomId, word);
-		}
-		return score;
+	public void increaseRoundWordScore(String roomId, String memberId, Long score) {
+		redisTemplate.opsForZSet().incrementScore(ROUND_PREFIX + roomId, memberId, score);
 	}
 
 	// 누적 멤버 점수 업데이트
-	public void updateTotalMemberScore(String roomId, String memberId, Long score) {
+	public void increaseTotalScore(String roomId, String memberId, Long score) {
 		redisTemplate.opsForZSet().incrementScore(TOTAL_PREFIX + roomId, memberId, score);
 	}
 
-	// 게임방 멤버 점수 조회
-	public Map<Long, Long> getRoundScores(String roomId) {
-		Set<Object> membersWithScores = redisTemplate.opsForZSet()
-			.rangeByScore(ROUND_PREFIX + roomId, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY);
-
-		return convertToMap(roomId, membersWithScores);
-	}
-
-	public Map<Long, Long> getTotalScores(String roomId) {
-		Set<Object> membersWithScores = redisTemplate.opsForZSet()
-			.rangeByScore(TOTAL_PREFIX + roomId, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY);
-
-		return convertToMap(roomId, membersWithScores);
-	}
-
-	public Map<String, Long> getWords(String roomId) {
-		Set<Object> wordsWithScores = redisTemplate.opsForZSet()
-			.rangeByScore(WORD_PREFIX + roomId, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY);
-
-		return convertToMap(roomId, wordsWithScores);
-	}
-
-	private <K> Map<K, Long> convertToMap(String roomId, Set<Object> scores) {
-		Map<K, Long> result = new HashMap<>();
-		for (Object score : Objects.requireNonNull(scores)) {
-			K key = (K)score; //member or word
-			Double findScore = redisTemplate.opsForZSet().score(roomId, key);
-			if (findScore != null) {
-				result.put(key, findScore.longValue());
-			}
+	// 단어 사용 여부 업데이트 & 점수 반환
+	public Long updateWords(String roomId, String word) {
+		// 단어 리스트 가져옴
+		Double score = redisTemplate.opsForZSet().score(WORD_PREFIX + roomId, word);
+		// 단어 있는지 확인 -> 있으면 삭제 & 점수 반환
+		if (score != null && score != 0.0) {
+			redisTemplate.opsForZSet().remove(WORD_PREFIX + roomId, word);
+			return score.longValue();
 		}
-		return result;
+		return 0L;
 	}
 
-	public void deleteGameScores(String roomId) {
+	// 멤버 점수 조회
+	public Map<Long, Long> getRoundScores(String roomId) {
+		Set<ZSetOperations.TypedTuple<Object>> membersWithScores = redisTemplate.opsForZSet()
+			.rangeByScoreWithScores(ROUND_PREFIX + roomId, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY);
+
+		return convertToMap(membersWithScores);
+	}
+
+	// 누적 멤버 점수 조회
+	public Map<Long, Long> getTotalScores(String roomId) {
+		Set<ZSetOperations.TypedTuple<Object>> membersWithScores = redisTemplate.opsForZSet()
+			.rangeByScoreWithScores(TOTAL_PREFIX + roomId, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY);
+
+		return convertToMap(membersWithScores);
+	}
+
+	public void deleteGameInfo(String roomId) {
 		redisTemplate.delete(TOTAL_PREFIX + roomId);
 		redisTemplate.delete(ROUND_PREFIX + roomId);
+		redisTemplate.delete(WORD_PREFIX + roomId);
 	}
 
-	public void deleteWords(String roomId) {
-		redisTemplate.delete(WORD_PREFIX + roomId);
+	private Map<Long, Long> convertToMap(Set<ZSetOperations.TypedTuple<Object>> tupleSet) {
+		return tupleSet.stream()
+			.collect(Collectors.toMap(
+				tuple -> Long.valueOf(tuple.getValue().toString()), // Integer를 Long으로 변환
+				tuple -> tuple.getScore().longValue() // Double을 Long으로 변환
+			));
 	}
 }

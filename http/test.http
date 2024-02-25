@@ -41,20 +41,20 @@ Content-Type: application/json
 ### 방 만들기 > 게임방 멤버 정보 구독 + 세션 ID 저장용 SEND
 POST http://localhost:8080/api/v1/rooms
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpZCI6MSwic3ViIjoidGVzdDFAbmF2ZXIuY29tIiwiaWF0IjoxNzA4NTIyMTQ2LCJleHAiOjE3MTg1MTM5NDYsInJvbGVzIjoiUk9MRV9VU0VSIn0.f72KiCAaiyoNzNRWuVPeETHEMSHoKknpJIm-tJn8BpLNMwJXIpQP96kaAWvww3CJSVO9OWRo_a1ZXt7aXU5y3Q
+Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpZCI6MSwic3ViIjoidGVzdDFAbmF2ZXIuY29tIiwiaWF0IjoxNzA4ODc4NjAxLCJleHAiOjE3MTg4NzA0MDEsInJvbGVzIjoiUk9MRV9VU0VSIn0.xsAXSOAx36bg0K6BIRbTSX30N9V7udP2ybo6LDR6dyGqAQHMjgDF7nCbPp0RNhaNHV057e09AEw_cb9_4wdGkA
 
 {
   "title": "빙봉의 게임",
   "maxPlayer": 2,
   "round": 5,
   "password": "1234",
-  "gameType": "WORD"
+  "gameType": "SENTENCE"
 }
 
 ### 게임방 입장
 POST http://localhost:8080/api/v1/rooms/1/enter
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpZCI6Miwic3ViIjoidGVzdDJAbmF2ZXIuY29tIiwiaWF0IjoxNzA4NTIyNjU4LCJleHAiOjE3MTg1MTQ0NTgsInJvbGVzIjoiUk9MRV9VU0VSIn0.k8Lg6C59u2w29pYCVuidN2J1AkIs4UGBUe_yXVR1XTcy9tOxys6RqVbX0cLgKjbHdlIintRiwfUrHHWOVn3W-Q
+Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpZCI6Miwic3ViIjoidGVzdDJAbmF2ZXIuY29tIiwiaWF0IjoxNzA4ODc4NjYwLCJleHAiOjE3MTg4NzA0NjAsInJvbGVzIjoiUk9MRV9VU0VSIn0.2WUjKqXzHxfmKVDcNsaTQO7fQC0oyFYldM8KhM3fd56dr4c5afLHOx2qApZX03lfe3tZkMtq7i0WPgiJOkAJ4g
 
 {
   "password": "1234"
