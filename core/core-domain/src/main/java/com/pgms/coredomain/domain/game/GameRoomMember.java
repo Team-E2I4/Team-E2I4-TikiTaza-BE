@@ -1,5 +1,7 @@
 package com.pgms.coredomain.domain.game;
 
+import com.pgms.coredomain.domain.common.BaseEntity;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.ConstraintMode;
 import jakarta.persistence.Entity;
@@ -10,6 +12,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -18,27 +21,28 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
-public class GameRoomMember {
+@Table(name = "game_room_member")
+public class GameRoomMember extends BaseEntity {
 
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@Column(nullable = false)
-	private Long memberId;            // 유저 ID
+	@Column(name = "member_id", nullable = false)
+	private Long memberId;
 
-	@Column(nullable = false)
-	private String nickname;        // 유저 닉네임
+	@Column(name = "nickname", nullable = false)
+	private String nickname;
 
-	@Column
-	private String webSessionId;    // webSessionId
+	@Column(name = "web_session_id")
+	private String webSessionId;
 
-	@Column(nullable = false)
-	private boolean readyStatus;    // 레디상태
+	@Column(name = "ready_status", nullable = false)
+	private boolean readyStatus;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "game_room_id", foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
-	private GameRoom gameRoom;      // 게임방
+	private GameRoom gameRoom;
 
 	@Builder
 	public GameRoomMember(GameRoom gameRoom, Long memberId, String nickname, String webSessionId, boolean readyStatus) {
@@ -47,11 +51,6 @@ public class GameRoomMember {
 		this.nickname = nickname;
 		this.webSessionId = webSessionId;
 		this.readyStatus = readyStatus;
-	}
-
-	public void update(boolean readyStatus, String webSessionId) {
-		this.readyStatus = readyStatus;
-		this.webSessionId = webSessionId;
 	}
 
 	public void updateReadyStatus(boolean readyStatus) {

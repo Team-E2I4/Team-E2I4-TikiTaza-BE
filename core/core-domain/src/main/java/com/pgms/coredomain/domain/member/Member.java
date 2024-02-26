@@ -11,14 +11,16 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Getter
-@Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Entity
+@Table(name = "member")
 public class Member extends BaseEntity {
 
 	@Id
@@ -34,26 +36,17 @@ public class Member extends BaseEntity {
 	@Column(name = "nickname")
 	private String nickname;
 
-	@Enumerated(EnumType.STRING)
 	@Column(name = "role", nullable = false)
+	@Enumerated(EnumType.STRING)
 	private Role role;
 
-	@Enumerated(EnumType.STRING)
 	@Column(name = "status", nullable = false)
+	@Enumerated(EnumType.STRING)
 	private AccountStatus status;
 
-	@Enumerated(EnumType.STRING)
 	@Column(name = "provider")
+	@Enumerated(EnumType.STRING)
 	private ProviderType providerType;
-
-	@Column(name = "total_score")
-	private Integer totalScore;
-
-	@Column(name = "average_wpm")
-	private Integer averageWpm;
-
-	@Column(name = "average_accuracy")
-	private Integer averageAccuracy;
 
 	@Builder
 	public Member(String email, String password, String nickname, ProviderType providerType, Role role) {
@@ -63,9 +56,6 @@ public class Member extends BaseEntity {
 		this.role = role;
 		this.status = ACTIVE;
 		this.providerType = providerType;
-		this.totalScore = 0;
-		this.averageAccuracy = 0;
-		this.averageWpm = 0;
 	}
 
 	public boolean isDeleted() {
@@ -76,13 +66,7 @@ public class Member extends BaseEntity {
 		this.status = DELETED;
 	}
 
-	public void setNickname(String nickname) {
+	public void updateNickname(String nickname) {
 		this.nickname = nickname;
-	}
-
-	public void updatePersonalRecord(int totalScore, int averageWpm, int averageAccuracy) {
-		this.totalScore = totalScore;
-		this.averageWpm = averageWpm;
-		this.averageAccuracy = averageAccuracy;
 	}
 }

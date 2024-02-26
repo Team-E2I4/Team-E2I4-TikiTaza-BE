@@ -1,5 +1,7 @@
 package com.pgms.coredomain.domain.game;
 
+import com.pgms.coredomain.domain.common.BaseEntity;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -7,6 +9,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -15,7 +18,8 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
-public class GameRank {
+@Table(name = "game_rank")
+public class GameRank extends BaseEntity {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,7 +29,7 @@ public class GameRank {
 	private Long memberId;
 
 	@Column(name = "nickname")
-	private String nickName;
+	private String nickname;
 
 	@Column(name = "total_score")
 	private double totalScore;
@@ -36,15 +40,15 @@ public class GameRank {
 	@Column(name = "average_accuracy")
 	private double averageAccuracy;
 
-	@Enumerated(EnumType.STRING)
 	@Column(name = "game_type")
+	@Enumerated(EnumType.STRING)
 	private GameType gameType;
 
 	@Builder
-	public GameRank(Long memberId, String nickName, double totalScore, double averageWpm, double averageAccuracy,
+	public GameRank(Long memberId, String nickname, double totalScore, double averageWpm, double averageAccuracy,
 		GameType gameType) {
 		this.memberId = memberId;
-		this.nickName = nickName;
+		this.nickname = nickname;
 		this.totalScore = totalScore;
 		this.averageWpm = averageWpm;
 		this.averageAccuracy = averageAccuracy;

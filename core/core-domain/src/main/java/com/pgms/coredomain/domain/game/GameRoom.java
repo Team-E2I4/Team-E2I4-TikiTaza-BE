@@ -15,6 +15,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -27,6 +28,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
+@Table(name = "game_room")
 public class GameRoom extends BaseEntity {
 
 	@Id
@@ -61,8 +63,8 @@ public class GameRoom extends BaseEntity {
 	@Enumerated(EnumType.STRING)
 	private GameType gameType;
 
-	@OneToMany(mappedBy = "gameRoom", fetch = FetchType.EAGER)
 	@JsonBackReference
+	@OneToMany(mappedBy = "gameRoom", fetch = FetchType.EAGER)
 	List<GameRoomMember> gameRoomMembers = new ArrayList<>();
 
 	@Builder

@@ -16,7 +16,7 @@ public record MemberRankResponse(
 	public static MemberRankResponse from(GameRank gameRank) {
 		return new MemberRankResponse(
 			gameRank.getMemberId(),
-			gameRank.getNickName(),
+			gameRank.getNickname(),
 			gameRank.getTotalScore(),
 			gameRank.getAverageWpm(),
 			gameRank.getAverageAccuracy()

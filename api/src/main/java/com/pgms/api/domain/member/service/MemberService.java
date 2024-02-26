@@ -51,7 +51,7 @@ public class MemberService {
 	public void updateMemberNickname(Long memberId, NicknameUpdateRequest request) {
 		validateDuplicateNickname(request.nickname());
 		Member member = getMember(memberId);
-		member.setNickname(request.nickname());
+		member.updateNickname(request.nickname());
 	}
 
 	private Member getMember(Long memberId) {
