@@ -186,7 +186,7 @@ public class GameRoomService {
 		gameRoom.exitRoom();
 
 		// 현재 인원 0 명이면 방 & Redis 초대 코드 제거
-		if (gameRoom.getCurrentPlayer() == 0) {
+		if (gameRoom.isEmpty()) {
 			cleanUpGameRoom(gameRoom);
 			sseEmitters.updateGameRoom(sseService.getRooms());
 			return;
@@ -343,10 +343,14 @@ public class GameRoomService {
 
 	private void validateMemberAlreadyEntered(Long memberId, Long newRoomId) {
 		gameRoomMemberRepository.findByMemberId(memberId).ifPresent(gameRoomMember -> {
-			if (gameRoomMember.getGameRoom().getId().equals(newRoomId)) {
+			final GameRoom gameRoom = gameRoomMember.getGameRoom();
+			if (gameRoom.getId().equals(newRoomId)) {
 				throw new GameException(GameRoomErrorCode.GAME_ROOM_MEMBER_IN_SAME_ROOM);
 			}
-			gameRoomMember.getGameRoom().exitRoom();
+			gameRoom.exitRoom();
+			if (gameRoom.isEmpty()) {
+				cleanUpGameRoom(gameRoom);
+			}
 			gameRoomMemberRepository.delete(gameRoomMember);
 		});
 	}

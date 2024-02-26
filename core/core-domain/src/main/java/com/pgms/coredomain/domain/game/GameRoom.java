@@ -104,6 +104,10 @@ public class GameRoom extends BaseEntity {
 		return this.currentPlayer >= this.maxPlayer;
 	}
 
+	public boolean isEmpty() {
+		return this.currentPlayer == 0;
+	}
+
 	public boolean isPrivate() {
 		return this.password != null;
 	}
