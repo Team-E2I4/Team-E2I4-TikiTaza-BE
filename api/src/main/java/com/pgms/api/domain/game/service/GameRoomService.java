@@ -343,7 +343,7 @@ public class GameRoomService {
 
 	private void validateMemberAlreadyEntered(Long memberId, Long newRoomId) {
 		gameRoomMemberRepository.findByMemberId(memberId).ifPresent(gameRoomMember -> {
-			if (!gameRoomMember.getGameRoom().getId().equals(newRoomId)) {
+			if (gameRoomMember.getGameRoom().getId().equals(newRoomId)) {
 				throw new GameException(GameRoomErrorCode.GAME_ROOM_MEMBER_IN_SAME_ROOM);
 			}
 			gameRoomMember.getGameRoom().exitRoom();
