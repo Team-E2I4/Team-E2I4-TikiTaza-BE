@@ -205,6 +205,7 @@ public class GameRoomService {
 		KafkaMessage message = GameRoomMessage.builder()
 			.type(EXIT)
 			.roomId(gameRoom.getId())
+			.roomInfo(GameRoomGetResponse.from(gameRoom))
 			.exitMemberId(gameRoomMember.getMemberId())
 			.allMembers(leftGameRoomMembers.stream().map(GameRoomMemberGetResponse::from).toList())
 			.build()
