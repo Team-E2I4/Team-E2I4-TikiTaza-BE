@@ -1,6 +1,6 @@
 package com.pgms.api.domain.game.service;
 
-import static com.pgms.api.socket.dto.GameRoomMessageType.*;
+import static com.pgms.api.socket.dto.response.GameRoomMessageType.*;
 
 import java.util.List;
 import java.util.UUID;
@@ -18,8 +18,8 @@ import com.pgms.api.domain.game.dto.response.GameRoomInviteCodeResponse;
 import com.pgms.api.domain.game.dto.response.GameRoomMemberGetResponse;
 import com.pgms.api.global.exception.GameException;
 import com.pgms.api.global.exception.SocketException;
-import com.pgms.api.socket.dto.GameRoomMessage;
-import com.pgms.api.socket.dto.GameRoomMessageType;
+import com.pgms.api.socket.dto.response.GameRoomMessage;
+import com.pgms.api.socket.dto.response.GameRoomMessageType;
 import com.pgms.api.sse.SseEmitters;
 import com.pgms.api.sse.service.SseService;
 import com.pgms.coredomain.domain.game.GameInfo;

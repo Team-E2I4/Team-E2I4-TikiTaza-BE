@@ -1,4 +1,4 @@
-package com.pgms.api.socket.dto;
+package com.pgms.api.socket.dto.response;
 
 import java.util.List;
 

@@ -1,4 +1,4 @@
-package com.pgms.api.socket.dto;
+package com.pgms.api.socket.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.pgms.api.domain.game.dto.response.GameRoomGetResponse;

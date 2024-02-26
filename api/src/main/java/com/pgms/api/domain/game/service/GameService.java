@@ -1,6 +1,6 @@
 package com.pgms.api.domain.game.service;
 
-import static com.pgms.api.socket.dto.GameMessageType.*;
+import static com.pgms.api.socket.dto.response.GameMessageType.*;
 
 import java.util.List;
 import java.util.Map;
@@ -12,11 +12,11 @@ import org.springframework.transaction.annotation.Transactional;
 import com.pgms.api.domain.game.dto.response.GameQuestionGetResponse;
 import com.pgms.api.domain.game.dto.response.GameRoomMemberGetResponse;
 import com.pgms.api.global.exception.SocketException;
-import com.pgms.api.socket.dto.GameMessage;
-import com.pgms.api.socket.dto.GameMessageType;
 import com.pgms.api.socket.dto.request.GameFinishRequest;
 import com.pgms.api.socket.dto.request.GameInfoUpdateRequest;
 import com.pgms.api.socket.dto.request.WordGameInfoUpdateRequest;
+import com.pgms.api.socket.dto.response.GameMessage;
+import com.pgms.api.socket.dto.response.GameMessageType;
 import com.pgms.api.sse.SseEmitters;
 import com.pgms.api.sse.service.SseService;
 import com.pgms.coredomain.domain.game.GameHistory;
@@ -134,14 +134,8 @@ public class GameService {
 			KafkaMessage message = GameMessage.builder()
 				.type(INFO)
 				.submittedWord(gameInfoUpdateRequest.word())
+				.submitMemberId(memberId)
 				.gameScore(Map.copyOf(sortedScores))
-				.build()
-				.convertToKafkaMessage("/from/game/%d".formatted(roomId));
-			producer.produceMessage(message);
-		} else {
-			// 점수가 0이면 안된다 응답
-			KafkaMessage message = GameMessage.builder()
-				.type(WORD_DENIED)
 				.build()
 				.convertToKafkaMessage("/from/game/%d".formatted(roomId));
 			producer.produceMessage(message);

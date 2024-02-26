@@ -1,4 +1,4 @@
-package com.pgms.api.socket.dto;
+package com.pgms.api.socket.dto.response;
 
 public enum GameRoomMessageType {
 	ENTER,              // 플레이어 입장

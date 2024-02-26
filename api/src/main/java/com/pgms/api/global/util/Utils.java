@@ -2,7 +2,7 @@ package com.pgms.api.global.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.pgms.api.socket.dto.Message;
+import com.pgms.api.socket.dto.response.Message;
 
 public class Utils {
 
