@@ -6,6 +6,7 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import javax.crypto.SecretKey;
@@ -52,19 +53,18 @@ public class JwtTokenProvider {
 		Instant now = Instant.now();
 		Instant expirationTime = now.plusSeconds(accessExpirySeconds);
 
-		String authorities = null;
-		if (userDetails.getAuthorities() != null) {
-			authorities = userDetails.getAuthorities().stream()
-				.map(GrantedAuthority::getAuthority)
-				.collect(Collectors.joining(","));
-		}
+		String authorities = userDetails.getAuthorities().stream()
+			.map(GrantedAuthority::getAuthority)
+			.collect(Collectors.joining(","));
 
 		return Jwts.builder()
-			.claim("id", userDetails.getId())
 			.subject((userDetails.getUsername()))
+			.claims(
+				Map.of("id", userDetails.getId(),
+					"nickname", userDetails.getNickname(),
+					AUTHENTICATION_CLAIM_NAME, authorities))
 			.issuedAt(Date.from(now))
 			.expiration(Date.from(expirationTime))
-			.claim(AUTHENTICATION_CLAIM_NAME, authorities)
 			.signWith(extractSecretKey())
 			.compact();
 	}
@@ -98,6 +98,7 @@ public class JwtTokenProvider {
 		UserDetailsImpl principal = UserDetailsImpl.builder()
 			.id(claims.get("id", Long.class))
 			.email(claims.getSubject())
+			.nickname(claims.get("nickname", String.class))
 			.password(null)
 			.authorities(authorities)
 			.build();

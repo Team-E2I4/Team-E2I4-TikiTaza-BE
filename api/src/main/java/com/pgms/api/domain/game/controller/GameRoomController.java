@@ -20,6 +20,7 @@ import com.pgms.api.domain.game.dto.response.GameRoomInviteCodeResponse;
 import com.pgms.api.domain.game.service.GameRoomService;
 import com.pgms.api.global.annotation.SwaggerResponseGameRoom;
 import com.pgms.coredomain.response.ApiResponse;
+import com.pgms.coresecurity.resolver.Account;
 import com.pgms.coresecurity.resolver.CurrentAccount;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -39,36 +40,36 @@ public class GameRoomController {
 	@Operation(summary = "게임 방 생성: 방장은 생성 후 자동입장됩니다.")
 	@PostMapping
 	public ResponseEntity<ApiResponse<GameRoomCreateResponse>> createGameRoom(
-		@CurrentAccount Long memberId,
+		@CurrentAccount Account account,
 		@RequestBody @Valid GameRoomCreateRequest request) {
-		final GameRoomCreateResponse response = gameRoomService.createGameRoom(memberId, request);
+		final GameRoomCreateResponse response = gameRoomService.createGameRoom(account, request);
 		return ResponseEntity.ok(ApiResponse.of(CREATE, response));
 	}
 
 	@Operation(summary = "게임 방 설정 변경")
 	@PatchMapping("/{roomId}")
 	public ResponseEntity<ApiResponse<Void>> updateGameRoom(
-		@CurrentAccount Long memberId,
+		@CurrentAccount Account account,
 		@PathVariable Long roomId,
 		@RequestBody @Valid GameRoomUpdateRequest request) {
-		gameRoomService.updateRoom(memberId, roomId, request);
+		gameRoomService.updateRoom(account, roomId, request);
 		return ResponseEntity.ok(ApiResponse.of(SUCCESS));
 	}
 
 	@Operation(summary = "게임 방 입장: 일반 유저 입장")
 	@PostMapping("/{roomId}/enter")
 	public ResponseEntity<ApiResponse<GameRoomEnterResponse>> enterGameRoom(
-		@CurrentAccount Long memberId,
+		@CurrentAccount Account account,
 		@PathVariable Long roomId,
 		@RequestBody(required = false) GameRoomEnterRequest request) {
-		return ResponseEntity.ok(ApiResponse.of(gameRoomService.enterGameRoom(memberId, roomId, request)));
+		return ResponseEntity.ok(ApiResponse.of(gameRoomService.enterGameRoom(account, roomId, request)));
 	}
 
 	@Operation(summary = "게임방 초대코드로 방 번호 반환")
 	@GetMapping("/{inviteCode}")
 	public ResponseEntity<ApiResponse<GameRoomInviteCodeResponse>> getRoomIdByInviteCode(
-		@CurrentAccount Long memberId,
+		@CurrentAccount Account account,
 		@PathVariable String inviteCode) {
-		return ResponseEntity.ok(ApiResponse.of(gameRoomService.getRoomIdByInviteCode(memberId, inviteCode)));
+		return ResponseEntity.ok(ApiResponse.of(gameRoomService.getRoomIdByInviteCode(account, inviteCode)));
 	}
 }

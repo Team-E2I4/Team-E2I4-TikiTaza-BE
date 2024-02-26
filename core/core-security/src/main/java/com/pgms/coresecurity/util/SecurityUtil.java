@@ -8,6 +8,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.pgms.coredomain.exception.SecurityErrorCode;
 import com.pgms.coresecurity.exception.SecurityException;
+import com.pgms.coresecurity.resolver.Account;
 import com.pgms.coresecurity.user.normal.UserDetailsImpl;
 
 import lombok.AccessLevel;
@@ -16,11 +17,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class SecurityUtil {
 
-	public static Long getCurrentAccountId() {
+	public static Account getCurrentAccount() {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		validateAuthentication(authentication);
 		UserDetailsImpl userDetails = (UserDetailsImpl)authentication.getPrincipal();
-		return userDetails.getId();
+		return Account.of(userDetails.getId(), userDetails.getNickname(), userDetails.getAuthority());
 	}
 
 	private static void validateAuthentication(Authentication authentication) {

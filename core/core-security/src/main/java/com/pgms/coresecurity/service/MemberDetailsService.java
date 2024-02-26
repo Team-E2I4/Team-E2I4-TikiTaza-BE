@@ -37,6 +37,7 @@ public class MemberDetailsService implements UserDetailsService {
 		return UserDetailsImpl.builder()
 			.id(member.getId())
 			.email(member.getEmail())
+			.nickname(member.getNickname())
 			.password(member.getPassword())
 			.authorities(authorities)
 			.build();

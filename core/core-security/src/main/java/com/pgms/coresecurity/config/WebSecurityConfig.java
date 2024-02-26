@@ -100,7 +100,7 @@ public class WebSecurityConfig {
 			)
 			.authorizeHttpRequests(auth -> auth
 				.requestMatchers(requestHasRoleUser()).hasAuthority(ROLE_USER.name())
-				.anyRequest().authenticated()
+				.anyRequest().authenticated() // 여기서 GUEST 권한도 처리
 			)
 			.exceptionHandling(exception -> {
 				exception.authenticationEntryPoint(jwtAuthenticationEntryPoint);
@@ -137,14 +137,6 @@ public class WebSecurityConfig {
 		);
 		return requestMatchers.toArray(RequestMatcher[]::new);
 	}
-
-	// private RequestMatcher[] requestHasRoleGuest() {
-	// 	List<RequestMatcher> requestMatchers = List.of(
-	// 		antMatcher(GET, "/api/v1/sse"),
-	// 		antMatcher(POST, "/api/v1/rooms")
-	// 	);
-	// 	return requestMatchers.toArray(RequestMatcher[]::new);
-	// }
 
 	private RequestMatcher[] requestPermitAll() {
 		List<RequestMatcher> requestMatchers = List.of(
