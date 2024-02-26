@@ -27,8 +27,8 @@ public class GameRank {
 	@Column(name = "nickname")
 	private String nickName;
 
-	@Column(name = "average_score")
-	private double averageScore;
+	@Column(name = "total_score")
+	private double totalScore;
 
 	@Column(name = "average_wpm")
 	private double averageWpm;
@@ -41,11 +41,11 @@ public class GameRank {
 	private GameType gameType;
 
 	@Builder
-	public GameRank(Long memberId, String nickName, double averageScore, double averageWpm, double averageAccuracy,
+	public GameRank(Long memberId, String nickName, double totalScore, double averageWpm, double averageAccuracy,
 		GameType gameType) {
 		this.memberId = memberId;
 		this.nickName = nickName;
-		this.averageScore = averageScore;
+		this.totalScore = totalScore;
 		this.averageWpm = averageWpm;
 		this.averageAccuracy = averageAccuracy;
 		this.gameType = gameType;
