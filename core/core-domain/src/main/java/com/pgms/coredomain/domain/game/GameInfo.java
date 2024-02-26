@@ -26,12 +26,18 @@ public class GameInfo {
 	@Column(name = "submitted_member_count")
 	private int submittedMemberCount;
 
+	public GameInfo(Long gameRoomId) {
+		this.gameRoomId = gameRoomId;
+		this.enteredMemberCount = 0;
+		this.submittedMemberCount = 0;
+	}
+
 	public boolean isAllSubmitted(int currentPlayer) {
 		return currentPlayer == submittedMemberCount;
 	}
 
 	public boolean isAllEntered(int currentPlayer) {
-		return currentPlayer == submittedMemberCount;
+		return currentPlayer == enteredMemberCount;
 	}
 
 	public void enter() {
@@ -40,5 +46,9 @@ public class GameInfo {
 
 	public void submit() {
 		submittedMemberCount++;
+	}
+
+	public void initSubmittedCount() {
+		submittedMemberCount = 0;
 	}
 }

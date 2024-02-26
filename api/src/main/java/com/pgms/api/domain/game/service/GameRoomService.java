@@ -1,6 +1,6 @@
 package com.pgms.api.domain.game.service;
 
-import static com.pgms.api.socket.dto.MessageType.*;
+import static com.pgms.api.socket.dto.response.GameRoomMessageType.*;
 
 import java.util.List;
 import java.util.UUID;
@@ -18,10 +18,11 @@ import com.pgms.api.domain.game.dto.response.GameRoomInviteCodeResponse;
 import com.pgms.api.domain.game.dto.response.GameRoomMemberGetResponse;
 import com.pgms.api.global.exception.GameException;
 import com.pgms.api.global.exception.SocketException;
-import com.pgms.api.socket.dto.Message;
-import com.pgms.api.socket.dto.MessageType;
+import com.pgms.api.socket.dto.response.GameRoomMessage;
+import com.pgms.api.socket.dto.response.GameRoomMessageType;
 import com.pgms.api.sse.SseEmitters;
 import com.pgms.api.sse.service.SseService;
+import com.pgms.coredomain.domain.game.GameInfo;
 import com.pgms.coredomain.domain.game.GameRoom;
 import com.pgms.coredomain.domain.game.GameRoomMember;
 import com.pgms.coredomain.domain.game.GameType;
@@ -29,6 +30,7 @@ import com.pgms.coredomain.domain.member.Member;
 import com.pgms.coredomain.exception.GameErrorCode;
 import com.pgms.coredomain.exception.GameRoomErrorCode;
 import com.pgms.coredomain.exception.MemberErrorCode;
+import com.pgms.coredomain.repository.GameInfoRepository;
 import com.pgms.coredomain.repository.GameRoomMemberRepository;
 import com.pgms.coredomain.repository.GameRoomRepository;
 import com.pgms.coredomain.repository.MemberRepository;
@@ -48,6 +50,7 @@ public class GameRoomService {
 	private final MemberRepository memberRepository;
 	private final GameRoomRepository gameRoomRepository;
 	private final GameRoomMemberRepository gameRoomMemberRepository;
+	private final GameInfoRepository gameInfoRepository;
 	private final RedisRepository redisRepository;
 	private final SseEmitters sseEmitters;
 	private final SseService sseService;
@@ -122,7 +125,7 @@ public class GameRoomService {
 		});
 
 		// 구독된 사람들에게 메세지
-		sendGameRoomInfo(gameRoom, UPDATE);
+		sendGameRoomInfo(gameRoom, MODIFIED);
 
 		sseEmitters.updateGameRoom(sseService.getRooms());
 	}
@@ -199,11 +202,11 @@ public class GameRoomService {
 		}
 
 		// 구독된 사람들에게 메세지
-		KafkaMessage message = Message.builder()
+		KafkaMessage message = GameRoomMessage.builder()
 			.type(EXIT)
 			.roomId(gameRoom.getId())
-			.allMembers(leftGameRoomMembers.stream().map(GameRoomMemberGetResponse::from).toList())
 			.exitMemberId(gameRoomMember.getMemberId())
+			.allMembers(leftGameRoomMembers.stream().map(GameRoomMemberGetResponse::from).toList())
 			.build()
 			.convertToKafkaMessage("/from/game-room/%d".formatted(gameRoom.getId()));
 
@@ -239,11 +242,11 @@ public class GameRoomService {
 		List<GameRoomMember> leftGameRoomMembers = gameRoomMemberRepository.findAllByGameRoomId(roomId);
 
 		// 방장이면 -> 강퇴 처리 (메시지 던지기)
-		KafkaMessage message = Message.builder()
+		KafkaMessage message = GameRoomMessage.builder()
 			.type(KICKED)
 			.roomId(gameRoom.getId())
-			.allMembers(leftGameRoomMembers.stream().map(GameRoomMemberGetResponse::from).toList())
 			.exitMemberId(kickedId)
+			.allMembers(leftGameRoomMembers.stream().map(GameRoomMemberGetResponse::from).toList())
 			.build()
 			.convertToKafkaMessage("/from/game-room/%d".formatted(gameRoom.getId()));
 
@@ -257,6 +260,41 @@ public class GameRoomService {
 			throw new GameException(GameRoomErrorCode.INVALID_INVITE_CODE);
 		}
 		return GameRoomInviteCodeResponse.from(Long.valueOf(redisRepository.get(inviteCode).toString()));
+	}
+
+	// ============================== 게임 시작 ==============================
+	public void startGame(Long roomId, Long memberId) {
+		// 현재 방 정보 가져오기
+		final GameRoom gameRoom = getGameRoom(roomId);
+
+		// 시작버튼 누른 유저 검증 (있는 유저인지 & 방장인지)
+		if (!gameRoom.getHostId().equals(memberId)) {
+			throw new SocketException(roomId, GameRoomErrorCode.GAME_ROOM_HOST_MISMATCH);
+		}
+
+		// 방에 있는 인원들 준비상태 확인
+		if (gameRoom.isAllReady()) {
+			// 방 아이디로 실제 객체의 start 여부 변경 -> 더이상 입장 못함
+			gameRoom.updateGameRoomStatus(true);
+			gameInfoRepository.save(new GameInfo(roomId));
+
+			// 게임 시작 메세지 뿌리기
+			KafkaMessage message = GameRoomMessage.builder()
+				.type(GameRoomMessageType.START)
+				.build()
+				.convertToKafkaMessage("/from/game-room/%d".formatted(gameRoom.getId()));
+
+			producer.produceMessage(message);
+			// 방 정보 뿌리기 -> 게임 중인 방은 로비에서 보이면 안되니까
+			sseEmitters.updateGameRoom(sseService.getRooms());
+		} else {
+			// 실패 메세지 뿌리기
+			KafkaMessage message = GameRoomMessage.builder()
+				.type(GameRoomMessageType.START_DENIED)
+				.build()
+				.convertToKafkaMessage("/from/game-room/%d".formatted(gameRoom.getId()));
+			producer.produceMessage(message);
+		}
 	}
 
 	private String createInviteCode() {
@@ -324,18 +362,18 @@ public class GameRoomService {
 		}
 	}
 
-	private void sendGameRoomInfo(GameRoom gameRoom, MessageType type) {
+	private void sendGameRoomInfo(GameRoom gameRoom, GameRoomMessageType type) {
 		Long roomId = gameRoom.getId();
 		final List<GameRoomMemberGetResponse> gameRoomMembers = gameRoom.getGameRoomMembers()
 			.stream()
 			.map(GameRoomMemberGetResponse::from)
 			.toList();
 
-		KafkaMessage message = Message.builder()
+		KafkaMessage message = GameRoomMessage.builder()
 			.type(type)
 			.roomId(roomId)
-			.allMembers(gameRoomMembers)
 			.roomInfo(GameRoomGetResponse.from(gameRoom))
+			.allMembers(gameRoomMembers)
 			.build()
 			.convertToKafkaMessage("/from/game-room/%d".formatted(roomId));
 

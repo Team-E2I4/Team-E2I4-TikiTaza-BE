@@ -14,7 +14,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-public class GameRoomSocketController {
+public class
+GameRoomSocketController {
 
 	private final GameRoomService gameRoomService;
 
@@ -46,5 +47,14 @@ public class GameRoomSocketController {
 		@DestinationVariable Long kickedId) {
 		log.info(">>>>>> Member Kicked : roomId = {}, memberId = {}, kickedId = {}", roomId, memberId, kickedId);
 		gameRoomService.kickGameRoomMember(roomId, memberId, kickedId);
+	}
+
+	// 게임방 게임 시작 처리
+	@MessageMapping("/game-room/{roomId}/start")
+	public void startGame(
+		@Header("MemberId") Long memberId,
+		@DestinationVariable Long roomId) {
+		log.info(">>>>>> Game Start : roomId = {}, memberId = {}", roomId, memberId);
+		gameRoomService.startGame(roomId, memberId);
 	}
 }
