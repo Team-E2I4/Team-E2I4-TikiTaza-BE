@@ -218,21 +218,21 @@ public class GameRoomService {
 	}
 
 	// ============================== 게임방 멤버 준비 상태 변경 ==============================
-	public void updateReadyStatus(Long memberId) {
-		final GameRoomMember gameRoomMember = gameRoomMemberRepository.findByMemberId(memberId)
+	public void updateReadyStatus(Long accountId) {
+		final GameRoomMember gameRoomMember = gameRoomMemberRepository.findByMemberId(accountId)
 			.orElseThrow(() -> new GameException(GameRoomErrorCode.GAME_ROOM_MEMBER_NOT_FOUND));
-		if (!gameRoomMember.getGameRoom().getHostId().equals(memberId)) {
+		if (!gameRoomMember.getGameRoom().getHostId().equals(accountId)) {
 			gameRoomMember.updateReadyStatus(!gameRoomMember.isReadyStatus());
 			sendGameRoomInfo(gameRoomMember.getGameRoom(), READY);
 		}
 	}
 
 	// ============================== 게임방 멤버 강퇴 ==============================
-	public void kickGameRoomMember(Long roomId, Long memberId, Long kickedId) {
+	public void kickGameRoomMember(Long roomId, Long accountId, Long kickedId) {
 		final GameRoom gameRoom = getGameRoom(roomId);
 
 		// 시작버튼 누른 유저 검증 (있는 유저인지 & 방장인지)
-		validateGameRoomHost(roomId, memberId, gameRoom);
+		validateGameRoomHost(roomId, accountId, gameRoom);
 
 		// 강퇴 당하는 유저 존재하는지 검증
 		final GameRoomMember kickedMember = gameRoomMemberRepository.findByMemberId(kickedId)
@@ -266,12 +266,12 @@ public class GameRoomService {
 	}
 
 	// ============================== 게임 시작 ==============================
-	public void startGame(Long roomId, Long memberId) {
+	public void startGame(Long roomId, Long accountId) {
 		// 현재 방 정보 가져오기
 		final GameRoom gameRoom = getGameRoom(roomId);
 
 		// 시작버튼 누른 유저 검증 (있는 유저인지 & 방장인지)
-		if (!gameRoom.getHostId().equals(memberId)) {
+		if (!gameRoom.getHostId().equals(accountId)) {
 			throw new SocketException(roomId, GameRoomErrorCode.GAME_ROOM_HOST_MISMATCH);
 		}
 

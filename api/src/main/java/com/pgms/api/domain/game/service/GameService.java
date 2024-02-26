@@ -98,11 +98,11 @@ public class GameService {
 	}
 
 	// ============================== 게임 중 실시간 업데이트 통신 (문장, 코딩) ==============================
-	public void updateGameInfo(Long memberId, Long roomId,
+	public void updateGameInfo(Long accountId, Long roomId,
 		GameInfoUpdateRequest gameInfoUpdateRequest) {
 		redisRepository.increaseRoundScore(
 			String.valueOf(roomId),
-			String.valueOf(memberId),
+			String.valueOf(accountId),
 			gameInfoUpdateRequest.currentScore());
 
 		final Map<Long, Long> sortedScores = redisRepository.getRoundScores(String.valueOf(roomId));
@@ -116,7 +116,7 @@ public class GameService {
 	}
 
 	// ============================== 게임 중 실시간 업데이트 통신 (짧은 단어) ==============================
-	public void updateWordGameInfo(Long memberId, Long roomId,
+	public void updateWordGameInfo(Long accountId, Long roomId,
 		WordGameInfoUpdateRequest gameInfoUpdateRequest) {
 
 		// 단어찾아와서 점수받기
@@ -126,7 +126,7 @@ public class GameService {
 			// 멤버 점수 올려주고, 반환
 			redisRepository.increaseRoundWordScore(
 				String.valueOf(roomId),
-				String.valueOf(memberId),
+				String.valueOf(accountId),
 				score);
 
 			final Map<Long, Long> sortedScores = redisRepository.getRoundScores(String.valueOf(roomId));
@@ -134,7 +134,7 @@ public class GameService {
 			KafkaMessage message = GameMessage.builder()
 				.type(INFO)
 				.submittedWord(gameInfoUpdateRequest.word())
-				.submitMemberId(memberId)
+				.submitMemberId(accountId)
 				.gameScore(Map.copyOf(sortedScores))
 				.build()
 				.convertToKafkaMessage("/from/game/%d".formatted(roomId));

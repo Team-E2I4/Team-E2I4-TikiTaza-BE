@@ -22,39 +22,39 @@ GameRoomSocketController {
 	// 게임방 입장 시 세션 아이디 설정
 	@MessageMapping("/game-room/{roomId}/enter")
 	public void setSessionId(
-		@Header("MemberId") Long memberId,
+		@Header("AccountId") Long accountId,
 		@DestinationVariable Long roomId,
 		SimpMessageHeaderAccessor headerAccessor) {
 		final String sessionId = headerAccessor.getSessionId();
-		log.info(">>>>>> enterGameRoom : roomId = {}, memberId = {}, sessionId = {}", roomId, memberId, sessionId);
-		gameRoomService.updateSessionId(roomId, memberId, sessionId);
+		log.info(">>>>>> enterGameRoom : roomId = {}, accountId = {}, sessionId = {}", roomId, accountId, sessionId);
+		gameRoomService.updateSessionId(roomId, accountId, sessionId);
 	}
 
 	// 게임 준비 처리
 	@MessageMapping("/game-room/{roomId}/ready")
 	public void updateReadyStatus(
-		@Header("MemberId") Long memberId,
+		@Header("AccountId") Long accountId,
 		@DestinationVariable Long roomId) {
-		log.info(">>>>>> Member Ready : roomId = {}, memberId = {}", roomId, memberId);
-		gameRoomService.updateReadyStatus(memberId);
+		log.info(">>>>>> Member Ready : roomId = {}, accountId = {}", roomId, accountId);
+		gameRoomService.updateReadyStatus(accountId);
 	}
 
 	// 게임방 강퇴 처리
 	@MessageMapping("/game-room/{roomId}/kick/{kickedId}")
 	public void kickGameRoomMember(
-		@Header("MemberId") Long memberId,
+		@Header("AccountId") Long accountId,
 		@DestinationVariable Long roomId,
 		@DestinationVariable Long kickedId) {
-		log.info(">>>>>> Member Kicked : roomId = {}, memberId = {}, kickedId = {}", roomId, memberId, kickedId);
-		gameRoomService.kickGameRoomMember(roomId, memberId, kickedId);
+		log.info(">>>>>> Member Kicked : roomId = {}, accountId = {}, kickedId = {}", roomId, accountId, kickedId);
+		gameRoomService.kickGameRoomMember(roomId, accountId, kickedId);
 	}
 
 	// 게임방 게임 시작 처리
 	@MessageMapping("/game-room/{roomId}/start")
 	public void startGame(
-		@Header("MemberId") Long memberId,
+		@Header("AccountId") Long accountId,
 		@DestinationVariable Long roomId) {
-		log.info(">>>>>> Game Start : roomId = {}, memberId = {}", roomId, memberId);
-		gameRoomService.startGame(roomId, memberId);
+		log.info(">>>>>> Game Start : roomId = {}, accountId = {}", roomId, accountId);
+		gameRoomService.startGame(roomId, accountId);
 	}
 }

@@ -40,9 +40,9 @@ public class FilterChannelInterceptor implements ChannelInterceptor {
 			log.info(">>>>>> Token resolved : {}", token);
 			try {
 				Authentication authentication = jwtTokenProvider.getAuthentication(token);
-				Long memberId = ((UserDetailsImpl)authentication.getPrincipal()).getId();
-				headerAccessor.addNativeHeader("MemberId", String.valueOf(memberId));
-				log.info(">>>>>> MemberId is set to header : {}", memberId);
+				Long accountId = ((UserDetailsImpl)authentication.getPrincipal()).getId();
+				headerAccessor.addNativeHeader("AccountId", String.valueOf(accountId));
+				log.info(">>>>>> AccountId is set to header : {}", accountId);
 			} catch (Exception e) {
 				log.warn(">>>>> Authentication Failed in FilterChannelInterceptor : ", e);
 			}

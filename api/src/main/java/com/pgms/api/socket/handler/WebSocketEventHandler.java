@@ -38,7 +38,7 @@ public class WebSocketEventHandler {
 	public void handleWebSocketDisconnectListener(SessionDisconnectEvent event) {
 		String sessionId = event.getSessionId();
 		StompHeaderAccessor headerAccesor = StompHeaderAccessor.wrap(event.getMessage());
-		String memberId = (String)Objects.requireNonNull(headerAccesor.getSessionAttributes()).get("MemberId");
+		String memberId = (String)Objects.requireNonNull(headerAccesor.getSessionAttributes()).get("AccountId");
 		log.info(">>>>>> Disconnected : {}", sessionId);
 		log.info(">>>>>> Disconnected : {}", memberId);
 
