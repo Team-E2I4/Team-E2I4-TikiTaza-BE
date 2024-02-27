@@ -1,8 +1,9 @@
 package com.pgms.api.sse;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -15,12 +16,12 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 public class SseEmitters {
 
-	private final ConcurrentHashMap<SseEmitter, Boolean> emitters = new ConcurrentHashMap<>();
+	private final List<SseEmitter> emitters = new CopyOnWriteArrayList<>();
 	private final ExecutorService executorService = Executors.newCachedThreadPool();
 
 	// SSE Emitter 등록 메소드
 	public void addEmitter(SseEmitter emitter) {
-		this.emitters.put(emitter, true);
+		this.emitters.add(emitter);
 		log.info(">>>>>> SSE Emitter Add {}", emitter);
 
 		// Broken Pipe 발생 시 연결 종료 및 리소스 정리
@@ -43,7 +44,7 @@ public class SseEmitters {
 
 	public void updateGameRoom(Object roomInfo) {
 		log.warn(">>>>>> SSE Emitter Change GameRoom");
-		for (SseEmitter emitter : emitters.keySet()) {
+		for (SseEmitter emitter : emitters) {
 			CompletableFuture.runAsync(() -> {
 				try {
 					emitter.send(SseEmitter.event()
