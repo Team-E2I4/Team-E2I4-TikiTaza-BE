@@ -47,6 +47,7 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
 		UserDetailsImpl userDetails = UserDetailsImpl.builder()
 			.id(member.getId())
 			.email(member.getEmail())
+			.nickname(member.getNickname())
 			.authorities(authorities)
 			.build();
 
