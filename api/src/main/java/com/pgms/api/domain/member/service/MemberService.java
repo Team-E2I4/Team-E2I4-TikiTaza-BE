@@ -6,13 +6,16 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.pgms.api.domain.member.dto.request.MemberSignUpRequest;
 import com.pgms.api.domain.member.dto.request.NicknameUpdateRequest;
-import com.pgms.api.domain.member.dto.response.MemberGetResponse;
+import com.pgms.api.domain.member.dto.response.AccountGetResponse;
 import com.pgms.api.domain.member.dto.response.MemberSignUpResponse;
 import com.pgms.api.global.exception.MemberException;
 import com.pgms.coredomain.domain.member.Member;
 import com.pgms.coredomain.exception.MemberErrorCode;
 import com.pgms.coredomain.repository.MemberRepository;
+import com.pgms.coreinfraredis.entity.Guest;
+import com.pgms.coreinfraredis.repository.GuestRepository;
 import com.pgms.coreinfraredis.repository.RedisRepository;
+import com.pgms.coresecurity.resolver.Account;
 
 import lombok.RequiredArgsConstructor;
 
@@ -22,8 +25,9 @@ import lombok.RequiredArgsConstructor;
 public class MemberService {
 
 	private final MemberRepository memberRepository;
-	private final PasswordEncoder passwordEncoder;
+	private final GuestRepository guestRepository;
 	private final RedisRepository redisRepository;
+	private final PasswordEncoder passwordEncoder;
 
 	public MemberSignUpResponse signUp(MemberSignUpRequest request) {
 		validateDuplicateEmail(request);
@@ -34,13 +38,19 @@ public class MemberService {
 	}
 
 	@Transactional(readOnly = true)
-	public MemberGetResponse getMyProfileInfo(Long memberId) {
-		Member member = getMember(memberId);
-		return MemberGetResponse.from(member);
+	public AccountGetResponse getMyProfileInfo(Account account) {
+		if (account.isGuest()) {
+			final Guest guest = guestRepository.findById(account.id())
+				.orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
+			return AccountGetResponse.from(guest);
+		} else {
+			final Member member = getMember(account.id());
+			return AccountGetResponse.from(member);
+		}
 	}
 
 	public void deleteMemberAccount(String accessToken, String refreshToken, Long memberId) {
-		Member member = getMember(memberId);
+		final Member member = getMember(memberId);
 		if (member.isDeleted()) {
 			throw new MemberException(MemberErrorCode.MEMBER_NOT_FOUND);
 		}

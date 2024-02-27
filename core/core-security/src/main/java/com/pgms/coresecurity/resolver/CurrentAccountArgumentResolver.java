@@ -20,13 +20,13 @@ public class CurrentAccountArgumentResolver implements HandlerMethodArgumentReso
 	@Override
 	public boolean supportsParameter(MethodParameter parameter) {
 		boolean hasParameterAnnotation = parameter.hasParameterAnnotation(CurrentAccount.class);
-		boolean hasLongParameterType = parameter.getParameterType().isAssignableFrom(Long.class);
+		boolean hasLongParameterType = parameter.getParameterType().isAssignableFrom(Account.class);
 		return hasParameterAnnotation && hasLongParameterType;
 	}
 
 	@Override
 	public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer,
 		NativeWebRequest webRequest, WebDataBinderFactory binderFactory) {
-		return SecurityUtil.getCurrentAccountId();
+		return SecurityUtil.getCurrentAccount();
 	}
 }

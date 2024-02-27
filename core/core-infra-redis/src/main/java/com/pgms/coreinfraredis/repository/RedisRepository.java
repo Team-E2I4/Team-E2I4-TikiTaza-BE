@@ -124,6 +124,11 @@ public class RedisRepository {
 		redisTemplate.delete(WORD_PREFIX + roomId);
 	}
 
+	// guest Id 자동 증가
+	public Long guestIdIncrement(String key) {
+		return redisTemplate.opsForValue().increment(key);
+	}
+
 	private Map<Long, Long> convertToMap(Set<ZSetOperations.TypedTuple<Object>> tupleSet) {
 		return tupleSet.stream()
 			.collect(Collectors.toMap(

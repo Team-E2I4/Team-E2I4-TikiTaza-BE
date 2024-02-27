@@ -41,11 +41,11 @@ Content-Type: application/json
 ### 방 만들기 > 게임방 멤버 정보 구독 + 세션 ID 저장용 SEND
 POST http://localhost:8080/api/v1/rooms
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpZCI6MSwic3ViIjoidGVzdDFAbmF2ZXIuY29tIiwiaWF0IjoxNzA4ODc4NjAxLCJleHAiOjE3MTg4NzA0MDEsInJvbGVzIjoiUk9MRV9VU0VSIn0.xsAXSOAx36bg0K6BIRbTSX30N9V7udP2ybo6LDR6dyGqAQHMjgDF7nCbPp0RNhaNHV057e09AEw_cb9_4wdGkA
+Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJyb2xlcyI6IlJPTEVfR1VFU1QiLCJpZCI6MTAwMDUsIm5pY2tuYW1lIjoi7IaQ64uYZmY0NzYiLCJpYXQiOjE3MDg5NjEwOTYsImV4cCI6MTcxODk1Mjg5Nn0.WNeTxvngo_5GT090X0X21XFgL3ZFJQ5ybrOKOgU55793P4HfMQz4wyEj7Y4_bJ4yis9CWP10DV9YWaOBM_7jeQ
 
 {
   "title": "빙봉의 게임",
-  "maxPlayer": 2,
+  "maxPlayer": 5,
   "round": 5,
   "password": "1234",
   "gameType": "SENTENCE"
@@ -54,7 +54,7 @@ Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpZCI6MSwic3ViIjoidGVzdDFAbmF2ZXIuY
 ### 게임방 입장
 POST http://localhost:8080/api/v1/rooms/1/enter
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpZCI6Miwic3ViIjoidGVzdDJAbmF2ZXIuY29tIiwiaWF0IjoxNzA4ODc4NjYwLCJleHAiOjE3MTg4NzA0NjAsInJvbGVzIjoiUk9MRV9VU0VSIn0.2WUjKqXzHxfmKVDcNsaTQO7fQC0oyFYldM8KhM3fd56dr4c5afLHOx2qApZX03lfe3tZkMtq7i0WPgiJOkAJ4g
+Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJyb2xlcyI6IlJPTEVfR1VFU1QiLCJpZCI6MTAwMDYsIm5pY2tuYW1lIjoi7IaQ64uYMGI4OTAiLCJpYXQiOjE3MDg5NjExMTcsImV4cCI6MTcxODk1MjkxN30.yQCbkbLaGVeF8gplAp2m1oi0UWN4oKeL3TAxkktoxfJsTj4e88JJE_p9mB2wn1wBSs5OrmIDKTLIEC8Qml71MA
 
 {
   "password": "1234"
@@ -63,7 +63,7 @@ Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpZCI6Miwic3ViIjoidGVzdDJAbmF2ZXIuY
 ### 게임방 수정
 PATCH http://localhost:8080/api/v1/rooms/1
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpZCI6MSwic3ViIjoidGVzdDFAbmF2ZXIuY29tIiwiaWF0IjoxNzA4NTIyMTQ2LCJleHAiOjE3MTg1MTM5NDYsInJvbGVzIjoiUk9MRV9VU0VSIn0.f72KiCAaiyoNzNRWuVPeETHEMSHoKknpJIm-tJn8BpLNMwJXIpQP96kaAWvww3CJSVO9OWRo_a1ZXt7aXU5y3Q
+Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0ZXN0MUBuYXZlci5jb20iLCJuaWNrbmFtZSI6IuuwleyYgeyerCIsImlkIjoxLCJyb2xlcyI6IlJPTEVfVVNFUiIsImlhdCI6MTcwODk1NjE5MCwiZXhwIjoxNzE4OTQ3OTkwfQ.4POsaCbUTgwlxXnZQFxzpqLrUe0T-Q7OFowFhdqXnshum_TdMyAfQSwLEfP1hx_9eSSIL4KIo7C9YAMV72HHyw
 
 {
   "title": "11",
@@ -72,3 +72,6 @@ Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJpZCI6MSwic3ViIjoidGVzdDFAbmF2ZXIuY
   "round": 1,
   "gameType": "WORD"
 }
+
+###
+POST http://localhost:8080/api/v1/auth/guest

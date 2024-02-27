@@ -26,7 +26,6 @@ import com.pgms.coredomain.domain.game.GameInfo;
 import com.pgms.coredomain.domain.game.GameRoom;
 import com.pgms.coredomain.domain.game.GameRoomMember;
 import com.pgms.coredomain.domain.game.GameType;
-import com.pgms.coredomain.domain.member.Member;
 import com.pgms.coredomain.exception.GameErrorCode;
 import com.pgms.coredomain.exception.GameRoomErrorCode;
 import com.pgms.coredomain.exception.MemberErrorCode;
@@ -36,7 +35,9 @@ import com.pgms.coredomain.repository.GameRoomRepository;
 import com.pgms.coredomain.repository.MemberRepository;
 import com.pgms.coreinfrakafka.kafka.KafkaMessage;
 import com.pgms.coreinfrakafka.kafka.producer.Producer;
+import com.pgms.coreinfraredis.repository.GuestRepository;
 import com.pgms.coreinfraredis.repository.RedisRepository;
+import com.pgms.coresecurity.resolver.Account;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -52,29 +53,30 @@ public class GameRoomService {
 	private final GameRoomMemberRepository gameRoomMemberRepository;
 	private final GameInfoRepository gameInfoRepository;
 	private final RedisRepository redisRepository;
+	private final GuestRepository guestRepository;
 	private final SseEmitters sseEmitters;
 	private final SseService sseService;
 	private final Producer producer;
 
 	// ============================== 게임방 생성 ==============================
-	public GameRoomCreateResponse createGameRoom(Long memberId, GameRoomCreateRequest request) {
-		// 유저 있는지 확인
-		Member member = getMember(memberId);
+	public GameRoomCreateResponse createGameRoom(Account account, GameRoomCreateRequest request) {
+		// 유저/게스트가 존재하는지 확인
+		validateExistMember(account);
 
-		// 유저가 다른 방에 들어가 있는지 확인 -> 있으면 gameRoomMember 삭제
-		validateMemberAlreadyEntered(memberId, null);
+		// 유저가 다른 방에 들어가 있는지 확인
+		validateMemberAlreadyEntered(account.id(), null);
 
 		// 랜덤 초대코드 생성
 		String inviteCode = createInviteCode();
 
 		// 방 생성
-		GameRoom gameRoom = request.toEntity(memberId, inviteCode);
+		GameRoom gameRoom = request.toEntity(account.id(), inviteCode);
 
 		// 방에 입장한 유저 정보 생성
 		GameRoomMember gameRoomMember = GameRoomMember.builder()
 			.gameRoom(gameRoom)
-			.memberId(memberId)
-			.nickname(member.getNickname())
+			.memberId(account.id())
+			.nickname(account.nickname())
 			.webSessionId(null)
 			.readyStatus(true)
 			.build();
@@ -96,11 +98,11 @@ public class GameRoomService {
 	}
 
 	// ============================== 게임방 설정 변경 ==============================
-	public void updateRoom(Long memberId, Long roomId, GameRoomUpdateRequest request) {
-		getMember(memberId);
+	public void updateRoom(Account account, Long roomId, GameRoomUpdateRequest request) {
+		validateExistMember(account);
 		GameRoom gameRoom = getGameRoom(roomId);
 
-		validateGameRoomHost(roomId, memberId, gameRoom);
+		validateGameRoomHost(roomId, account.id(), gameRoom);
 
 		if (gameRoom.isPlaying()) {
 			throw new GameException(GameErrorCode.GAME_ALREADY_STARTED);
@@ -131,9 +133,9 @@ public class GameRoomService {
 	}
 
 	// ============================== 게임방 입장 ==============================
-	public GameRoomEnterResponse enterGameRoom(Long memberId, Long roomId, GameRoomEnterRequest request) {
-		// memberId로 유저가 존재하는지
-		Member member = getMember(memberId);
+	public GameRoomEnterResponse enterGameRoom(Account account, Long roomId, GameRoomEnterRequest request) {
+		// 유저가 존재하는지
+		validateExistMember(account);
 
 		// roomId로 방이 존재하는지
 		GameRoom gameRoom = getGameRoom(roomId);
@@ -145,13 +147,13 @@ public class GameRoomService {
 		validateGameRoomEnableEnter(gameRoom);
 
 		// 유저가 이미 방에 들어가 있는지 확인 -> 들어가 있으면 기존 방 삭제
-		validateMemberAlreadyEntered(memberId, roomId);
+		validateMemberAlreadyEntered(account.id(), roomId);
 
 		// 새롭게 게임방에 입장하는 유저 생성
 		GameRoomMember gameRoomMember = GameRoomMember.builder()
 			.gameRoom(gameRoom)
-			.memberId(memberId)
-			.nickname(member.getNickname())
+			.memberId(account.id())
+			.nickname(account.nickname())
 			.webSessionId(null)
 			.readyStatus(false)
 			.build();
@@ -161,7 +163,7 @@ public class GameRoomService {
 
 		// 대기실 리스트 업데이트
 		sseEmitters.updateGameRoom(sseService.getRooms());
-		return GameRoomEnterResponse.from(roomId, memberId);
+		return GameRoomEnterResponse.from(roomId, account.id());
 	}
 
 	// ============================== 입장 후 게임방 멤버 세션 아이디 설정 ==============================
@@ -216,21 +218,21 @@ public class GameRoomService {
 	}
 
 	// ============================== 게임방 멤버 준비 상태 변경 ==============================
-	public void updateReadyStatus(Long memberId) {
-		final GameRoomMember gameRoomMember = gameRoomMemberRepository.findByMemberId(memberId)
+	public void updateReadyStatus(Long accountId) {
+		final GameRoomMember gameRoomMember = gameRoomMemberRepository.findByMemberId(accountId)
 			.orElseThrow(() -> new GameException(GameRoomErrorCode.GAME_ROOM_MEMBER_NOT_FOUND));
-		if (!gameRoomMember.getGameRoom().getHostId().equals(memberId)) {
+		if (!gameRoomMember.getGameRoom().getHostId().equals(accountId)) {
 			gameRoomMember.updateReadyStatus(!gameRoomMember.isReadyStatus());
 			sendGameRoomInfo(gameRoomMember.getGameRoom(), READY);
 		}
 	}
 
 	// ============================== 게임방 멤버 강퇴 ==============================
-	public void kickGameRoomMember(Long roomId, Long memberId, Long kickedId) {
+	public void kickGameRoomMember(Long roomId, Long accountId, Long kickedId) {
 		final GameRoom gameRoom = getGameRoom(roomId);
 
 		// 시작버튼 누른 유저 검증 (있는 유저인지 & 방장인지)
-		validateGameRoomHost(roomId, memberId, gameRoom);
+		validateGameRoomHost(roomId, accountId, gameRoom);
 
 		// 강퇴 당하는 유저 존재하는지 검증
 		final GameRoomMember kickedMember = gameRoomMemberRepository.findByMemberId(kickedId)
@@ -255,8 +257,8 @@ public class GameRoomService {
 		sseEmitters.updateGameRoom(sseService.getRooms());
 	}
 
-	public GameRoomInviteCodeResponse getRoomIdByInviteCode(Long memberId, String inviteCode) {
-		getMember(memberId);
+	public GameRoomInviteCodeResponse getRoomIdByInviteCode(Account account, String inviteCode) {
+		validateExistMember(account);
 		if (!redisRepository.hasKey(inviteCode)) {
 			throw new GameException(GameRoomErrorCode.INVALID_INVITE_CODE);
 		}
@@ -264,12 +266,12 @@ public class GameRoomService {
 	}
 
 	// ============================== 게임 시작 ==============================
-	public void startGame(Long roomId, Long memberId) {
+	public void startGame(Long roomId, Long accountId) {
 		// 현재 방 정보 가져오기
 		final GameRoom gameRoom = getGameRoom(roomId);
 
 		// 시작버튼 누른 유저 검증 (있는 유저인지 & 방장인지)
-		if (!gameRoom.getHostId().equals(memberId)) {
+		if (!gameRoom.getHostId().equals(accountId)) {
 			throw new SocketException(roomId, GameRoomErrorCode.GAME_ROOM_HOST_MISMATCH);
 		}
 
@@ -308,9 +310,14 @@ public class GameRoomService {
 		return inviteCode;
 	}
 
-	private Member getMember(Long memberId) {
-		return memberRepository.findById(memberId)
-			.orElseThrow(() -> new GameException(MemberErrorCode.MEMBER_NOT_FOUND));
+	private void validateExistMember(Account account) {
+		if (account.isGuest()) {
+			guestRepository.findById(account.id())
+				.orElseThrow(() -> new GameException(MemberErrorCode.MEMBER_NOT_FOUND));
+		} else {
+			memberRepository.findById(account.id())
+				.orElseThrow(() -> new GameException(MemberErrorCode.MEMBER_NOT_FOUND));
+		}
 	}
 
 	private GameRoom getGameRoom(Long roomId) {

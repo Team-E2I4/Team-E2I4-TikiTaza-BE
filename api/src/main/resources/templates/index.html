@@ -56,7 +56,7 @@
     }
 
     function subscribeToError() {
-        stompClient.subscribe('/from/error/' + roomId, function (response) {
+        stompClient.subscribe('/from/game-room/' + roomId + '/error', function (response) {
             var message = JSON.parse(response.body);
             console.log(">>>> response " + response);
             console.log('Enter Message: ' + message);

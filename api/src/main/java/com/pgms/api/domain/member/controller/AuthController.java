@@ -15,6 +15,7 @@ import com.pgms.api.global.annotation.SwaggerResponseAuth;
 import com.pgms.coredomain.response.ApiResponse;
 import com.pgms.coredomain.response.ResponseCode;
 import com.pgms.coresecurity.jwt.JwtTokenProvider;
+import com.pgms.coresecurity.resolver.Account;
 import com.pgms.coresecurity.resolver.CurrentAccount;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -47,8 +48,8 @@ public class AuthController {
 	public ResponseEntity<ApiResponse<Void>> logout(
 		@RequestHeader("Authorization") String bearerToken,
 		@CookieValue("refreshToken") String refreshToken,
-		@CurrentAccount Long memberId) {
-		authService.logout(jwtTokenProvider.resolveToken(bearerToken), refreshToken, memberId);
+		@CurrentAccount Account account) {
+		authService.logout(jwtTokenProvider.resolveToken(bearerToken), refreshToken, account.id());
 		return ResponseEntity.ok(ApiResponse.of(ResponseCode.SUCCESS));
 	}
 

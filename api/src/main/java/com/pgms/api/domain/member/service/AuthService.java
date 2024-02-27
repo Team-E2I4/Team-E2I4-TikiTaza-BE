@@ -19,6 +19,8 @@ import com.pgms.coredomain.domain.member.Member;
 import com.pgms.coredomain.domain.member.Role;
 import com.pgms.coredomain.exception.MemberErrorCode;
 import com.pgms.coredomain.repository.MemberRepository;
+import com.pgms.coreinfraredis.entity.Guest;
+import com.pgms.coreinfraredis.repository.GuestRepository;
 import com.pgms.coreinfraredis.repository.RedisRepository;
 import com.pgms.coresecurity.jwt.JwtTokenProvider;
 import com.pgms.coresecurity.user.normal.UserDetailsImpl;
@@ -29,11 +31,13 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Transactional
 public class AuthService {
+	private static final Long STARTING_GUEST_ID = 10000L;
 
 	private final AuthenticationManager authenticationManager;
 	private final RedisRepository redisRepository;
 	private final JwtTokenProvider jwtTokenProvider;
 	private final MemberRepository memberRepository;
+	private final GuestRepository guestRepository;
 
 	public AuthResponse login(LoginRequest request) {
 		validateMember(request.email());
@@ -53,43 +57,51 @@ public class AuthService {
 	}
 
 	public AuthResponse guestLogin() {
-		String uuid = UUID.randomUUID().toString();
-		Member member = Member.builder()
-			.email(uuid + "@tikitaza.com")
-			.nickname("Guest" + uuid.substring(0, 5))
-			.role(Role.ROLE_GUEST)
-			.build();
+		final Long num = redisRepository.guestIdIncrement("guestCount");
+		final Long guestId = STARTING_GUEST_ID + num;
+		final String uuid = UUID.randomUUID().toString();
+		final Guest guest = new Guest(guestId, "손님" + uuid.substring(0, 5));
 
-		Member savedGuest = memberRepository.save(member);
+		guestRepository.save(guest);
 
-		String accessToken = jwtTokenProvider.createAccessToken(createUserDetails(savedGuest));
+		String accessToken = jwtTokenProvider.createAccessToken(createGuestDetails(guest));
 		String refreshToken = jwtTokenProvider.createRefreshToken();
 
-		redisRepository.saveRefreshToken(refreshToken, savedGuest.getId());
+		redisRepository.saveRefreshToken(refreshToken, guest.getId());
 		return AuthResponse.from(accessToken, refreshToken);
 	}
 
-	public void logout(String accessToken, String refreshToken, Long memberId) {
+	public void logout(String accessToken, String refreshToken, Long accountId) {
 		if (redisRepository.hasKey(refreshToken)) {
-			Long storedMemberId = Long.valueOf(redisRepository.get(refreshToken).toString());
-			if (storedMemberId.equals(memberId)) {
+			Long storedAccountId = Long.valueOf(redisRepository.get(refreshToken).toString());
+			if (storedAccountId.equals(accountId)) {
 				redisRepository.delete(refreshToken);
 				redisRepository.saveBlackList(accessToken, "accessToken");
 			}
 		}
 	}
 
-	public AuthResponse reIssueAccessTokenByRefresh(String token) {
-		Long memberId = Long.valueOf(redisRepository.get(token).toString());
+	public AuthResponse reIssueAccessTokenByRefresh(String refreshToken) {
+		Long accountId = Long.valueOf(redisRepository.get(refreshToken).toString());
 
-		Member member = memberRepository.findById(memberId)
+		// Guest 조회
+		Guest guest = guestRepository.findById(accountId).orElse(null);
+		if (guest != null) {
+			return createAndSaveTokens(createGuestDetails(guest), refreshToken);
+		}
+
+		// Member 조회
+		Member member = memberRepository.findById(accountId)
 			.orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
+		return createAndSaveTokens(createUserDetails(member), refreshToken);
+	}
 
-		UserDetailsImpl userDetails = createUserDetails(member);
-		String accessToken = jwtTokenProvider.createAccessToken(userDetails);
-		String refreshToken = jwtTokenProvider.createRefreshToken();
-
-		return AuthResponse.from(accessToken, refreshToken);
+	private AuthResponse createAndSaveTokens(UserDetailsImpl userDetails, String refreshToken) {
+		String newAccessToken = jwtTokenProvider.createAccessToken(userDetails);
+		String newRefreshToken = jwtTokenProvider.createRefreshToken();
+		redisRepository.saveRefreshToken(newRefreshToken, userDetails.getId());
+		redisRepository.delete(refreshToken);
+		return AuthResponse.from(newAccessToken, newRefreshToken);
 	}
 
 	private void validateMember(String email) {
@@ -107,6 +119,18 @@ public class AuthService {
 
 		return UserDetailsImpl.builder()
 			.id(member.getId())
+			.nickname(member.getNickname())
+			.authorities(authorities)
+			.build();
+	}
+
+	private UserDetailsImpl createGuestDetails(Guest guest) {
+		Collection<? extends GrantedAuthority> authorities = List.of(
+			new SimpleGrantedAuthority(Role.ROLE_GUEST.name()));
+
+		return UserDetailsImpl.builder()
+			.id(guest.getId())
+			.nickname(guest.getNickname())
 			.authorities(authorities)
 			.build();
 	}
