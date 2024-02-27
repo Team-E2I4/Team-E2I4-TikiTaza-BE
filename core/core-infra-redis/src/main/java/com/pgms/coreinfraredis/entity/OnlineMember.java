@@ -1,7 +1,5 @@
 package com.pgms.coreinfraredis.entity;
 
-import java.io.Serializable;
-
 import org.springframework.data.redis.core.RedisHash;
 
 import jakarta.persistence.Id;
@@ -10,8 +8,8 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-@RedisHash(value = "guest", timeToLive = 1800L)
-public class Guest implements Serializable {
+@RedisHash(value = "onlineMember", timeToLive = 20L)
+public class OnlineMember {
 	@Id
 	private Long id;
 
