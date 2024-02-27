@@ -70,6 +70,5 @@ public class SseEmitters {
 	private void handleEmitterError(SseEmitter emitter) {
 		log.warn(">>>>>> SSE Emitter Error");
 		emitter.complete();
-		this.emitters.remove(emitter);
 	}
 }
