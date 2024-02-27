@@ -33,20 +33,14 @@ public class OnlineService {
 				gameRoomMember.getMemberId(),
 				gameRoomMember.getNickname())));
 
-		// onlineMemberRepository.findAll()
-		// 	.forEach(onlineMember -> onlineMembers.add(new OnlineMemberGetResponse(
-		// 		onlineMember.getId(),
-		// 		onlineMember.getNickname())));
-
 		Iterable<OnlineMember> onlineMembersIterable = onlineMemberRepository.findAll();
-
-		// onlineMembersIterable가 null이 아니고 비어 있지 않은 경우에만 forEach 블록 실행
-		if (onlineMembersIterable.iterator().hasNext()) {
-			onlineMembersIterable.forEach(onlineMember -> onlineMembers.add(new OnlineMemberGetResponse(
-				onlineMember.getId(),
-				onlineMember.getNickname())));
-		}
-
+		onlineMembersIterable.forEach(onlineMember -> {
+			if (onlineMember != null) {
+				onlineMembers.add(new OnlineMemberGetResponse(
+					onlineMember.getId(),
+					onlineMember.getNickname()));
+			}
+		});
 		return onlineMembers;
 	}
 }

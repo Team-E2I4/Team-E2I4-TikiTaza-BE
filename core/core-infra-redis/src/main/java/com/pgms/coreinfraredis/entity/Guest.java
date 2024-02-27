@@ -10,7 +10,7 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-@RedisHash(value = "guest", timeToLive = 36000L)
+@RedisHash(value = "guest", timeToLive = 1800L)
 public class Guest implements Serializable {
 	@Id
 	private Long id;

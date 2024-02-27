@@ -8,7 +8,7 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-@RedisHash(value = "onlineMember", timeToLive = 200L)
+@RedisHash(value = "onlineMember", timeToLive = 20L)
 public class OnlineMember {
 	@Id
 	private Long id;
