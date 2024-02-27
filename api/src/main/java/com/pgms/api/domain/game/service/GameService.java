@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.pgms.api.domain.game.dto.response.GameQuestionGetResponse;
 import com.pgms.api.domain.game.dto.response.GameRoomMemberGetResponse;
+import com.pgms.api.global.exception.GameException;
 import com.pgms.api.global.exception.SocketException;
 import com.pgms.api.socket.dto.request.GameFinishRequest;
 import com.pgms.api.socket.dto.request.GameInfoUpdateRequest;
@@ -55,12 +56,16 @@ public class GameService {
 	private final Producer producer;
 
 	// ============================== 입장 확인 및 첫 라운드 스타트 ==============================
-	public void startFirstRound(Long roomId) {
+	public void startFirstRound(Long roomId, Long accountId, String sessionId) {
 		final GameInfo gameInfo = getGameInfo(roomId);
 		final GameRoom gameRoom = getGameRoom(roomId);
 
-		// 카운트만 올려줌
+		final GameRoomMember gameRoomMember = gameRoomMemberRepository.findByMemberId(accountId)
+			.orElseThrow(() -> new GameException(GameRoomErrorCode.GAME_ROOM_MEMBER_NOT_FOUND));
+
+		// 카운트만 올려줌. TODO : 나중에 한명이 여러번 입장처리 못하게 수정
 		gameInfo.enter();
+		gameRoomMember.updateSessionId(sessionId);
 
 		// 모든 멤버가 입장했을 때
 		if (gameInfo.isAllEntered(gameRoom.getCurrentPlayer())) {

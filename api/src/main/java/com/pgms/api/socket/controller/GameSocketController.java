@@ -4,6 +4,7 @@ import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.pgms.api.domain.game.service.GameService;
@@ -25,9 +26,12 @@ public class GameSocketController {
 	@MessageMapping("/game/{roomId}/connect")
 	public void roundStart(
 		@Header("AccountId") Long accountId,
-		@DestinationVariable Long roomId) {
-		log.info(">>>>>> Member Connected in game : roomId = {}, accountId = {}", roomId, accountId);
-		gameService.startFirstRound(roomId);
+		@DestinationVariable Long roomId,
+		SimpMessageHeaderAccessor headerAccessor) {
+		final String sessionId = headerAccessor.getSessionId();
+		log.info(">>>>>> Member Connected in game : roomId = {}, accountId = {}, sessionId = {}",
+			roomId, accountId, sessionId);
+		gameService.startFirstRound(roomId, accountId, sessionId);
 	}
 
 	// 게임 중 실시간 정보 업데이트 - 문장, 코드
