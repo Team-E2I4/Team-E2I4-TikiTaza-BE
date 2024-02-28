@@ -11,7 +11,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -31,6 +30,9 @@ public class GameRank extends BaseEntity {
 	@Column(name = "nickname")
 	private String nickname;
 
+	@Column(name = "ranking")
+	private int ranking;
+
 	@Column(name = "total_score")
 	private double totalScore;
 
@@ -44,11 +46,17 @@ public class GameRank extends BaseEntity {
 	@Enumerated(EnumType.STRING)
 	private GameType gameType;
 
-	@Builder
-	public GameRank(Long memberId, String nickname, double totalScore, double averageWpm, double averageAccuracy,
+	public GameRank(
+		Long memberId,
+		String nickname,
+		int ranking,
+		double totalScore,
+		double averageWpm,
+		double averageAccuracy,
 		GameType gameType) {
 		this.memberId = memberId;
 		this.nickname = nickname;
+		this.ranking = ranking;
 		this.totalScore = totalScore;
 		this.averageWpm = averageWpm;
 		this.averageAccuracy = averageAccuracy;

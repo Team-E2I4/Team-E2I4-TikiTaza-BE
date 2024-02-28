@@ -10,22 +10,25 @@ public record AccountGetResponse(
 	Long memberId,
 	String email,
 	String nickname,
+	int rank,
 	boolean isGuest
 ) {
-	public static AccountGetResponse from(Member member) {
+	public static AccountGetResponse from(Member member, int rank) {
 		return new AccountGetResponse(
 			member.getId(),
 			member.getEmail(),
 			member.getNickname(),
+			rank,
 			false
 		);
 	}
 
-	public static AccountGetResponse from(Guest guest) {
+	public static AccountGetResponse from(Guest guest, int rank) {
 		return new AccountGetResponse(
 			guest.getId(),
 			null,
 			guest.getNickname(),
+			rank,
 			true
 		);
 	}
