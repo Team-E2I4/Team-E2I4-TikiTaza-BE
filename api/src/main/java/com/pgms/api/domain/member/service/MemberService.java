@@ -9,8 +9,10 @@ import com.pgms.api.domain.member.dto.request.NicknameUpdateRequest;
 import com.pgms.api.domain.member.dto.response.AccountGetResponse;
 import com.pgms.api.domain.member.dto.response.MemberSignUpResponse;
 import com.pgms.api.global.exception.MemberException;
+import com.pgms.coredomain.domain.game.GameRank;
 import com.pgms.coredomain.domain.member.Member;
 import com.pgms.coredomain.exception.MemberErrorCode;
+import com.pgms.coredomain.repository.GameRankRepository;
 import com.pgms.coredomain.repository.MemberRepository;
 import com.pgms.coreinfraredis.entity.Guest;
 import com.pgms.coreinfraredis.repository.GuestRepository;
@@ -26,6 +28,7 @@ public class MemberService {
 
 	private final MemberRepository memberRepository;
 	private final GuestRepository guestRepository;
+	private final GameRankRepository gameRankRepository;
 	private final RedisRepository redisRepository;
 	private final PasswordEncoder passwordEncoder;
 
@@ -39,13 +42,17 @@ public class MemberService {
 
 	@Transactional(readOnly = true)
 	public AccountGetResponse getMyProfileInfo(Account account) {
+		int rank = gameRankRepository.findTotalRanking(account.id())
+			.map(GameRank::getRanking)
+			.orElse(-1);
+
 		if (account.isGuest()) {
 			final Guest guest = guestRepository.findById(account.id())
 				.orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
-			return AccountGetResponse.from(guest);
+			return AccountGetResponse.from(guest, rank);
 		} else {
 			final Member member = getMember(account.id());
-			return AccountGetResponse.from(member);
+			return AccountGetResponse.from(member, rank);
 		}
 	}
 

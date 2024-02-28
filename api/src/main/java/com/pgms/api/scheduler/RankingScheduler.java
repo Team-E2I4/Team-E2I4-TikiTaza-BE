@@ -27,27 +27,28 @@ public class RankingScheduler {
 
 		// 게임 타입 별 랭킹 계산
 		String modeRankingQuery =
-			"INSERT INTO game_rank (member_id, nickname, total_score, average_wpm, average_accuracy, game_type) "
+			"INSERT INTO game_rank (member_id, nickname, total_score, average_wpm, average_accuracy, game_type, ranking) "
 				+ "SELECT gh.member_id, m.nickname, "
 				+ "SUM(gh.score) AS total_score, "
 				+ "AVG(gh.wpm) AS average_wpm, "
 				+ "AVG(gh.accuracy) AS average_accuracy, "
-				+ "gh.game_type "
+				+ "gh.game_type, "
+				+ "RANK() OVER(PARTITION BY gh.game_type ORDER BY SUM(gh.score) DESC) AS ranking "
 				+ "FROM game_history gh LEFT JOIN member m ON gh.member_id = m.id "
-				+ "GROUP BY gh.member_id, m.nickname, gh.game_type "
-				+ "ORDER BY total_score DESC LIMIT 100";
+				+ "GROUP BY gh.member_id, m.nickname, gh.game_type ";
+
 		jdbcTemplate.update(modeRankingQuery);
 
 		// 전체 랭킹 계산
 		String totalRankingQuery =
-			"INSERT INTO game_rank (member_id, nickname, total_score, average_wpm, average_accuracy) "
+			"INSERT INTO game_rank (member_id, nickname, total_score, average_wpm, average_accuracy, ranking) "
 				+ "SELECT gh.member_id, m.nickname, "
 				+ "SUM(gh.score) AS total_score, "
 				+ "AVG(gh.wpm) AS average_wpm, "
-				+ "AVG(gh.accuracy) AS average_accuracy "
+				+ "AVG(gh.accuracy) AS average_accuracy, "
+				+ "RANK() OVER(ORDER BY SUM(gh.score) DESC) AS ranking "
 				+ "FROM game_history gh LEFT JOIN member m ON gh.member_id = m.id "
-				+ "GROUP BY gh.member_id, m.nickname "
-				+ "ORDER BY total_score DESC LIMIT 100";
+				+ "GROUP BY gh.member_id, m.nickname";
 
 		jdbcTemplate.update(totalRankingQuery);
 	}
