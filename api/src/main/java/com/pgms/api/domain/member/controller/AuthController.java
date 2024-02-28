@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.pgms.api.domain.member.dto.request.LoginRequest;
@@ -43,6 +44,24 @@ public class AuthController {
 			.body(ApiResponse.of(response));
 	}
 
+	@Operation(summary = "게스트 로그인")
+	@PostMapping("/guest")
+	public ResponseEntity<ApiResponse<AuthResponse>> guestLogin() {
+		final AuthResponse response = authService.guestLogin();
+		return ResponseEntity.ok()
+			.header(SET_COOKIE, "refreshToken=" + response.refreshToken() + "; Path=/; HttpOnly;")
+			.body(ApiResponse.of(response));
+	}
+
+	@Operation(summary = "카카오 로그인")
+	@PostMapping("/login/kakao")
+	public ResponseEntity<ApiResponse<AuthResponse>> kakaoLogin(@RequestParam("code") String code) {
+		AuthResponse response = authService.kakaoLogin(code);
+		return ResponseEntity.ok()
+			.header(SET_COOKIE, "refreshToken=" + response.refreshToken() + "; Path=/; HttpOnly;")
+			.body(ApiResponse.of(response));
+	}
+
 	@Operation(summary = "로그아웃")
 	@PostMapping("/logout")
 	public ResponseEntity<ApiResponse<Void>> logout(
@@ -51,15 +70,6 @@ public class AuthController {
 		@CurrentAccount Account account) {
 		authService.logout(jwtTokenProvider.resolveToken(bearerToken), refreshToken, account.id());
 		return ResponseEntity.ok(ApiResponse.of(ResponseCode.SUCCESS));
-	}
-
-	@Operation(summary = "게스트 로그인")
-	@PostMapping("/guest")
-	public ResponseEntity<ApiResponse<AuthResponse>> guestLogin() {
-		final AuthResponse response = authService.guestLogin();
-		return ResponseEntity.ok()
-			.header(SET_COOKIE, "refreshToken=" + response.refreshToken() + "; Path=/; HttpOnly;")
-			.body(ApiResponse.of(response));
 	}
 
 	@Operation(summary = "토큰 재발급")

@@ -1,5 +1,8 @@
 package com.pgms.api.domain.member.service;
 
+import static com.pgms.coredomain.domain.member.ProviderType.*;
+import static com.pgms.coredomain.domain.member.Role.*;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
@@ -14,9 +17,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.pgms.api.domain.member.dto.request.LoginRequest;
 import com.pgms.api.domain.member.dto.response.AuthResponse;
+import com.pgms.api.domain.member.dto.response.KakaoUserGetResponse;
 import com.pgms.api.global.exception.MemberException;
 import com.pgms.coredomain.domain.member.Member;
-import com.pgms.coredomain.domain.member.Role;
 import com.pgms.coredomain.exception.MemberErrorCode;
 import com.pgms.coredomain.repository.MemberRepository;
 import com.pgms.coreinfraredis.entity.Guest;
@@ -38,6 +41,7 @@ public class AuthService {
 	private final JwtTokenProvider jwtTokenProvider;
 	private final MemberRepository memberRepository;
 	private final GuestRepository guestRepository;
+	private final OauthService oauthService;
 
 	public AuthResponse login(LoginRequest request) {
 		validateMember(request.email());
@@ -53,6 +57,20 @@ public class AuthService {
 		String refreshToken = jwtTokenProvider.createRefreshToken();
 
 		redisRepository.saveRefreshToken(refreshToken, ((UserDetailsImpl)authenticate.getPrincipal()).getId());
+		return AuthResponse.from(accessToken, refreshToken);
+	}
+
+	public AuthResponse kakaoLogin(String code) {
+		String kakaoToken = oauthService.getKakaoToken(code);
+		KakaoUserGetResponse kakaoUserInfo = oauthService.getKakaoUserInfo(kakaoToken);
+
+		Member member = saveOrUpdate(kakaoUserInfo);
+		UserDetailsImpl userDetails = createUserDetails(member);
+
+		String accessToken = jwtTokenProvider.createAccessToken(userDetails);
+		String refreshToken = jwtTokenProvider.createRefreshToken();
+
+		redisRepository.saveRefreshToken(refreshToken, userDetails.getId());
 		return AuthResponse.from(accessToken, refreshToken);
 	}
 
@@ -96,6 +114,18 @@ public class AuthService {
 		return createAndSaveTokens(createUserDetails(member), refreshToken);
 	}
 
+	private Member saveOrUpdate(KakaoUserGetResponse kakaoUserInfo) {
+		return memberRepository.findByEmail(kakaoUserInfo.email()).orElseGet(() -> {
+			Member newMember = Member.builder()
+				.email(kakaoUserInfo.email())
+				.nickname(kakaoUserInfo.nickname())
+				.role(ROLE_USER)
+				.providerType(KAKAO)
+				.build();
+			return memberRepository.save(newMember);
+		});
+	}
+
 	private AuthResponse createAndSaveTokens(UserDetailsImpl userDetails, String refreshToken) {
 		String newAccessToken = jwtTokenProvider.createAccessToken(userDetails);
 		String newRefreshToken = jwtTokenProvider.createRefreshToken();
@@ -126,7 +156,7 @@ public class AuthService {
 
 	private UserDetailsImpl createGuestDetails(Guest guest) {
 		Collection<? extends GrantedAuthority> authorities = List.of(
-			new SimpleGrantedAuthority(Role.ROLE_GUEST.name()));
+			new SimpleGrantedAuthority(ROLE_GUEST.name()));
 
 		return UserDetailsImpl.builder()
 			.id(guest.getId())
