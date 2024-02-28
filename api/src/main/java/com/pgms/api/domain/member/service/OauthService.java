@@ -36,9 +36,6 @@ public class OauthService {
 	private String kakaoClientSecret;
 
 	public String getKakaoToken(String code) {
-		// HttpHeaders headers = new HttpHeaders();
-		// headers.add("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
-		//
 		HttpHeaders headers = new HttpHeaders();
 		headers.add("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
 
@@ -49,13 +46,9 @@ public class OauthService {
 		params.add("redirect_uri", kakaoRedirectUri);
 		params.add("code", code);
 
-		log.info(">>>>>>>>>> client-id {}", kakaoClientId);
-		log.info(">>>>>>>>>> RedirectURI {}", kakaoRedirectUri);
-
 		HttpEntity<MultiValueMap<String, String>> kakaoTokenRequest = new HttpEntity<>(params, headers);
 
 		RestTemplate restTemplate = new RestTemplate();
-
 		ResponseEntity<String> response = restTemplate.postForEntity(
 			"https://kauth.kakao.com/oauth/token",
 			kakaoTokenRequest,
@@ -63,7 +56,6 @@ public class OauthService {
 		);
 
 		String responseBody = response.getBody();
-
 		ObjectMapper objectMapper = new ObjectMapper();
 		JsonNode jsonNode;
 		try {
@@ -71,7 +63,6 @@ public class OauthService {
 		} catch (JsonProcessingException e) {
 			throw new SecurityException(OAUTH_LOGIN_FAILED);
 		}
-
 		return jsonNode.get("access_token").asText();
 	}
 

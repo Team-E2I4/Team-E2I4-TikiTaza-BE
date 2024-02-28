@@ -35,7 +35,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 		content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
 	@ApiResponse(responseCode = "409", description = """
 		[gr-409/01] 이미 해당 유저의 방이 존재합니다.\t\n
-		[gr-409/02] 방장이 아닙니다.""",
+		[gr-409/02] 방장이 아닙니다.
+		[gr-409/03] 방 최대 인원이 현재 인원보다 작습니다.\t\n
+		[gr-409/04] 같은 방에 이미 참여하고 있습니다.\t\n""",
 		content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
 })
 public @interface SwaggerResponseGameRoom {
