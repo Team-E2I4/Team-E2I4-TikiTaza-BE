@@ -19,14 +19,12 @@ import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.ExceptionTranslationFilter;
-import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
 import com.pgms.coresecurity.jwt.JwtAccessDeniedHandler;
 import com.pgms.coresecurity.jwt.JwtAuthenticationEntryPoint;
 import com.pgms.coresecurity.jwt.JwtAuthenticationFilter;
 import com.pgms.coresecurity.jwt.JwtTokenProvider;
-import com.pgms.coresecurity.service.OAuth2MemberService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -37,8 +35,6 @@ public class WebSecurityConfig {
 
 	private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
 	private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
-	private final OAuth2MemberService oAuth2MemberService;
-	private final AuthenticationSuccessHandler oauthSuccessHandler;
 	private final JwtTokenProvider jwtTokenProvider;
 
 	/**
@@ -73,18 +69,12 @@ public class WebSecurityConfig {
 		http
 			.securityMatchers(matchers -> matchers
 				.requestMatchers(
-					antMatcher("/login"),
-					antMatcher("/login/oauth2/code/**"),
-					antMatcher("/oauth2/authorization/**")
+					antMatcher("/login/**"),
+					antMatcher("/login/oauth2/code/**")
 				))
 			.authorizeHttpRequests(authorize -> authorize
 				.anyRequest()
-				.permitAll())
-			.oauth2Login(oauth ->
-				oauth.userInfoEndpoint(endpoint ->
-						endpoint.userService(oAuth2MemberService))
-					.successHandler(oauthSuccessHandler)
-			);
+				.permitAll());
 		return http.build();
 	}
 
@@ -141,13 +131,12 @@ public class WebSecurityConfig {
 	private RequestMatcher[] requestPermitAll() {
 		List<RequestMatcher> requestMatchers = List.of(
 			antMatcher("/"),
-			antMatcher("/favicon.ico"),
 			antMatcher("/swagger-ui/**"),
 			antMatcher("/v3/api-docs/**"),
 			antMatcher("/ws/**"),
 			antMatcher("/from/**"),
 			antMatcher("/to/**"),
-			antMatcher("/api/v1/auth/login"),
+			antMatcher("/api/v1/auth/login/**"),
 			antMatcher("/api/v1/auth/guest"),
 			antMatcher("/api/v1/members/sign-up")
 		);
