@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.pgms.api.domain.game.dto.request.GameRoomCreateRequest;
@@ -66,10 +67,10 @@ public class GameRoomController {
 	}
 
 	@Operation(summary = "게임방 초대코드로 방 번호 반환")
-	@GetMapping("/{inviteCode}")
+	@GetMapping
 	public ResponseEntity<ApiResponse<GameRoomInviteCodeResponse>> getRoomIdByInviteCode(
 		@CurrentAccount Account account,
-		@PathVariable String inviteCode) {
+		@RequestParam String inviteCode) {
 		return ResponseEntity.ok(ApiResponse.of(gameRoomService.getRoomIdByInviteCode(account, inviteCode)));
 	}
 }
