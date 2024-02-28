@@ -24,6 +24,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 		[mem-400/02] 탈퇴한 회원입니다.\t\n
 		[mem-400/03] 비밀번호 확인이 일치하지 않습니다.""",
 		content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+	@ApiResponse(responseCode = "401", description = """
+		[sec-401/01] 로그인 해주세요. \t\n""",
+		content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
 	@ApiResponse(responseCode = "404", description = "[mem-404/01] 회원을 찾을 수 없습니다.",
 		content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
 	@ApiResponse(responseCode = "409", description = """
