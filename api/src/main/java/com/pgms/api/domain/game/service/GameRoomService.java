@@ -235,30 +235,18 @@ public class GameRoomService {
 		validateGameRoomHost(roomId, accountId, gameRoom);
 
 		// 강퇴 당하는 유저 존재하는지 검증
-		final GameRoomMember kickedMember = gameRoomMemberRepository.findByMemberId(kickedId)
+		gameRoomMemberRepository.findByMemberId(kickedId)
 			.orElseThrow(() -> new SocketException(roomId, GameRoomErrorCode.GAME_ROOM_MEMBER_NOT_FOUND));
 
-		// GameRoomMember에서 강퇴 당한 유저 삭제 처리
-		gameRoomMemberRepository.delete(kickedMember);
-
-		// GameRoomMember 리스트 가져오기
-		List<GameRoomMember> leftGameRoomMembers = gameRoomMemberRepository.findAllByGameRoomId(roomId);
-
-		// 게임방 인원수 줄이기
-		gameRoom.exitRoom();
-
-		// 방장이면 -> 강퇴 처리 (메시지 던지기)
+		// 방장이면 -> 강퇴 처리 (메시지 던지기) -> KICKED : roomId & exitMemberId
 		KafkaMessage message = GameRoomMessage.builder()
 			.type(KICKED)
 			.roomId(gameRoom.getId())
-			.roomInfo(GameRoomGetResponse.from(gameRoom))
 			.exitMemberId(kickedId)
-			.allMembers(leftGameRoomMembers.stream().map(GameRoomMemberGetResponse::from).toList())
 			.build()
 			.convertToKafkaMessage("/from/game-room/%d".formatted(gameRoom.getId()));
 
 		producer.produceMessage(message);
-		sseEmitters.updateGameRoom(sseService.getRooms());
 	}
 
 	public GameRoomInviteCodeResponse getRoomIdByInviteCode(Account account, String inviteCode) {
