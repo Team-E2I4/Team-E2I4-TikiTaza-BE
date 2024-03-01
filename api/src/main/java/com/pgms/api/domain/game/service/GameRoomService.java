@@ -244,6 +244,9 @@ public class GameRoomService {
 		// GameRoomMember 리스트 가져오기
 		List<GameRoomMember> leftGameRoomMembers = gameRoomMemberRepository.findAllByGameRoomId(roomId);
 
+		// 게임방 인원수 줄이기
+		gameRoom.exitRoom();
+
 		// 방장이면 -> 강퇴 처리 (메시지 던지기)
 		KafkaMessage message = GameRoomMessage.builder()
 			.type(KICKED)
