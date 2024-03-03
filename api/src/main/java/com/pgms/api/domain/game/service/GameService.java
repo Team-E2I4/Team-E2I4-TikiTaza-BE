@@ -79,6 +79,8 @@ public class GameService {
 			final List<GameQuestionGetResponse> questionResponses = questions.stream()
 				.map(GameQuestionGetResponse::of).toList();
 
+			log.info(">>>>>> find random Question !!!! {}", questions);
+
 			// 단어 게임이면 레디스에 단어 초기화
 			if (gameRoom.getGameType() == GameType.WORD) {
 				redisRepository.initWords(roomId.toString(),
