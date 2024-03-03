@@ -86,7 +86,7 @@ public class GameRoom extends BaseEntity {
 		this.gameType = gameType;
 	}
 
-	public void updateGameRoom(String title, String password, int round, int maxPlayer, GameType gameType) {
+	public void updateGameRoom(String title, String password, int maxPlayer, int round, GameType gameType) {
 		this.title = title;
 		this.password = password;
 		this.maxPlayer = maxPlayer;
