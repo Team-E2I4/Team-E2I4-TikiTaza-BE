@@ -2,6 +2,7 @@ package com.pgms.coreinfraredis.repository;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -88,6 +89,14 @@ public class RedisRepository {
 	// 누적 멤버 점수 업데이트
 	public void increaseTotalScore(String roomId, String memberId, Long score) {
 		redisTemplate.opsForZSet().incrementScore(TOTAL_PREFIX + roomId, memberId, score);
+	}
+
+	// 단어 목록 리스트 조회
+	public List<String> getWords(String roomId) {
+		Set<Object> words = redisTemplate.opsForZSet().range(WORD_PREFIX + roomId, 0, -1);
+		return Objects.requireNonNull(words).stream()
+			.map(Object::toString)
+			.collect(Collectors.toList());
 	}
 
 	// 단어 사용 여부 업데이트 & 점수 반환

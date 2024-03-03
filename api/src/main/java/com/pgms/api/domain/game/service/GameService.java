@@ -77,7 +77,8 @@ public class GameService {
 
 			final List<GameQuestion> questions = getGameQuestions(gameRoom);
 			final List<GameQuestionGetResponse> questionResponses = questions.stream()
-				.map(GameQuestionGetResponse::of).toList();
+				.map(question -> GameQuestionGetResponse.of(question.getQuestion()))
+				.toList();
 
 			log.info(">>>>>> find random Question !!!! {}", questions);
 
@@ -138,10 +139,16 @@ public class GameService {
 
 			final Map<Long, Long> sortedScores = redisRepository.getRoundScores(String.valueOf(roomId));
 
+			List<String> remainWords = redisRepository.getWords(roomId.toString());
+			List<GameQuestionGetResponse> questionResponses = remainWords.stream()
+				.map(GameQuestionGetResponse::of)
+				.toList();
+
 			KafkaMessage message = GameMessage.builder()
 				.type(INFO)
 				.submittedWord(gameInfoUpdateRequest.word())
 				.submitMemberId(accountId)
+				.questions(questionResponses)
 				.gameScore(Map.copyOf(sortedScores))
 				.build()
 				.convertToKafkaMessage("/from/game/%d".formatted(roomId));
@@ -215,7 +222,8 @@ public class GameService {
 
 				final List<GameQuestion> questions = getGameQuestions(gameRoom);
 				final List<GameQuestionGetResponse> questionResponses = questions.stream()
-					.map(GameQuestionGetResponse::of).toList();
+					.map(gameQuestion -> GameQuestionGetResponse.of(gameQuestion.getQuestion()))
+					.toList();
 
 				gameInfo.initSubmittedCount();
 
