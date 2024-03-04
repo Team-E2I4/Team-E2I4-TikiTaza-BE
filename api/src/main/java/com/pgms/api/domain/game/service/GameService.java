@@ -257,7 +257,7 @@ public class GameService {
 
 	private List<GameQuestion> getGameQuestions(GameRoom gameRoom) {
 		final GameType gameType = gameRoom.getGameType();
-		return gameQuestionRepository.findByGameTypeAndCount(gameType,
-			PageRequest.of(0, gameType.getQuestionCount()));
+		log.info("gameType = {}, count = {}", gameType, gameType.getQuestionCount());
+		return gameQuestionRepository.findByGameTypeAndCount(gameType, PageRequest.of(0, gameType.getQuestionCount()));
 	}
 }

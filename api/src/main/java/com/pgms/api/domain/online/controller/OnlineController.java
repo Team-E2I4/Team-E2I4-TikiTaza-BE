@@ -1,4 +1,4 @@
-package com.pgms.api.domain.online;
+package com.pgms.api.domain.online.controller;
 
 import java.util.Set;
 
@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.pgms.api.domain.online.dto.OnlineMemberGetResponse;
+import com.pgms.api.domain.online.service.OnlineService;
 import com.pgms.coredomain.response.ApiResponse;
 import com.pgms.coresecurity.resolver.Account;
 import com.pgms.coresecurity.resolver.CurrentAccount;

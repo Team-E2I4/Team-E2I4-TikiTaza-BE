@@ -11,7 +11,6 @@ import com.pgms.coredomain.domain.game.GameQuestion;
 import com.pgms.coredomain.domain.game.GameType;
 
 public interface GameQuestionRepository extends JpaRepository<GameQuestion, Long> {
-	@Query("SELECT gq FROM GameQuestion gq WHERE gq.gameType = :gameType ORDER BY RAND()")
+	@Query(value = "SELECT gq FROM GameQuestion gq WHERE gq.gameType = :gameType ORDER BY RAND()")
 	List<GameQuestion> findByGameTypeAndCount(@Param("gameType") GameType gameType, Pageable pageable);
-	//findByGameTypeAndCount(gameType, PageRequest.of(0, size));
 }

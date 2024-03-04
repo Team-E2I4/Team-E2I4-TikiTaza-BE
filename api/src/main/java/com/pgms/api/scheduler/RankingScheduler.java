@@ -3,6 +3,7 @@ package com.pgms.api.scheduler;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.pgms.coredomain.repository.GameRankRepository;
 
@@ -14,18 +15,26 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class RankingScheduler {
 	private static final String ZONE = "Asia/Seoul";
-	private static final int SCHEDULE_UPDATE_CYCLE = 10000;
+	private static final int SCHEDULE_UPDATE_CYCLE = 300000;
 	private static final int SCHEDULE_INITIAL_DELAY = 3000;
 
 	private final GameRankRepository gameRankRepository;
 	private final JdbcTemplate jdbcTemplate;
 
 	@Scheduled(fixedRate = SCHEDULE_UPDATE_CYCLE, initialDelay = SCHEDULE_INITIAL_DELAY, zone = ZONE)
+	@Transactional
 	public void run() {
 		log.info(">>>>>> Ranking Scheduled Run !!!!!!!!!");
 		gameRankRepository.deleteAllInBatch();
 
 		// 게임 타입 별 랭킹 계산
+		calculateRankingByGameType();
+
+		// 전체 랭킹 계산
+		calculateTotalRanking();
+	}
+
+	private void calculateRankingByGameType() {
 		String modeRankingQuery =
 			"INSERT INTO game_rank (member_id, nickname, total_score, average_wpm, average_accuracy, game_type, ranking) "
 				+ "SELECT gh.member_id, m.nickname, "
@@ -38,8 +47,9 @@ public class RankingScheduler {
 				+ "GROUP BY gh.member_id, m.nickname, gh.game_type ";
 
 		jdbcTemplate.update(modeRankingQuery);
+	}
 
-		// 전체 랭킹 계산
+	private void calculateTotalRanking() {
 		String totalRankingQuery =
 			"INSERT INTO game_rank (member_id, nickname, total_score, average_wpm, average_accuracy, ranking) "
 				+ "SELECT gh.member_id, m.nickname, "

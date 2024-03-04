@@ -8,7 +8,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Component;
 
@@ -41,21 +40,16 @@ public class RedisRepository {
 
 	// 리프레시 토큰용
 	public void saveRefreshToken(String key, Object value) {
-		ValueOperations<String, Object> valueOperations = redisTemplate.opsForValue();
-		valueOperations.set(key, value);
-		redisTemplate.expire(key, REFRESH_TOKEN_TIME_OUT_DAYS, TimeUnit.DAYS);
+		redisTemplate.opsForValue().set(key, value, REFRESH_TOKEN_TIME_OUT_DAYS, TimeUnit.DAYS);
 	}
 
 	public void saveInviteCode(String key, Object value) {
-		ValueOperations<String, Object> valueOperations = redisTemplate.opsForValue();
-		valueOperations.set(key, value);
+		redisTemplate.opsForValue().set(key, value);
 	}
 
 	// 블랙리스트용 (로그아웃)
 	public void saveBlackList(String key, Object value) {
-		ValueOperations<String, Object> valueOperations = redisBlackListTemplate.opsForValue();
-		valueOperations.set(key, value);
-		redisTemplate.expire(key, BLACKLIST_TIME_OUT_MINUTES, TimeUnit.MINUTES);
+		redisBlackListTemplate.opsForValue().set(key, value, BLACKLIST_TIME_OUT_MINUTES, TimeUnit.MINUTES);
 	}
 
 	public boolean hasKeyBlackList(String key) {
@@ -64,16 +58,12 @@ public class RedisRepository {
 
 	// 라운드별 점수 초기화
 	public void initRoundScores(String roomId, List<Long> memberIds) {
-		for (Long memberId : memberIds) {
-			redisTemplate.opsForZSet().add(ROUND_PREFIX + roomId, memberId.toString(), 0);
-		}
+		memberIds.forEach(memberId -> redisTemplate.opsForZSet().add(ROUND_PREFIX + roomId, memberId.toString(), 0));
 	}
 
 	// 단어게임 단어 리스트 초기화
 	public void initWords(String roomId, List<String> words) {
-		for (String word : words) {
-			redisTemplate.opsForZSet().add(WORD_PREFIX + roomId, word, 1);
-		}
+		words.forEach(word -> redisTemplate.opsForZSet().add(WORD_PREFIX + roomId, word, 1));
 	}
 
 	// 라운드별 멤버 점수 업데이트
@@ -96,7 +86,7 @@ public class RedisRepository {
 		Set<Object> words = redisTemplate.opsForZSet().range(WORD_PREFIX + roomId, 0, -1);
 		return Objects.requireNonNull(words).stream()
 			.map(Object::toString)
-			.collect(Collectors.toList());
+			.toList();
 	}
 
 	// 단어 사용 여부 업데이트 & 점수 반환
@@ -104,7 +94,7 @@ public class RedisRepository {
 		// 단어 리스트 가져옴
 		Double score = redisTemplate.opsForZSet().score(WORD_PREFIX + roomId, word);
 		// 단어 있는지 확인 -> 있으면 삭제 & 점수 반환
-		if (score != null && score != 0.0) {
+		if (score != null && !score.equals(0.0)) {
 			redisTemplate.opsForZSet().remove(WORD_PREFIX + roomId, word);
 			return score.longValue();
 		}
@@ -115,7 +105,6 @@ public class RedisRepository {
 	public Map<Long, Long> getRoundScores(String roomId) {
 		Set<ZSetOperations.TypedTuple<Object>> membersWithScores = redisTemplate.opsForZSet()
 			.rangeByScoreWithScores(ROUND_PREFIX + roomId, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY);
-
 		return convertToMap(membersWithScores);
 	}
 
@@ -123,7 +112,6 @@ public class RedisRepository {
 	public Map<Long, Long> getTotalScores(String roomId) {
 		Set<ZSetOperations.TypedTuple<Object>> membersWithScores = redisTemplate.opsForZSet()
 			.rangeByScoreWithScores(TOTAL_PREFIX + roomId, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY);
-
 		return convertToMap(membersWithScores);
 	}
 
@@ -135,7 +123,8 @@ public class RedisRepository {
 
 	// guest Id 자동 증가
 	public Long guestIdIncrement(String key) {
-		return redisTemplate.opsForValue().increment(key);
+		return redisTemplate.opsForValue()
+			.increment(key);
 	}
 
 	private Map<Long, Long> convertToMap(Set<ZSetOperations.TypedTuple<Object>> tupleSet) {

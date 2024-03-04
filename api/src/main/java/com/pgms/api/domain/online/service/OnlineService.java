@@ -1,4 +1,4 @@
-package com.pgms.api.domain.online;
+package com.pgms.api.domain.online.service;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -23,24 +23,30 @@ public class OnlineService {
 	private final OnlineMemberRepository onlineMemberRepository;
 
 	public Set<OnlineMemberGetResponse> getOnlineMembers(Account account) {
-		HashSet<OnlineMemberGetResponse> onlineMembers = new HashSet<>();
-
 		OnlineMember currentMember = new OnlineMember(account.id(), account.nickname());
 		onlineMemberRepository.save(currentMember);
 
-		gameRoomMemberRepository.findAll()
-			.forEach(gameRoomMember -> onlineMembers.add(new OnlineMemberGetResponse(
+		Set<OnlineMemberGetResponse> onlineMembers = new HashSet<>();
+		addGameRoomMembers(onlineMembers);
+		addOnlineMembers(onlineMembers);
+
+		return onlineMembers;
+	}
+
+	private void addGameRoomMembers(Set<OnlineMemberGetResponse> onlineMembers) {
+		gameRoomMemberRepository.findAll().forEach(gameRoomMember ->
+			onlineMembers.add(new OnlineMemberGetResponse(
 				gameRoomMember.getMemberId(),
 				gameRoomMember.getNickname())));
+	}
 
-		Iterable<OnlineMember> onlineMembersIterable = onlineMemberRepository.findAll();
-		onlineMembersIterable.forEach(onlineMember -> {
+	private void addOnlineMembers(Set<OnlineMemberGetResponse> onlineMembers) {
+		onlineMemberRepository.findAll().forEach(onlineMember -> {
 			if (onlineMember != null) {
 				onlineMembers.add(new OnlineMemberGetResponse(
 					onlineMember.getId(),
 					onlineMember.getNickname()));
 			}
 		});
-		return onlineMembers;
 	}
 }

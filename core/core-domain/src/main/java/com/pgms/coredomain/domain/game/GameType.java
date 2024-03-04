@@ -9,7 +9,7 @@ import lombok.Getter;
 public enum GameType {
 	SENTENCE("문장 따라치기", 10),
 	CODE("코드 따라치기", 1),
-	WORD("짧은 단어", 50);
+	WORD("짧은 단어", 100);
 
 	private final String description;
 	private final int questionCount;

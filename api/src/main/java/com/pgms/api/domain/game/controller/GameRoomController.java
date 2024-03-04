@@ -38,7 +38,7 @@ public class GameRoomController {
 
 	private final GameRoomService gameRoomService;
 
-	@Operation(summary = "게임 방 생성: 방장은 생성 후 자동입장됩니다.")
+	@Operation(summary = "게임 방 생성: 방장은 생성 후 자동 입장")
 	@PostMapping
 	public ResponseEntity<ApiResponse<GameRoomCreateResponse>> createGameRoom(
 		@CurrentAccount Account account,
@@ -66,7 +66,7 @@ public class GameRoomController {
 		return ResponseEntity.ok(ApiResponse.of(gameRoomService.enterGameRoom(account, roomId, request)));
 	}
 
-	@Operation(summary = "게임방 초대코드로 방 번호 반환")
+	@Operation(summary = "게임방 초대 코드로 방 번호 반환")
 	@GetMapping
 	public ResponseEntity<ApiResponse<GameRoomInviteCodeResponse>> getRoomIdByInviteCode(
 		@CurrentAccount Account account,

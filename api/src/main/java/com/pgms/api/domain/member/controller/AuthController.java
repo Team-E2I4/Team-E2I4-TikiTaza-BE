@@ -30,6 +30,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/auth")
 public class AuthController {
+
 	private static final String SET_COOKIE = "Set-Cookie";
 
 	private final AuthService authService;
