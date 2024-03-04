@@ -2,17 +2,15 @@ package com.pgms.api.domain.game.dto.response;
 
 import com.pgms.coredomain.domain.game.GameRoomMember;
 
-public record GameRoomMemberGetResponse(
+public record InGameMemberGetResponse(
 	Long memberId,
 	String nickname,
-	int ranking,
 	boolean readyStatus
 ) {
-	public static GameRoomMemberGetResponse from(GameRoomMember gameRoomMember, int ranking) {
-		return new GameRoomMemberGetResponse(
+	public static InGameMemberGetResponse from(GameRoomMember gameRoomMember) {
+		return new InGameMemberGetResponse(
 			gameRoomMember.getMemberId(),
 			gameRoomMember.getNickname(),
-			ranking,
 			gameRoomMember.isReadyStatus()
 		);
 	}

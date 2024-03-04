@@ -45,7 +45,12 @@ public class GameRoomMember extends BaseEntity {
 	private GameRoom gameRoom;
 
 	@Builder
-	public GameRoomMember(GameRoom gameRoom, Long memberId, String nickname, String webSessionId, boolean readyStatus) {
+	public GameRoomMember(
+		GameRoom gameRoom,
+		Long memberId,
+		String nickname,
+		String webSessionId,
+		boolean readyStatus) {
 		this.gameRoom = gameRoom;
 		this.memberId = memberId;
 		this.nickname = nickname;

@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.pgms.api.domain.game.dto.response.GameQuestionGetResponse;
-import com.pgms.api.domain.game.dto.response.GameRoomMemberGetResponse;
+import com.pgms.api.domain.game.dto.response.InGameMemberGetResponse;
 import com.pgms.api.global.exception.GameException;
 import com.pgms.api.global.exception.SocketException;
 import com.pgms.api.socket.dto.request.GameFinishRequest;
@@ -70,9 +70,9 @@ public class GameService {
 		// 모든 멤버가 입장했을 때
 		if (gameInfo.isAllEntered(gameRoom.getCurrentPlayer())) {
 			// 문제와 유저 정보 전송
-			final List<GameRoomMemberGetResponse> gameRoomMembers = gameRoomMemberRepository.findAllByGameRoomId(roomId)
+			final List<InGameMemberGetResponse> gameRoomMembers = gameRoomMemberRepository.findAllByGameRoomId(roomId)
 				.stream()
-				.map(GameRoomMemberGetResponse::from)
+				.map(InGameMemberGetResponse::from)
 				.toList();
 
 			final List<GameQuestion> questions = getGameQuestions(gameRoom);
@@ -97,7 +97,7 @@ public class GameService {
 			producer.produceMessage(message);
 
 			List<Long> memberIds = gameRoomMembers.stream()
-				.map(GameRoomMemberGetResponse::memberId)
+				.map(InGameMemberGetResponse::memberId)
 				.toList();
 
 			// 라운드별 점수 초기화
@@ -193,13 +193,8 @@ public class GameService {
 				});
 
 				// 모든 유저들 게임 종료 후 준비 상태 해제
-				final List<GameRoomMemberGetResponse> allMembers = gameRoomMembers.stream()
-					.map(gameRoomMember -> {
-						if (!gameRoom.isHost(gameRoomMember.getMemberId())) {
-							gameRoomMember.updateReadyStatus(false);
-						}
-						return GameRoomMemberGetResponse.from(gameRoomMember);
-					})
+				final List<InGameMemberGetResponse> allMembers = gameRoomMembers.stream()
+					.map(InGameMemberGetResponse::from)
 					.toList();
 
 				KafkaMessage message = GameMessage.builder()
@@ -232,8 +227,8 @@ public class GameService {
 						questions.stream().map(GameQuestion::getQuestion).toList());
 				}
 
-				final List<GameRoomMemberGetResponse> allMembers = gameRoomMembers.stream()
-					.map(GameRoomMemberGetResponse::from)
+				final List<InGameMemberGetResponse> allMembers = gameRoomMembers.stream()
+					.map(InGameMemberGetResponse::from)
 					.toList();
 
 				KafkaMessage message = GameMessage.builder()

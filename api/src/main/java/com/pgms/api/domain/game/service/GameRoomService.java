@@ -3,6 +3,7 @@ package com.pgms.api.domain.game.service;
 import static com.pgms.api.socket.dto.response.GameRoomMessageType.*;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -23,6 +24,7 @@ import com.pgms.api.socket.dto.response.GameRoomMessageType;
 import com.pgms.api.sse.SseEmitters;
 import com.pgms.api.sse.service.SseService;
 import com.pgms.coredomain.domain.game.GameInfo;
+import com.pgms.coredomain.domain.game.GameRank;
 import com.pgms.coredomain.domain.game.GameRoom;
 import com.pgms.coredomain.domain.game.GameRoomMember;
 import com.pgms.coredomain.domain.game.GameType;
@@ -30,6 +32,7 @@ import com.pgms.coredomain.exception.GameErrorCode;
 import com.pgms.coredomain.exception.GameRoomErrorCode;
 import com.pgms.coredomain.exception.MemberErrorCode;
 import com.pgms.coredomain.repository.GameInfoRepository;
+import com.pgms.coredomain.repository.GameRankRepository;
 import com.pgms.coredomain.repository.GameRoomMemberRepository;
 import com.pgms.coredomain.repository.GameRoomRepository;
 import com.pgms.coredomain.repository.MemberRepository;
@@ -57,6 +60,7 @@ public class GameRoomService {
 	private final SseEmitters sseEmitters;
 	private final SseService sseService;
 	private final Producer producer;
+	private final GameRankRepository gameRankRepository;
 
 	// ============================== 게임방 생성 ==============================
 	public GameRoomCreateResponse createGameRoom(Account account, GameRoomCreateRequest request) {
@@ -203,13 +207,21 @@ public class GameRoomService {
 			gameRoom.updateHostId(nextHost.getMemberId());
 		}
 
+		final List<GameRoomMemberGetResponse> leftGameRoomMemberResponses = leftGameRoomMembers.stream()
+			.map(leftGameRoomMember -> {
+				Optional<GameRank> ranks = gameRankRepository.findTotalRanking(leftGameRoomMember.getMemberId());
+				int ranking = ranks.map(GameRank::getRanking).orElse(-1);
+				return GameRoomMemberGetResponse.from(leftGameRoomMember, ranking);
+			})
+			.toList();
+
 		// 구독된 사람들에게 메세지
 		KafkaMessage message = GameRoomMessage.builder()
 			.type(EXIT)
 			.roomId(gameRoom.getId())
 			.roomInfo(GameRoomGetResponse.from(gameRoom))
 			.exitMemberId(gameRoomMember.getMemberId())
-			.allMembers(leftGameRoomMembers.stream().map(GameRoomMemberGetResponse::from).toList())
+			.allMembers(leftGameRoomMemberResponses)
 			.build()
 			.convertToKafkaMessage("/from/game-room/%d".formatted(gameRoom.getId()));
 
@@ -368,9 +380,14 @@ public class GameRoomService {
 
 	private void sendGameRoomInfo(GameRoom gameRoom, GameRoomMessageType type) {
 		Long roomId = gameRoom.getId();
+
 		final List<GameRoomMemberGetResponse> gameRoomMembers = gameRoom.getGameRoomMembers()
 			.stream()
-			.map(GameRoomMemberGetResponse::from)
+			.map(gameRoomMember -> {
+				Optional<GameRank> ranks = gameRankRepository.findTotalRanking(gameRoomMember.getMemberId());
+				int ranking = ranks.map(GameRank::getRanking).orElse(-1);
+				return GameRoomMemberGetResponse.from(gameRoomMember, ranking);
+			})
 			.toList();
 
 		KafkaMessage message = GameRoomMessage.builder()
