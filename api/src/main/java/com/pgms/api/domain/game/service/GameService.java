@@ -194,7 +194,12 @@ public class GameService {
 
 				// 모든 유저들 게임 종료 후 준비 상태 해제
 				final List<InGameMemberGetResponse> allMembers = gameRoomMembers.stream()
-					.map(InGameMemberGetResponse::from)
+					.map(gameRoomMember -> {
+						if (!gameRoom.isHost(gameRoomMember.getMemberId())) {
+							gameRoomMember.updateReadyStatus(false);
+						}
+						return InGameMemberGetResponse.from(gameRoomMember);
+					})
 					.toList();
 
 				KafkaMessage message = GameMessage.builder()
