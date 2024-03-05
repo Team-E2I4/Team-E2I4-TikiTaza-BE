@@ -29,7 +29,6 @@ import com.pgms.coredomain.repository.GameInfoRepository;
 import com.pgms.coredomain.repository.GameQuestionRepository;
 import com.pgms.coredomain.repository.GameRoomMemberRepository;
 import com.pgms.coredomain.repository.GameRoomRepository;
-import com.pgms.coreinfrakafka.kafka.producer.Producer;
 import com.pgms.coreinfraredis.repository.RedisRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -50,7 +49,6 @@ public class GameService {
 	private final RedisRepository redisRepository;
 	private final SseEmitters sseEmitters;
 	private final SseService sseService;
-	private final Producer producer;
 
 	// ============================== 입장 확인 및 첫 라운드 스타트 ==============================
 	public void startFirstRound(Long roomId, Long accountId, String sessionId) {
