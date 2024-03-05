@@ -14,13 +14,12 @@ import com.pgms.api.domain.game.dto.request.GameRoomEnterRequest;
 import com.pgms.api.domain.game.dto.request.GameRoomUpdateRequest;
 import com.pgms.api.domain.game.dto.response.GameRoomCreateResponse;
 import com.pgms.api.domain.game.dto.response.GameRoomEnterResponse;
-import com.pgms.api.domain.game.dto.response.GameRoomGetResponse;
 import com.pgms.api.domain.game.dto.response.GameRoomInviteCodeResponse;
 import com.pgms.api.domain.game.dto.response.GameRoomMemberGetResponse;
 import com.pgms.api.global.exception.GameException;
 import com.pgms.api.global.exception.SocketException;
-import com.pgms.api.socket.dto.response.GameRoomMessage;
 import com.pgms.api.socket.dto.response.GameRoomMessageType;
+import com.pgms.api.socket.service.GameRoomMessageService;
 import com.pgms.api.sse.SseEmitters;
 import com.pgms.api.sse.service.SseService;
 import com.pgms.coredomain.domain.game.GameInfo;
@@ -36,8 +35,6 @@ import com.pgms.coredomain.repository.GameRankRepository;
 import com.pgms.coredomain.repository.GameRoomMemberRepository;
 import com.pgms.coredomain.repository.GameRoomRepository;
 import com.pgms.coredomain.repository.MemberRepository;
-import com.pgms.coreinfrakafka.kafka.KafkaMessage;
-import com.pgms.coreinfrakafka.kafka.producer.Producer;
 import com.pgms.coreinfraredis.repository.GuestRepository;
 import com.pgms.coreinfraredis.repository.RedisRepository;
 import com.pgms.coresecurity.resolver.Account;
@@ -51,16 +48,16 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class GameRoomService {
 
+	private final GameRoomMessageService gameRoomMessageService;
 	private final MemberRepository memberRepository;
 	private final GameRoomRepository gameRoomRepository;
 	private final GameRoomMemberRepository gameRoomMemberRepository;
 	private final GameInfoRepository gameInfoRepository;
 	private final RedisRepository redisRepository;
 	private final GuestRepository guestRepository;
+	private final GameRankRepository gameRankRepository;
 	private final SseEmitters sseEmitters;
 	private final SseService sseService;
-	private final Producer producer;
-	private final GameRankRepository gameRankRepository;
 
 	// ============================== 게임방 생성 ==============================
 	public GameRoomCreateResponse createGameRoom(Account account, GameRoomCreateRequest request) {
@@ -81,12 +78,8 @@ public class GameRoomService {
 			.gameRoom(gameRoom)
 			.memberId(account.id())
 			.nickname(account.nickname())
-			.webSessionId(null)
 			.readyStatus(true)
 			.build();
-
-		log.info(">>>>>>>>>> 접속한 유저의 정보를 토대로 gameRoomMember 생성 - 방장 {}", gameRoomMember);
-		log.info(">>>>>>>>>> 방을 생성하는 유저는 방장이므로 항상 준비 상태 {}", gameRoomMember.isReadyStatus());
 
 		// 게임방 DB에 저장 및 입장중인 유저 정보 저장
 		gameRoom.enterRoom();
@@ -108,13 +101,7 @@ public class GameRoomService {
 
 		validateGameRoomHost(roomId, account.id(), gameRoom);
 
-		if (gameRoom.isPlaying()) {
-			throw new GameException(GameErrorCode.GAME_ALREADY_STARTED);
-		}
-
-		if (request.maxPlayer() < gameRoom.getCurrentPlayer()) {
-			throw new GameException(GameRoomErrorCode.GAME_ROOM_MAX_PLAYER_MISMATCH);
-		}
+		validateGameRoomUpdate(gameRoom, request);
 
 		gameRoom.updateGameRoom(
 			request.title(),
@@ -132,7 +119,6 @@ public class GameRoomService {
 
 		// 구독된 사람들에게 메세지
 		sendGameRoomInfo(gameRoom, MODIFIED);
-
 		sseEmitters.updateGameRoom(sseService.getRooms());
 	}
 
@@ -148,7 +134,7 @@ public class GameRoomService {
 		validateGameRoomPassword(gameRoom, request);
 
 		// 방 입장이 가능한지 검증
-		validateGameRoomEnableEnter(gameRoom);
+		validateGameRoomEntrance(gameRoom);
 
 		// 유저가 이미 방에 들어가 있는지 확인 -> 들어가 있으면 기존 방 삭제
 		validateMemberAlreadyEntered(account.id(), roomId);
@@ -158,7 +144,6 @@ public class GameRoomService {
 			.gameRoom(gameRoom)
 			.memberId(account.id())
 			.nickname(account.nickname())
-			.webSessionId(null)
 			.readyStatus(false)
 			.build();
 
@@ -207,25 +192,11 @@ public class GameRoomService {
 			gameRoom.updateHostId(nextHost.getMemberId());
 		}
 
-		final List<GameRoomMemberGetResponse> leftGameRoomMemberResponses = leftGameRoomMembers.stream()
-			.map(leftGameRoomMember -> {
-				Optional<GameRank> ranks = gameRankRepository.findTotalRanking(leftGameRoomMember.getMemberId());
-				int ranking = ranks.map(GameRank::getRanking).orElse(-1);
-				return GameRoomMemberGetResponse.from(leftGameRoomMember, ranking);
-			})
-			.toList();
+		final List<GameRoomMemberGetResponse> leftGameRoomMemberResponses = getGameRoomMembersWithRankings(
+			leftGameRoomMembers);
 
 		// 구독된 사람들에게 메세지
-		KafkaMessage message = GameRoomMessage.builder()
-			.type(EXIT)
-			.roomId(gameRoom.getId())
-			.roomInfo(GameRoomGetResponse.from(gameRoom))
-			.exitMemberId(gameRoomMember.getMemberId())
-			.allMembers(leftGameRoomMemberResponses)
-			.build()
-			.convertToKafkaMessage("/from/game-room/%d".formatted(gameRoom.getId()));
-
-		producer.produceMessage(message);
+		gameRoomMessageService.sendExitGameRoomMessage(gameRoom, gameRoomMember.getId(), leftGameRoomMemberResponses);
 		sseEmitters.updateGameRoom(sseService.getRooms());
 	}
 
@@ -233,6 +204,7 @@ public class GameRoomService {
 	public void updateReadyStatus(Long accountId) {
 		final GameRoomMember gameRoomMember = gameRoomMemberRepository.findByMemberId(accountId)
 			.orElseThrow(() -> new GameException(GameRoomErrorCode.GAME_ROOM_MEMBER_NOT_FOUND));
+
 		if (!gameRoomMember.getGameRoom().getHostId().equals(accountId)) {
 			gameRoomMember.updateReadyStatus(!gameRoomMember.isReadyStatus());
 			sendGameRoomInfo(gameRoomMember.getGameRoom(), READY);
@@ -251,14 +223,7 @@ public class GameRoomService {
 			.orElseThrow(() -> new SocketException(roomId, GameRoomErrorCode.GAME_ROOM_MEMBER_NOT_FOUND));
 
 		// 방장이면 -> 강퇴 처리 (메시지 던지기) -> KICKED : roomId & exitMemberId
-		KafkaMessage message = GameRoomMessage.builder()
-			.type(KICKED)
-			.roomId(gameRoom.getId())
-			.exitMemberId(kickedId)
-			.build()
-			.convertToKafkaMessage("/from/game-room/%d".formatted(gameRoom.getId()));
-
-		producer.produceMessage(message);
+		gameRoomMessageService.sendKickMessage(roomId, kickedId);
 	}
 
 	public GameRoomInviteCodeResponse getRoomIdByInviteCode(Account account, String inviteCode) {
@@ -286,22 +251,18 @@ public class GameRoomService {
 			gameInfoRepository.save(new GameInfo(roomId));
 
 			// 게임 시작 메세지 뿌리기
-			KafkaMessage message = GameRoomMessage.builder()
-				.type(GameRoomMessageType.START)
-				.build()
-				.convertToKafkaMessage("/from/game-room/%d".formatted(gameRoom.getId()));
-
-			producer.produceMessage(message);
+			gameRoomMessageService.sendGameStartOrFailMessage(START, roomId);
 			// 방 정보 뿌리기 -> 게임 중인 방은 로비에서 보이면 안되니까
 			sseEmitters.updateGameRoom(sseService.getRooms());
 		} else {
 			// 실패 메세지 뿌리기
-			KafkaMessage message = GameRoomMessage.builder()
-				.type(GameRoomMessageType.START_DENIED)
-				.build()
-				.convertToKafkaMessage("/from/game-room/%d".formatted(gameRoom.getId()));
-			producer.produceMessage(message);
+			gameRoomMessageService.sendGameStartOrFailMessage(START_DENIED, roomId);
 		}
+	}
+
+	private GameRoom getGameRoom(Long roomId) {
+		return gameRoomRepository.findById(roomId)
+			.orElseThrow(() -> new SocketException(roomId, GameRoomErrorCode.GAME_ROOM_NOT_FOUND));
 	}
 
 	private String createInviteCode() {
@@ -324,11 +285,6 @@ public class GameRoomService {
 		}
 	}
 
-	private GameRoom getGameRoom(Long roomId) {
-		return gameRoomRepository.findById(roomId)
-			.orElseThrow(() -> new SocketException(roomId, GameRoomErrorCode.GAME_ROOM_NOT_FOUND));
-	}
-
 	private void validateGameRoomHost(Long roomId, Long memberId, GameRoom gameRoom) {
 		if (!gameRoom.isHost(memberId)) {
 			throw new SocketException(roomId, GameRoomErrorCode.GAME_ROOM_HOST_MISMATCH);
@@ -341,7 +297,7 @@ public class GameRoomService {
 		}
 	}
 
-	private void validateGameRoomEnableEnter(GameRoom gameRoom) {
+	private void validateGameRoomEntrance(GameRoom gameRoom) {
 		// 게임 방 시작 상태 확인 -> True 이면 입장 불가능
 		if (gameRoom.isPlaying()) {
 			throw new GameException(GameErrorCode.GAME_ALREADY_STARTED);
@@ -350,6 +306,16 @@ public class GameRoomService {
 		// 게임 풀방인지 확인 -> 풀방이면 입장 불가능
 		if (gameRoom.isFull()) {
 			throw new GameException(GameRoomErrorCode.GAME_ROOM_FULL);
+		}
+	}
+
+	private void validateGameRoomUpdate(GameRoom gameRoom, GameRoomUpdateRequest request) {
+		if (gameRoom.isPlaying()) {
+			throw new GameException(GameErrorCode.GAME_ALREADY_STARTED);
+		}
+
+		if (request.maxPlayer() < gameRoom.getCurrentPlayer()) {
+			throw new GameException(GameRoomErrorCode.GAME_ROOM_MAX_PLAYER_MISMATCH);
 		}
 	}
 
@@ -379,25 +345,17 @@ public class GameRoomService {
 	}
 
 	private void sendGameRoomInfo(GameRoom gameRoom, GameRoomMessageType type) {
-		Long roomId = gameRoom.getId();
+		List<GameRoomMemberGetResponse> gameRoomMembers = getGameRoomMembersWithRankings(gameRoom.getGameRoomMembers());
+		gameRoomMessageService.sendGameRoomInfoMessage(type, gameRoom, gameRoomMembers);
+	}
 
-		final List<GameRoomMemberGetResponse> gameRoomMembers = gameRoom.getGameRoomMembers()
-			.stream()
+	private List<GameRoomMemberGetResponse> getGameRoomMembersWithRankings(List<GameRoomMember> gameRoomMembers) {
+		return gameRoomMembers.stream()
 			.map(gameRoomMember -> {
 				Optional<GameRank> ranks = gameRankRepository.findTotalRanking(gameRoomMember.getMemberId());
 				int ranking = ranks.map(GameRank::getRanking).orElse(-1);
 				return GameRoomMemberGetResponse.from(gameRoomMember, ranking);
 			})
 			.toList();
-
-		KafkaMessage message = GameRoomMessage.builder()
-			.type(type)
-			.roomId(roomId)
-			.roomInfo(GameRoomGetResponse.from(gameRoom))
-			.allMembers(gameRoomMembers)
-			.build()
-			.convertToKafkaMessage("/from/game-room/%d".formatted(roomId));
-
-		producer.produceMessage(message);
 	}
 }
