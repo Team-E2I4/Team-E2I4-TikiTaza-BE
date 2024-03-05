@@ -22,14 +22,26 @@ import lombok.RequiredArgsConstructor;
 @Transactional
 public class GameMessageService {
 
+	private static final String GAME_MESSAGE_DESTINATION = "/from/game/";
 	private final Producer producer;
+
+	public void sendQuestionsAndUserInfoMessage(Long roomId, List<GameQuestionGetResponse> questions,
+		List<InGameMemberGetResponse> gameRoomMembers) {
+		KafkaMessage message = GameMessage.builder()
+			.type(FIRST_ROUND_START)
+			.questions(questions)
+			.allMembers(gameRoomMembers)
+			.build()
+			.convertToKafkaMessage(GAME_MESSAGE_DESTINATION + roomId);
+		producer.produceMessage(message);
+	}
 
 	public void sendGameInfoMessage(Long roomId, Map<Long, Long> gameScores) {
 		KafkaMessage message = GameMessage.builder()
 			.type(GameMessageType.INFO)
 			.gameScore(Map.copyOf(gameScores))
 			.build()
-			.convertToKafkaMessage("/from/game/%d".formatted(roomId));
+			.convertToKafkaMessage(GAME_MESSAGE_DESTINATION + roomId);
 		producer.produceMessage(message);
 	}
 
@@ -43,7 +55,18 @@ public class GameMessageService {
 			.questions(questions)
 			.gameScore(Map.copyOf(gameScores))
 			.build()
-			.convertToKafkaMessage("/from/game/%d".formatted(roomId));
+			.convertToKafkaMessage(GAME_MESSAGE_DESTINATION + roomId);
+		producer.produceMessage(message);
+	}
+
+	public void sendNextRoundMessage(Long roomId, List<InGameMemberGetResponse> allMembers,
+		List<GameQuestionGetResponse> questionResponses) {
+		KafkaMessage message = GameMessage.builder()
+			.type(NEXT_ROUND_START)
+			.allMembers(allMembers)
+			.questions(questionResponses)
+			.build()
+			.convertToKafkaMessage(GAME_MESSAGE_DESTINATION + roomId);
 		producer.produceMessage(message);
 	}
 
@@ -55,7 +78,7 @@ public class GameMessageService {
 			.allMembers(allMembers)
 			.gameScore(Map.copyOf(totalScores))
 			.build()
-			.convertToKafkaMessage("/from/game/%d".formatted(roomId));
+			.convertToKafkaMessage(GAME_MESSAGE_DESTINATION + roomId);
 		producer.produceMessage(message);
 	}
 }

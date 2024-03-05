@@ -1,7 +1,5 @@
 package com.pgms.api.domain.game.service;
 
-import static com.pgms.api.socket.dto.response.GameMessageType.*;
-
 import java.util.List;
 import java.util.Map;
 
@@ -16,7 +14,6 @@ import com.pgms.api.global.exception.SocketException;
 import com.pgms.api.socket.dto.request.GameFinishRequest;
 import com.pgms.api.socket.dto.request.GameInfoUpdateRequest;
 import com.pgms.api.socket.dto.request.WordGameInfoUpdateRequest;
-import com.pgms.api.socket.dto.response.GameMessage;
 import com.pgms.api.socket.service.GameMessageService;
 import com.pgms.api.sse.SseEmitters;
 import com.pgms.api.sse.service.SseService;
@@ -32,7 +29,6 @@ import com.pgms.coredomain.repository.GameInfoRepository;
 import com.pgms.coredomain.repository.GameQuestionRepository;
 import com.pgms.coredomain.repository.GameRoomMemberRepository;
 import com.pgms.coredomain.repository.GameRoomRepository;
-import com.pgms.coreinfrakafka.kafka.KafkaMessage;
 import com.pgms.coreinfrakafka.kafka.producer.Producer;
 import com.pgms.coreinfraredis.repository.RedisRepository;
 
@@ -133,14 +129,7 @@ public class GameService {
 		// 단어 게임이면 레디스에 단어 초기화
 		initWordsIfWordGame(gameRoom, roomId, questions);
 
-		KafkaMessage message = GameMessage.builder()
-			.type(FIRST_ROUND_START)
-			.questions(questionResponses)
-			.allMembers(gameRoomMembers)
-			.build()
-			.convertToKafkaMessage("/from/game/%d".formatted(gameRoom.getId()));
-		producer.produceMessage(message);
-
+		gameMessageService.sendQuestionsAndUserInfoMessage(roomId, questionResponses, gameRoomMembers);
 		return gameRoomMembers;
 	}
 
@@ -189,14 +178,7 @@ public class GameService {
 			.map(InGameMemberGetResponse::from)
 			.toList();
 
-		KafkaMessage message = GameMessage.builder()
-			.type(NEXT_ROUND_START)
-			.allMembers(allMembers)
-			.questions(questionResponses)
-			.build()
-			.convertToKafkaMessage("/from/game/%d".formatted(gameRoom.getId()));
-		producer.produceMessage(message);
-
+		gameMessageService.sendNextRoundMessage(roomId, allMembers, questionResponses);
 		initRoundScores(roomId, allMembers);
 	}
 
