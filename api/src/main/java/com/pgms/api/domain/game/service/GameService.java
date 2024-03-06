@@ -80,11 +80,10 @@ public class GameService {
 	// ============================== 게임 중 실시간 업데이트 통신 (짧은 단어) ==============================
 	public void updateWordGameInfo(Long accountId, Long roomId, WordGameInfoUpdateRequest gameInfoUpdateRequest) {
 		// 단어찾아와서 점수받기
-		Long score = redisRepository.updateWords(roomId.toString(), gameInfoUpdateRequest.word());
-		// 점수가 0이 아니면 점수 업데이트 + 단어 정보 반환
-		if (score != 0) {
+		boolean isValidWord = redisRepository.updateWords(roomId.toString(), gameInfoUpdateRequest.word());
+		if (isValidWord) {
 			// 멤버 점수 올려주고, 반환
-			redisRepository.increaseRoundWordScore(String.valueOf(roomId), String.valueOf(accountId), score);
+			redisRepository.increaseRoundWordScore(String.valueOf(roomId), String.valueOf(accountId));
 			sendWordGameInfoMessage(roomId, accountId, gameInfoUpdateRequest.word());
 		}
 	}
