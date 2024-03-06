@@ -24,7 +24,7 @@ import com.pgms.coredomain.exception.MemberErrorCode;
 import com.pgms.coredomain.repository.MemberRepository;
 import com.pgms.coreinfraredis.entity.Guest;
 import com.pgms.coreinfraredis.repository.GuestRepository;
-import com.pgms.coreinfraredis.repository.RedisRepository;
+import com.pgms.coreinfraredis.repository.RedisKeyRepository;
 import com.pgms.coresecurity.jwt.JwtTokenProvider;
 import com.pgms.coresecurity.user.normal.UserDetailsImpl;
 
@@ -37,7 +37,7 @@ public class AuthService {
 	private static final Long STARTING_GUEST_ID = 10000L;
 
 	private final AuthenticationManager authenticationManager;
-	private final RedisRepository redisRepository;
+	private final RedisKeyRepository redisKeyRepository;
 	private final JwtTokenProvider jwtTokenProvider;
 	private final MemberRepository memberRepository;
 	private final GuestRepository guestRepository;
@@ -56,7 +56,7 @@ public class AuthService {
 		String accessToken = jwtTokenProvider.createAccessToken((UserDetailsImpl)authenticate.getPrincipal());
 		String refreshToken = jwtTokenProvider.createRefreshToken();
 
-		redisRepository.saveRefreshToken(refreshToken, ((UserDetailsImpl)authenticate.getPrincipal()).getId());
+		redisKeyRepository.saveRefreshToken(refreshToken, ((UserDetailsImpl)authenticate.getPrincipal()).getId());
 		return AuthResponse.from(accessToken, refreshToken);
 	}
 
@@ -70,12 +70,12 @@ public class AuthService {
 		String accessToken = jwtTokenProvider.createAccessToken(userDetails);
 		String refreshToken = jwtTokenProvider.createRefreshToken();
 
-		redisRepository.saveRefreshToken(refreshToken, userDetails.getId());
+		redisKeyRepository.saveRefreshToken(refreshToken, userDetails.getId());
 		return AuthResponse.from(accessToken, refreshToken);
 	}
 
 	public AuthResponse guestLogin() {
-		final Long num = redisRepository.guestIdIncrement("guestCount");
+		final Long num = redisKeyRepository.guestIdIncrement("guestCount");
 		final Long guestId = STARTING_GUEST_ID + num;
 		final String uuid = UUID.randomUUID().toString();
 		final Guest guest = new Guest(guestId, "손님" + uuid.substring(0, 5));
@@ -85,22 +85,22 @@ public class AuthService {
 		String accessToken = jwtTokenProvider.createAccessToken(createGuestDetails(guest));
 		String refreshToken = jwtTokenProvider.createRefreshToken();
 
-		redisRepository.saveRefreshToken(refreshToken, guest.getId());
+		redisKeyRepository.saveRefreshToken(refreshToken, guest.getId());
 		return AuthResponse.from(accessToken, refreshToken);
 	}
 
 	public void logout(String accessToken, String refreshToken, Long accountId) {
-		if (redisRepository.hasKey(refreshToken)) {
-			Long storedAccountId = Long.valueOf(redisRepository.get(refreshToken).toString());
+		if (redisKeyRepository.hasKey(refreshToken)) {
+			Long storedAccountId = Long.valueOf(redisKeyRepository.get(refreshToken).toString());
 			if (storedAccountId.equals(accountId)) {
-				redisRepository.delete(refreshToken);
-				redisRepository.saveBlackList(accessToken, "accessToken");
+				redisKeyRepository.delete(refreshToken);
+				redisKeyRepository.saveBlackList(accessToken, "accessToken");
 			}
 		}
 	}
 
 	public AuthResponse reIssueAccessTokenByRefresh(String refreshToken) {
-		Long accountId = Long.valueOf(redisRepository.get(refreshToken).toString());
+		Long accountId = Long.valueOf(redisKeyRepository.get(refreshToken).toString());
 
 		// Guest 조회
 		Guest guest = guestRepository.findById(accountId).orElse(null);
@@ -129,8 +129,8 @@ public class AuthService {
 	private AuthResponse createAndSaveTokens(UserDetailsImpl userDetails, String refreshToken) {
 		String newAccessToken = jwtTokenProvider.createAccessToken(userDetails);
 		String newRefreshToken = jwtTokenProvider.createRefreshToken();
-		redisRepository.saveRefreshToken(newRefreshToken, userDetails.getId());
-		redisRepository.delete(refreshToken);
+		redisKeyRepository.saveRefreshToken(newRefreshToken, userDetails.getId());
+		redisKeyRepository.delete(refreshToken);
 		return AuthResponse.from(newAccessToken, newRefreshToken);
 	}
 
