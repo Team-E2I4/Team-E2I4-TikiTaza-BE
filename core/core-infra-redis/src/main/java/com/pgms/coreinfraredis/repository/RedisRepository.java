@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import org.springframework.data.redis.core.RedisTemplate;
@@ -63,7 +64,11 @@ public class RedisRepository {
 
 	// 단어게임 단어 리스트 초기화
 	public void initWords(String roomId, List<String> words) {
-		words.forEach(word -> redisTemplate.opsForZSet().add(WORD_PREFIX + roomId, word, 1));
+		AtomicInteger index = new AtomicInteger(1); // 시작 인덱스를 1로 설정
+		words.forEach(word -> {
+			redisTemplate.opsForZSet().add(WORD_PREFIX + roomId, word, index.getAndIncrement());
+			// getAndIncrement() 메소드를 사용하여 현재 값을 가져온 후, 값을 1 증가시킴
+		});
 	}
 
 	// 라운드별 멤버 점수 업데이트
@@ -72,8 +77,8 @@ public class RedisRepository {
 	}
 
 	// 단어게임 멤버 점수 업데이트
-	public void increaseRoundWordScore(String roomId, String memberId, Long score) {
-		redisTemplate.opsForZSet().incrementScore(ROUND_PREFIX + roomId, memberId, score);
+	public void increaseRoundWordScore(String roomId, String memberId) {
+		redisTemplate.opsForZSet().incrementScore(ROUND_PREFIX + roomId, memberId, 1L);
 	}
 
 	// 누적 멤버 점수 업데이트
@@ -90,15 +95,16 @@ public class RedisRepository {
 	}
 
 	// 단어 사용 여부 업데이트 & 점수 반환
-	public Long updateWords(String roomId, String word) {
+	public boolean updateWords(String roomId, String word) {
 		// 단어 리스트 가져옴
-		Double score = redisTemplate.opsForZSet().score(WORD_PREFIX + roomId, word);
+		Double index = redisTemplate.opsForZSet().score(WORD_PREFIX + roomId, word);
 		// 단어 있는지 확인 -> 있으면 삭제 & 점수 반환
-		if (score != null && !score.equals(0.0)) {
+		if (index != null && !word.startsWith("#")) {
 			redisTemplate.opsForZSet().remove(WORD_PREFIX + roomId, word);
-			return score.longValue();
+			redisTemplate.opsForZSet().add(WORD_PREFIX + roomId, "#" + word, index);
+			return true;
 		}
-		return 0L;
+		return false;
 	}
 
 	// 멤버 점수 조회
