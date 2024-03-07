@@ -21,9 +21,8 @@ public class GlobalSocketExceptionHandler {
 
 	@MessageExceptionHandler(SocketException.class)
 	public void handleSocketException(SocketException e) {
-		final BaseErrorCode errorCode = e.getErrorCode();
 		log.warn(">>>>>> Error occurred in Message Mapping: ", e);
-		log.warn(">>>>>> errorCode Message{} ", e.getErrorCode().getMessage());
+		final BaseErrorCode errorCode = e.getErrorCode();
 		KafkaMessage kafkaMessage = new KafkaMessage("/from/game-room/%d/error".formatted(e.getRoomId()),
 			Utils.getString(errorCode.getErrorResponse()));
 		producer.produceMessage(kafkaMessage);
