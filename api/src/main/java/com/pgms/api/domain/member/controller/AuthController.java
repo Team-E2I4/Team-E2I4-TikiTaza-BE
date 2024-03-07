@@ -85,6 +85,6 @@ public class AuthController {
 	}
 
 	private String getRefreshTokenHeader(String refreshToken) {
-		return "refreshToken=" + refreshToken + "; Path=/; HttpOnly; SameSite=None";
+		return "refreshToken=" + refreshToken + "; Path=/; HttpOnly; SameSite=None; Secure";
 	}
 }
