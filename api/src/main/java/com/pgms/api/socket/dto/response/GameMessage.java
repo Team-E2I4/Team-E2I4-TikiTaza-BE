@@ -1,7 +1,6 @@
 package com.pgms.api.socket.dto.response;
 
 import java.util.List;
-import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.pgms.api.domain.game.dto.response.GameQuestionGetResponse;
@@ -18,6 +17,5 @@ public class GameMessage extends Message {
 	protected List<InGameMemberGetResponse> allMembers;       // 전체 유저 정보
 	private String submittedWord;                             // 제출된 단어
 	private Long submitMemberId;                              // 제출한 회원 ID
-	private Map<Long, Long> gameScore;                        // 게임 점수
 	private List<GameQuestionGetResponse> questions;          // 게임 질문 리스트
 }
