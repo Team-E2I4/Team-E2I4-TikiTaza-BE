@@ -108,6 +108,12 @@ public class RedisRepository {
 	}
 
 	// 멤버 점수 조회
+	public Long getRoundScore(String roomId, String memberId) {
+		// TODO: SortedSet 정렬이 의미가 없어짐
+		Double score = redisTemplate.opsForZSet().score(ROUND_PREFIX + roomId, memberId);
+		return score != null ? score.longValue() : 0;
+	}
+
 	public Map<Long, Long> getRoundScores(String roomId) {
 		Set<ZSetOperations.TypedTuple<Object>> membersWithScores = redisTemplate.opsForZSet()
 			.rangeByScoreWithScores(ROUND_PREFIX + roomId, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY);
@@ -115,6 +121,11 @@ public class RedisRepository {
 	}
 
 	// 누적 멤버 점수 조회
+	public Long getTotalScore(String roomId, String memberId) {
+		Double score = redisTemplate.opsForZSet().score(TOTAL_PREFIX + roomId, memberId);
+		return score != null ? score.longValue() : 0;
+	}
+
 	public Map<Long, Long> getTotalScores(String roomId) {
 		Set<ZSetOperations.TypedTuple<Object>> membersWithScores = redisTemplate.opsForZSet()
 			.rangeByScoreWithScores(TOTAL_PREFIX + roomId, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY);
