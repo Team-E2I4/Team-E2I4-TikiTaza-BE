@@ -41,7 +41,7 @@ Content-Type: application/json
 ### 방 만들기 > 게임방 멤버 정보 구독 + 세션 ID 저장용 SEND
 POST http://localhost:8080/api/v1/rooms
 Content-Type: application/json
-Authorization: Bearer
+Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0ZXN0MUBuYXZlci5jb20iLCJyb2xlcyI6IlJPTEVfVVNFUiIsIm5pY2tuYW1lIjoi67CV7JiB7J6sIiwiaWQiOjEsImlhdCI6MTcwOTk1MzY4NSwiZXhwIjoxNzA5OTU1NDg1fQ.EvguIj1_L1bmZ0HE-1y7VT5NaoE53DTZIrrN99wT_WcFRvS_M2WMCseKbB6qsNLt-nx-vlCZdRh2FXw4IBaNjQ
 
 {
   "title": "빙봉의 게임",
