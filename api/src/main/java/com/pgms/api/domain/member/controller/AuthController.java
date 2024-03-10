@@ -20,6 +20,7 @@ import com.pgms.coresecurity.resolver.Account;
 import com.pgms.coresecurity.resolver.CurrentAccount;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -41,7 +42,7 @@ public class AuthController {
 	public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest request) {
 		final AuthResponse response = authService.login(request);
 		return ResponseEntity.ok()
-			.header(SET_COOKIE, "refreshToken=" + response.refreshToken() + "; Path=/; HttpOnly;")
+			.header(SET_COOKIE, getRefreshTokenHeader(response.refreshToken()))
 			.body(ApiResponse.of(response));
 	}
 
@@ -50,7 +51,7 @@ public class AuthController {
 	public ResponseEntity<ApiResponse<AuthResponse>> guestLogin() {
 		final AuthResponse response = authService.guestLogin();
 		return ResponseEntity.ok()
-			.header(SET_COOKIE, "refreshToken=" + response.refreshToken() + "; Path=/; HttpOnly;")
+			.header(SET_COOKIE, getRefreshTokenHeader(response.refreshToken()))
 			.body(ApiResponse.of(response));
 	}
 
@@ -59,7 +60,7 @@ public class AuthController {
 	public ResponseEntity<ApiResponse<AuthResponse>> kakaoLogin(@RequestParam("code") String code) {
 		AuthResponse response = authService.kakaoLogin(code);
 		return ResponseEntity.ok()
-			.header(SET_COOKIE, "refreshToken=" + response.refreshToken() + "; Path=/; HttpOnly;")
+			.header(SET_COOKIE, getRefreshTokenHeader(response.refreshToken()))
 			.body(ApiResponse.of(response));
 	}
 
@@ -76,10 +77,14 @@ public class AuthController {
 	@Operation(summary = "토큰 재발급")
 	@PostMapping("/reissue")
 	public ResponseEntity<ApiResponse<AuthResponse>> reIssueAccessToken(
-		@CookieValue("refreshToken") String refreshToken) {
+		@Parameter(hidden = true) @CookieValue(value = "refreshToken", required = false) String refreshToken) {
 		final AuthResponse response = authService.reIssueAccessTokenByRefresh(refreshToken);
 		return ResponseEntity.ok()
-			.header(SET_COOKIE, "refreshToken=" + response.refreshToken() + "; Path=/; HttpOnly;")
+			.header(SET_COOKIE, getRefreshTokenHeader(response.refreshToken()))
 			.body(ApiResponse.of(response));
+	}
+
+	private String getRefreshTokenHeader(String refreshToken) {
+		return "refreshToken=" + refreshToken + "; Path=/; HttpOnly; SameSite=None; Secure";
 	}
 }

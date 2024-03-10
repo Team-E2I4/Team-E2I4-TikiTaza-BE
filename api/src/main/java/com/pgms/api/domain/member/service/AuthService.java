@@ -29,7 +29,9 @@ import com.pgms.coresecurity.jwt.JwtTokenProvider;
 import com.pgms.coresecurity.user.normal.UserDetailsImpl;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -100,6 +102,7 @@ public class AuthService {
 	}
 
 	public AuthResponse reIssueAccessTokenByRefresh(String refreshToken) {
+		log.info("refreshToken: {}", refreshToken);
 		Long accountId = Long.valueOf(redisKeyRepository.get(refreshToken).toString());
 
 		// Guest 조회

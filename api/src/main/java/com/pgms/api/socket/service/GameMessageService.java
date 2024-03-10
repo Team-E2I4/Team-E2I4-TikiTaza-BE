@@ -3,7 +3,6 @@ package com.pgms.api.socket.service;
 import static com.pgms.api.socket.dto.response.GameMessageType.*;
 
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.stereotype.Service;
 
@@ -36,24 +35,25 @@ public class GameMessageService {
 		producer.produceMessage(message);
 	}
 
-	public void sendGameInfoMessage(Long roomId, Map<Long, Long> gameScores) {
+	public void sendGameInfoMessage(Long roomId, List<InGameMemberGetResponse> allMembers) {
 		KafkaMessage message = GameMessage.builder()
 			.type(GameMessageType.INFO)
-			.gameScore(Map.copyOf(gameScores))
+			.allMembers(allMembers)
 			.build()
 			.convertToKafkaMessage(GAME_MESSAGE_DESTINATION + roomId);
 		producer.produceMessage(message);
 	}
 
-	public void sendWordGameInfoMessage(Long roomId, Long accountId, String submittedWord, Map<Long, Long> gameScores,
-		List<GameQuestionGetResponse> questions) {
+	public void sendWordGameInfoMessage(Long roomId, Long accountId, String submittedWord,
+		List<GameQuestionGetResponse> remainWords,
+		List<InGameMemberGetResponse> allMembers) {
 
 		KafkaMessage message = GameMessage.builder()
 			.type(INFO)
 			.submittedWord(submittedWord)
 			.submitMemberId(accountId)
-			.questions(questions)
-			.gameScore(Map.copyOf(gameScores))
+			.questions(remainWords)
+			.allMembers(allMembers)
 			.build()
 			.convertToKafkaMessage(GAME_MESSAGE_DESTINATION + roomId);
 		producer.produceMessage(message);
@@ -70,13 +70,11 @@ public class GameMessageService {
 		producer.produceMessage(message);
 	}
 
-	public void sendFinishGameMessage(Long roomId, List<InGameMemberGetResponse> allMembers,
-		Map<Long, Long> totalScores) {
+	public void sendFinishGameMessage(Long roomId, List<InGameMemberGetResponse> allMembers) {
 
 		KafkaMessage message = GameMessage.builder()
 			.type(GameMessageType.FINISH)
 			.allMembers(allMembers)
-			.gameScore(Map.copyOf(totalScores))
 			.build()
 			.convertToKafkaMessage(GAME_MESSAGE_DESTINATION + roomId);
 		producer.produceMessage(message);

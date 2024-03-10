@@ -21,28 +21,27 @@ import lombok.extern.slf4j.Slf4j;
 public class GlobalExceptionHandler {
 
 	@ExceptionHandler(CustomException.class)
-	protected ResponseEntity<ErrorResponse> handleCustomException(CustomException ex) {
-		log.warn(">>>>> Custom Exception : ", ex);
-		BaseErrorCode errorCode = ex.getErrorCode();
+	protected ResponseEntity<ErrorResponse> handleCustomException(CustomException e) {
+		log.warn(">>>>> Custom Exception: ", e);
+		BaseErrorCode errorCode = e.getErrorCode();
 		return ResponseEntity.status(errorCode.getStatus())
 			.body(errorCode.getErrorResponse());
 	}
 
 	@ExceptionHandler(MethodArgumentNotValidException.class)
-	protected ResponseEntity<ErrorResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
-		log.warn(">>>>> validation Failed : ", ex);
-		BindingResult bindingResult = ex.getBindingResult();
-
+	protected ResponseEntity<ErrorResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
+		log.warn(">>>>> Validation Failed: ", e);
+		BindingResult bindingResult = e.getBindingResult();
 		List<FieldError> fieldErrors = bindingResult.getFieldErrors();
 		ErrorResponse errorResponse = ErrorResponse.of("400", "입력값에 대한 검증에 실패했습니다.");
 		fieldErrors.forEach(error -> errorResponse.addValidation(error.getField(), error.getDefaultMessage()));
-		return ResponseEntity.status(ex.getStatusCode()).body(errorResponse);
+		return ResponseEntity.status(e.getStatusCode()).body(errorResponse);
 	}
 
 	@ExceptionHandler(Exception.class)
-	protected ResponseEntity<ErrorResponse> handleGlobalException(Exception ex) {
-		log.error(">>>>> Internal Server Error : ", ex);
-		ErrorResponse errorResponse = ErrorResponse.of("500", ex.getMessage());
+	protected ResponseEntity<ErrorResponse> handleGlobalException(Exception e) {
+		log.error(">>>>> Internal Server Error: ", e);
+		ErrorResponse errorResponse = ErrorResponse.of("500", e.getMessage());
 		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
 	}
 }

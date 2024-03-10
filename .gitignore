@@ -38,4 +38,4 @@ out/
 
 *-secret.yml
 **/src/main/generated/
-**/data.sql
+#**/data.sql
