@@ -16,7 +16,7 @@ import com.pgms.coredomain.repository.GameRankRepository;
 import com.pgms.coredomain.repository.MemberRepository;
 import com.pgms.coreinfraredis.entity.Guest;
 import com.pgms.coreinfraredis.repository.GuestRepository;
-import com.pgms.coreinfraredis.repository.RedisRepository;
+import com.pgms.coreinfraredis.repository.RedisKeyRepository;
 import com.pgms.coresecurity.resolver.Account;
 
 import lombok.RequiredArgsConstructor;
@@ -29,7 +29,7 @@ public class MemberService {
 	private final MemberRepository memberRepository;
 	private final GuestRepository guestRepository;
 	private final GameRankRepository gameRankRepository;
-	private final RedisRepository redisRepository;
+	private final RedisKeyRepository redisKeyRepository;
 	private final PasswordEncoder passwordEncoder;
 
 	public MemberSignUpResponse signUp(MemberSignUpRequest request) {
@@ -95,11 +95,11 @@ public class MemberService {
 	}
 
 	private void setAccessTokenToBlackList(String accessToken, String refreshToken, Long memberId) {
-		if (redisRepository.hasKey(refreshToken)) {
-			Long storedMemberId = Long.valueOf(redisRepository.get(refreshToken).toString());
+		if (redisKeyRepository.hasKey(refreshToken)) {
+			Long storedMemberId = Long.valueOf(redisKeyRepository.get(refreshToken).toString());
 			if (storedMemberId.equals(memberId)) {
-				redisRepository.delete(refreshToken);
-				redisRepository.saveBlackList(accessToken, "accessToken");
+				redisKeyRepository.delete(refreshToken);
+				redisKeyRepository.saveBlackList(accessToken, "accessToken");
 			}
 		}
 	}

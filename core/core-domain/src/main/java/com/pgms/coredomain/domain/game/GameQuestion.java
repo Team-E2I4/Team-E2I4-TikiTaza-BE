@@ -22,8 +22,9 @@ public class GameQuestion extends BaseEntity {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
-
+	
 	@Column(name = "question", nullable = false, length = 5000)
+
 	private String question;
 
 	@Column(name = "game_type")

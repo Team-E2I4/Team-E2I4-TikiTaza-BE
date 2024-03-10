@@ -29,7 +29,7 @@ public class GameHistory extends BaseEntity {
 	private Long memberId;
 
 	@Column(name = "score")
-	private int score;
+	private long score;
 
 	@Column(name = "wpm")
 	private int wpm;
@@ -42,7 +42,7 @@ public class GameHistory extends BaseEntity {
 	private GameType gameType;
 
 	@Builder
-	public GameHistory(int score, int wpm, int accuracy, GameType gameType, Long memberId) {
+	public GameHistory(long score, int wpm, int accuracy, GameType gameType, Long memberId) {
 		this.score = score;
 		this.wpm = wpm;
 		this.accuracy = accuracy;

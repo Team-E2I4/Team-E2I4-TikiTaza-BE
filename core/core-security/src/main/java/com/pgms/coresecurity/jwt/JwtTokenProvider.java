@@ -19,7 +19,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 
 import com.pgms.coredomain.exception.SecurityErrorCode;
-import com.pgms.coreinfraredis.repository.RedisRepository;
+import com.pgms.coreinfraredis.repository.RedisKeyRepository;
 import com.pgms.coresecurity.exception.SecurityException;
 import com.pgms.coresecurity.user.normal.UserDetailsImpl;
 
@@ -47,7 +47,7 @@ public class JwtTokenProvider {
 	@Value("${jwt.refresh-expiry-seconds}")
 	private int refreshExpirySeconds;
 
-	private final RedisRepository redisRepository;
+	private final RedisKeyRepository redisKeyRepository;
 
 	public String createAccessToken(UserDetailsImpl userDetails) {
 		Instant now = Instant.now();
@@ -134,7 +134,7 @@ public class JwtTokenProvider {
 			.build()
 			.parse(accessToken);
 
-		if (redisRepository.hasKeyBlackList(accessToken)) {
+		if (redisKeyRepository.hasKey(accessToken)) {
 			throw new SecurityException(SecurityErrorCode.ALREADY_LOGOUT);
 		}
 	}

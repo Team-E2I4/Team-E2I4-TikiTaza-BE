@@ -29,7 +29,7 @@ import com.pgms.coredomain.repository.GameInfoRepository;
 import com.pgms.coredomain.repository.GameQuestionRepository;
 import com.pgms.coredomain.repository.GameRoomMemberRepository;
 import com.pgms.coredomain.repository.GameRoomRepository;
-import com.pgms.coreinfraredis.repository.RedisRepository;
+import com.pgms.coreinfraredis.repository.RedisInGameRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -46,7 +46,7 @@ public class GameService {
 	private final GameQuestionRepository gameQuestionRepository;
 	private final GameInfoRepository gameInfoRepository;
 	private final GameHistoryRepository gameHistoryRepository;
-	private final RedisRepository redisRepository;
+	private final RedisInGameRepository redisInGameRepository;
 	private final SseEmitters sseEmitters;
 	private final SseService sseService;
 
@@ -72,7 +72,7 @@ public class GameService {
 
 	// ============================== 게임 중 실시간 업데이트 통신 (문장, 코딩) ==============================
 	public void updateGameInfo(Long accountId, Long roomId, GameInfoUpdateRequest gameInfoUpdateRequest) {
-		redisRepository.increaseRoundScore(String.valueOf(roomId), String.valueOf(accountId),
+		redisInGameRepository.increaseRoundScore(String.valueOf(roomId), String.valueOf(accountId),
 			gameInfoUpdateRequest.currentScore());
 		// TODO: gameRoomRepository를 쓰는게 낫나?
 		final List<GameRoomMember> gameRoomMembers = gameRoomMemberRepository.findAllByGameRoomId(roomId);
@@ -82,10 +82,10 @@ public class GameService {
 	// ============================== 게임 중 실시간 업데이트 통신 (짧은 단어) ==============================
 	public void updateWordGameInfo(Long accountId, Long roomId, WordGameInfoUpdateRequest gameInfoUpdateRequest) {
 		// 단어찾아와서 점수받기
-		boolean isValidWord = redisRepository.updateWords(roomId.toString(), gameInfoUpdateRequest.word());
+		boolean isValidWord = redisInGameRepository.updateWords(roomId.toString(), gameInfoUpdateRequest.word());
 		if (isValidWord) {
 			// 멤버 점수 올려주고, 반환
-			redisRepository.increaseRoundWordScore(String.valueOf(roomId), String.valueOf(accountId));
+			redisInGameRepository.increaseRoundWordScore(String.valueOf(roomId), String.valueOf(accountId));
 			final List<GameRoomMember> gameRoomMembers = gameRoomMemberRepository.findAllByGameRoomId(roomId);
 			sendWordGameInfoMessage(roomId, accountId, gameInfoUpdateRequest.word(), gameRoomMembers);
 		}
@@ -139,26 +139,26 @@ public class GameService {
 			.toList();
 
 		// 라운드별 점수 초기화
-		redisRepository.initRoundScores(String.valueOf(roomId), memberIds);
+		redisInGameRepository.initRoundScores(String.valueOf(roomId), memberIds);
 	}
 
 	private List<GameQuestionGetResponse> getRemainWords(Long roomId) {
-		List<String> remainWords = redisRepository.getWords(roomId.toString());
+		List<String> remainWords = redisInGameRepository.getWords(roomId.toString());
 		return remainWords.stream()
 			.map(GameQuestionGetResponse::of)
 			.toList();
 	}
 
 	private void accumulateRoundScoresToTotalScores(Long roomId) {
-		Map<Long, Long> roundScores = redisRepository.getRoundScores(String.valueOf(roomId));
+		Map<Long, Long> roundScores = redisInGameRepository.getRoundScores(String.valueOf(roomId));
 		roundScores.forEach((memberId, score) ->
-			redisRepository.increaseTotalScore(String.valueOf(roomId), String.valueOf(memberId), score));
+			redisInGameRepository.increaseTotalScore(String.valueOf(roomId), String.valueOf(memberId), score));
 	}
 
-	private void updateGameRoomMemberScores(Map<Long, Long> totalScores, GameRoom gameRoom) {
+	private void saveGameHistory(Map<Long, Long> totalScores, GameRoom gameRoom) {
 		totalScores.forEach((memberId, score) -> {
 			final GameHistory gameHistory = GameHistory.builder()
-				.score(score.intValue())
+				.score(score)
 				.gameType(gameRoom.getGameType())
 				.memberId(memberId)
 				.build();
@@ -184,10 +184,10 @@ public class GameService {
 
 	private void handleFinishGame(Long roomId, GameRoom gameRoom, List<GameRoomMember> gameRoomMembers) {
 		// 최종 점수 조회
-		final Map<Long, Long> totalScores = redisRepository.getTotalScores(String.valueOf(roomId));
+		final Map<Long, Long> totalScores = redisInGameRepository.getTotalScores(String.valueOf(roomId));
 		gameRoom.updateGameRoomStatus(false);
 
-		updateGameRoomMemberScores(totalScores, gameRoom);
+		saveGameHistory(totalScores, gameRoom);
 
 		// 모든 유저들 게임 종료 후 준비 상태 해제
 		updateReadyStatusAfterFinishGame(gameRoom, gameRoomMembers);
@@ -198,7 +198,7 @@ public class GameService {
 		sseEmitters.updateGameRoom(sseService.getRooms());
 
 		// 레디스에 저장된 점수 삭제
-		redisRepository.deleteGameInfo(String.valueOf(roomId));
+		redisInGameRepository.deleteGameInfo(String.valueOf(roomId));
 	}
 
 	private void updateReadyStatusAfterFinishGame(GameRoom gameRoom, List<GameRoomMember> gameRoomMembers) {
@@ -216,7 +216,7 @@ public class GameService {
 	}
 
 	private void initWordsToRedis(Long roomId, List<GameQuestion> questions) {
-		redisRepository.initWords(roomId.toString(),
+		redisInGameRepository.initWords(roomId.toString(),
 			questions.stream().map(GameQuestion::getQuestion).toList());
 	}
 
@@ -240,7 +240,8 @@ public class GameService {
 		return gameRoomMembers.stream()
 			.map(gameRoomMember -> {
 				final Long memberId = gameRoomMember.getMemberId();
-				final Long score = redisRepository.getRoundScore(String.valueOf(roomId), String.valueOf(memberId));
+				final Long score = redisInGameRepository.getRoundScore(String.valueOf(roomId),
+					String.valueOf(memberId));
 				return InGameMemberGetResponse.from(gameRoomMember, score);
 			}).toList();
 	}
@@ -250,7 +251,8 @@ public class GameService {
 		return gameRoomMembers.stream()
 			.map(gameRoomMember -> {
 				final Long memberId = gameRoomMember.getMemberId();
-				final Long score = redisRepository.getTotalScore(String.valueOf(roomId), String.valueOf(memberId));
+				final Long score = redisInGameRepository.getTotalScore(String.valueOf(roomId),
+					String.valueOf(memberId));
 				return InGameMemberGetResponse.from(gameRoomMember, score);
 			}).toList();
 	}

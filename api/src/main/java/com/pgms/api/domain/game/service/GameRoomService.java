@@ -36,7 +36,7 @@ import com.pgms.coredomain.repository.GameRoomMemberRepository;
 import com.pgms.coredomain.repository.GameRoomRepository;
 import com.pgms.coredomain.repository.MemberRepository;
 import com.pgms.coreinfraredis.repository.GuestRepository;
-import com.pgms.coreinfraredis.repository.RedisRepository;
+import com.pgms.coreinfraredis.repository.RedisKeyRepository;
 import com.pgms.coresecurity.resolver.Account;
 
 import lombok.RequiredArgsConstructor;
@@ -53,7 +53,7 @@ public class GameRoomService {
 	private final GameRoomRepository gameRoomRepository;
 	private final GameRoomMemberRepository gameRoomMemberRepository;
 	private final GameInfoRepository gameInfoRepository;
-	private final RedisRepository redisRepository;
+	private final RedisKeyRepository redisRepository;
 	private final GuestRepository guestRepository;
 	private final GameRankRepository gameRankRepository;
 	private final SseEmitters sseEmitters;
