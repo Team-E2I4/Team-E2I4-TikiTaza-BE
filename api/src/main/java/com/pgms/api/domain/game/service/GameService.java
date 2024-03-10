@@ -158,7 +158,7 @@ public class GameService {
 	private void saveGameHistory(Map<Long, Long> totalScores, GameRoom gameRoom) {
 		totalScores.forEach((memberId, score) -> {
 			final GameHistory gameHistory = GameHistory.builder()
-				.score(score.intValue())
+				.score(score)
 				.gameType(gameRoom.getGameType())
 				.memberId(memberId)
 				.build();
