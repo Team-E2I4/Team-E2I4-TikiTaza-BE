@@ -26,14 +26,16 @@ public class RedisInGameRepository {
 
 	// 라운드별 점수 초기화
 	public void initRoundScores(String roomId, List<Long> memberIds) {
-		memberIds.forEach(memberId -> redisTemplate.opsForZSet().add(ROUND_PREFIX + roomId, memberId.toString(), 0));
+		String key = deleteAlreadyExistKey(ROUND_PREFIX, roomId);
+		memberIds.forEach(memberId -> redisTemplate.opsForZSet().add(key, memberId.toString(), 0));
 	}
 
 	// 단어게임 단어 리스트 초기화
 	public void initWords(String roomId, List<String> words) {
+		String key = deleteAlreadyExistKey(WORD_PREFIX, roomId);
 		AtomicInteger index = new AtomicInteger(1); // 시작 인덱스를 1로 설정
 		// getAndIncrement() 메소드를 사용하여 현재 값을 가져온 후, 값을 1 증가시킴
-		words.forEach(word -> redisTemplate.opsForZSet().add(WORD_PREFIX + roomId, word, index.getAndIncrement()));
+		words.forEach(word -> redisTemplate.opsForZSet().add(key, word, index.getAndIncrement()));
 	}
 
 	// 라운드별 멤버 점수 업데이트
@@ -109,5 +111,13 @@ public class RedisInGameRepository {
 				tuple -> Long.valueOf(tuple.getValue().toString()), // Integer를 Long으로 변환
 				tuple -> tuple.getScore().longValue() // Double을 Long으로 변환
 			));
+	}
+
+	private String deleteAlreadyExistKey(String prefix, String roomId) {
+		String key = prefix + roomId;
+		if (redisTemplate.hasKey(key)) {
+			redisTemplate.delete(key);
+		}
+		return key;
 	}
 }
