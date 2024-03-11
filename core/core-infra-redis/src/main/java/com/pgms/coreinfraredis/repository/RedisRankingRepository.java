@@ -27,7 +27,7 @@ public class RedisRankingRepository {
 
 		for (Object obj : setRankings) {
 			String nickname = (String)obj;
-			Long rank = getMemberRank(key, nickname) + 1;
+			Long rank = getMemberRank(key, nickname);
 			Double score = getMemberScore(key, nickname);
 			rankingResponses.add(new RankingResponse(nickname, rank, score));
 		}

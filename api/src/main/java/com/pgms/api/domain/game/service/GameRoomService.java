@@ -3,7 +3,6 @@ package com.pgms.api.domain.game.service;
 import static com.pgms.api.socket.dto.response.GameRoomMessageType.*;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -23,7 +22,6 @@ import com.pgms.api.socket.service.GameRoomMessageService;
 import com.pgms.api.sse.SseEmitters;
 import com.pgms.api.sse.service.SseService;
 import com.pgms.coredomain.domain.game.GameInfo;
-import com.pgms.coredomain.domain.game.GameRank;
 import com.pgms.coredomain.domain.game.GameRoom;
 import com.pgms.coredomain.domain.game.GameRoomMember;
 import com.pgms.coredomain.domain.game.GameType;
@@ -31,12 +29,13 @@ import com.pgms.coredomain.exception.GameErrorCode;
 import com.pgms.coredomain.exception.GameRoomErrorCode;
 import com.pgms.coredomain.exception.MemberErrorCode;
 import com.pgms.coredomain.repository.GameInfoRepository;
-import com.pgms.coredomain.repository.GameRankRepository;
 import com.pgms.coredomain.repository.GameRoomMemberRepository;
 import com.pgms.coredomain.repository.GameRoomRepository;
 import com.pgms.coredomain.repository.MemberRepository;
+import com.pgms.coreinfraredis.dto.RankingResponse;
 import com.pgms.coreinfraredis.repository.GuestRepository;
 import com.pgms.coreinfraredis.repository.RedisKeyRepository;
+import com.pgms.coreinfraredis.repository.RedisRankingRepository;
 import com.pgms.coresecurity.resolver.Account;
 
 import lombok.RequiredArgsConstructor;
@@ -53,9 +52,9 @@ public class GameRoomService {
 	private final GameRoomRepository gameRoomRepository;
 	private final GameRoomMemberRepository gameRoomMemberRepository;
 	private final GameInfoRepository gameInfoRepository;
-	private final RedisKeyRepository redisRepository;
 	private final GuestRepository guestRepository;
-	private final GameRankRepository gameRankRepository;
+	private final RedisKeyRepository redisRepository;
+	private final RedisRankingRepository redisRankingRepository;
 	private final SseEmitters sseEmitters;
 	private final SseService sseService;
 
@@ -352,9 +351,12 @@ public class GameRoomService {
 	private List<GameRoomMemberGetResponse> getGameRoomMembersWithRankings(List<GameRoomMember> gameRoomMembers) {
 		return gameRoomMembers.stream()
 			.map(gameRoomMember -> {
-				Optional<GameRank> ranks = gameRankRepository.findTotalRanking(gameRoomMember.getMemberId());
-				int ranking = ranks.map(GameRank::getRanking).orElse(-1);
-				return GameRoomMemberGetResponse.from(gameRoomMember, ranking);
+				RankingResponse rankingResponse = redisRankingRepository.getRanking(
+					"ranking",
+					gameRoomMember.getNickname());
+				return GameRoomMemberGetResponse.from(
+					gameRoomMember,
+					rankingResponse.getRanking());
 			})
 			.toList();
 	}

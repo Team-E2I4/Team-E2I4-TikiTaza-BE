@@ -7,7 +7,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.pgms.coredomain.repository.GameRankRepository;
 import com.pgms.coreinfraredis.dto.RankingRequest;
 import com.pgms.coreinfraredis.repository.RedisRankingRepository;
 
@@ -23,7 +22,6 @@ public class RankingScheduler {
 	private static final int SCHEDULE_INITIAL_DELAY = 3000;
 	private static final String REDIS_RANKING_KEY = "ranking";
 
-	private final GameRankRepository gameRankRepository;
 	private final RedisRankingRepository redisRankingRepository;
 	private final JdbcTemplate jdbcTemplate;
 
@@ -31,8 +29,6 @@ public class RankingScheduler {
 	@Transactional
 	public void run() {
 		log.info(">>>>>> Ranking Scheduled Run !!!!!!!!!");
-		gameRankRepository.deleteAllInBatch();
-
 		// 게임 타입 별 랭킹 계산
 		calculateRankingByGameType();
 
