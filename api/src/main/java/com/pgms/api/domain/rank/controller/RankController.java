@@ -7,9 +7,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.pgms.api.domain.rank.dto.MemberRankResponse;
-import com.pgms.api.domain.rank.service.RankService;
+import com.pgms.api.domain.rank.service.RankingService;
 import com.pgms.coredomain.response.ApiResponse;
+import com.pgms.coreinfraredis.dto.RankingResponse;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -20,13 +20,13 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class RankController {
 
-	private final RankService rankService;
+	private final RankingService rankingService;
 
 	@Operation(summary = "랭킹 조회")
 	@GetMapping("/api/v1/ranks")
-	public ResponseEntity<ApiResponse<List<MemberRankResponse>>> getMemberRanking(
+	public ResponseEntity<ApiResponse<List<RankingResponse>>> getRanking(
 		@RequestParam(value = "gameType", required = false) String gameType) {
-		List<MemberRankResponse> memberRanking = rankService.getMemberRanking(gameType);
+		List<RankingResponse> memberRanking = rankingService.getRanking(gameType);
 		return ResponseEntity.ok(ApiResponse.of(memberRanking));
 	}
 }

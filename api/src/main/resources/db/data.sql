@@ -176,3 +176,10 @@ VALUES (NOW(), NOW(), '삶이 있는 한 희망은 있다.', 'SENTENCE'),
        (NOW(), NOW(), '디버깅 한 번으로 천 버그 잡는다.', 'SENTENCE'),
        (NOW(), NOW(), '버그 찾기는 사막에서 바늘찾기', 'SENTENCE'),
        (NOW(), NOW(), '이게 안 되네..? 이게 되네..?', 'SENTENCE');
+
+INSERT INTO game_history (accuracy, wpm, member_id, score, game_type)
+VALUES (100, 100, 1, 100, 'WORD'),
+       (100, 100, 1, 100, 'CODE'),
+       (100, 100, 1, 100, 'WORD'),
+       (100, 100, 2, 99, 'SENTENCE'),
+       (99, 100, 2, 99, 'WORD');

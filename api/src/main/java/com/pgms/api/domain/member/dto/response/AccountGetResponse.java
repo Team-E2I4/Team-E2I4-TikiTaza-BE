@@ -5,7 +5,7 @@ import com.pgms.coreinfraredis.entity.Guest;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-@Schema(title = "프로필 응답", requiredProperties = {"memberId", "email", "nickname", "rank", "isGuest"})
+@Schema(title = "프로필 응답", requiredProperties = {"memberId", "email", "nickname", "ranking", "isGuest"})
 public record AccountGetResponse(
 	Long memberId,
 	String email,
