@@ -40,6 +40,19 @@ public class Member extends BaseEntity {
 	@Enumerated(EnumType.STRING)
 	private Role role;
 
+	// 판수 , 평균 타수, 평균 정확도 ?
+	@Column(name = "game_count", nullable = false)
+	private int gameCount;
+
+	@Column(name = "round_count", nullable = false)
+	private int roundCount;
+
+	@Column(name = "average_cpm", nullable = false)
+	private double averageCpm;
+
+	@Column(name = "average_accuracy", nullable = false)
+	private double averageAccuracy;
+
 	@Column(name = "status", nullable = false)
 	@Enumerated(EnumType.STRING)
 	private AccountStatus status;
@@ -68,5 +81,15 @@ public class Member extends BaseEntity {
 
 	public void updateNickname(String nickname) {
 		this.nickname = nickname;
+	}
+
+	public void increaseGameCount() {
+		this.gameCount++;
+	}
+
+	public void updateMemberStats(double cpm, double accuracy) {
+		roundCount++;
+		this.averageCpm = (this.averageCpm * (roundCount - 1) + cpm) / roundCount;
+		this.averageAccuracy = (this.averageAccuracy * (roundCount - 1) + accuracy) / roundCount;
 	}
 }

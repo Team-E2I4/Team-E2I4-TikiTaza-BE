@@ -1,8 +1,10 @@
-insert into member (created_at, updated_at, email, nickname, password, role, status)
+insert into member (created_at, updated_at, email, nickname, password, role, game_count, round_count, average_cpm,
+                    average_accuracy,
+                    status)
 values (NOW(), NOW(), 'test1@naver.com', '박영재', '{bcrypt}$2a$10$jSTH3yTOzqXr14LYOz.BJ.gCjCvDOeTKaNoJ2/qyxlFXB1ii7r8dC',
-        'ROLE_USER', 'ACTIVE'),
+        'ROLE_USER', 0, 0, 0, 0, 'ACTIVE'),
        (NOW(), NOW(), 'test2@naver.com', '김대휘', '{bcrypt}$2a$10$jSTH3yTOzqXr14LYOz.BJ.gCjCvDOeTKaNoJ2/qyxlFXB1ii7r8dC',
-        'ROLE_USER', 'ACTIVE');
+        'ROLE_USER', 0, 0, 0, 0, 'ACTIVE');
 
 INSERT INTO game_question (question, game_type)
 VALUES ('리액트', 'WORD'),
@@ -176,3 +178,10 @@ VALUES (NOW(), NOW(), '삶이 있는 한 희망은 있다.', 'SENTENCE'),
        (NOW(), NOW(), '디버깅 한 번으로 천 버그 잡는다.', 'SENTENCE'),
        (NOW(), NOW(), '버그 찾기는 사막에서 바늘찾기', 'SENTENCE'),
        (NOW(), NOW(), '이게 안 되네..? 이게 되네..?', 'SENTENCE');
+
+INSERT INTO game_history (accuracy, cpm, member_id, score, game_type)
+VALUES (100, 100, 1, 100, 'WORD'),
+       (100, 100, 1, 100, 'CODE'),
+       (100, 100, 1, 100, 'WORD'),
+       (100, 100, 2, 99, 'SENTENCE'),
+       (99, 100, 2, 99, 'WORD');

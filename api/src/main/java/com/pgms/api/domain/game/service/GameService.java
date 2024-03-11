@@ -29,6 +29,7 @@ import com.pgms.coredomain.repository.GameInfoRepository;
 import com.pgms.coredomain.repository.GameQuestionRepository;
 import com.pgms.coredomain.repository.GameRoomMemberRepository;
 import com.pgms.coredomain.repository.GameRoomRepository;
+import com.pgms.coredomain.repository.MemberRepository;
 import com.pgms.coreinfraredis.repository.RedisInGameRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -41,6 +42,7 @@ import lombok.extern.slf4j.Slf4j;
 public class GameService {
 
 	private final GameMessageService gameMessageService;
+	private final MemberRepository memberRepository;
 	private final GameRoomRepository gameRoomRepository;
 	private final GameRoomMemberRepository gameRoomMemberRepository;
 	private final GameQuestionRepository gameQuestionRepository;
@@ -103,6 +105,7 @@ public class GameService {
 		if (gameInfo.isAllSubmitted(gameRoom.getCurrentPlayer())) {
 			// 마지막 라운드면 /from/game/{roomId}/round-finish 로 전송 -> 라운드 점수를 최종 점수에 누적
 			accumulateRoundScoresToTotalScores(roomId);
+			updateMemberStats(gameRoomMembers, gameFinishRequest);
 			if (gameFinishRequest.currentRound() == gameRoom.getRound()) {
 				gameInfoRepository.delete(gameInfo);
 				handleFinishGame(roomId, gameRoom, gameRoomMembers);
@@ -151,6 +154,7 @@ public class GameService {
 
 	private void accumulateRoundScoresToTotalScores(Long roomId) {
 		Map<Long, Long> roundScores = redisInGameRepository.getRoundScores(String.valueOf(roomId));
+		// 1등부터 순차적으로 +2 씩하면서 totalScore에 넣기
 		roundScores.forEach((memberId, score) ->
 			redisInGameRepository.increaseTotalScore(String.valueOf(roomId), String.valueOf(memberId), score));
 	}
@@ -187,6 +191,7 @@ public class GameService {
 		final Map<Long, Long> totalScores = redisInGameRepository.getTotalScores(String.valueOf(roomId));
 		gameRoom.updateGameRoomStatus(false);
 
+		// 게임 카운트 증가 및 히스토리 저장
 		saveGameHistory(totalScores, gameRoom);
 
 		// 모든 유저들 게임 종료 후 준비 상태 해제
@@ -199,6 +204,14 @@ public class GameService {
 
 		// 레디스에 저장된 점수 삭제
 		redisInGameRepository.deleteGameInfo(String.valueOf(roomId));
+	}
+
+	private void updateMemberStats(List<GameRoomMember> gameRoomMembers, GameFinishRequest gameFinishRequest) {
+		gameRoomMembers.forEach(gameRoomMember -> memberRepository.findById(gameRoomMember.getMemberId())
+			.ifPresent(member -> {
+				member.increaseGameCount();
+				member.updateMemberStats(gameFinishRequest.cpm(), gameFinishRequest.accuracy());
+			}));
 	}
 
 	private void updateReadyStatusAfterFinishGame(GameRoom gameRoom, List<GameRoomMember> gameRoomMembers) {
