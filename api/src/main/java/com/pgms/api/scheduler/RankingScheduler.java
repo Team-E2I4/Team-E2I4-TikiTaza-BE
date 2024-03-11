@@ -17,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 @RequiredArgsConstructor
 public class RankingScheduler {
+
 	private static final String ZONE = "Asia/Seoul";
 	private static final int SCHEDULE_UPDATE_CYCLE = 300000;
 	private static final int SCHEDULE_INITIAL_DELAY = 3000;

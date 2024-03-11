@@ -5,12 +5,16 @@ import com.pgms.coreinfraredis.entity.Guest;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-@Schema(title = "프로필 응답", requiredProperties = {"memberId", "email", "nickname", "ranking", "isGuest"})
+@Schema(title = "프로필 응답", requiredProperties = {"memberId", "email", "nickname", "ranking", "averageWpm",
+	"averageAccuracy", "isGuest"})
 public record AccountGetResponse(
 	Long memberId,
 	String email,
 	String nickname,
 	Long rank,
+	int gameCount,
+	double averageCpm,
+	double averageAccuracy,
 	boolean isGuest
 ) {
 	public static AccountGetResponse from(Member member, Long rank) {
@@ -19,6 +23,9 @@ public record AccountGetResponse(
 			member.getEmail(),
 			member.getNickname(),
 			rank,
+			member.getGameCount(),
+			member.getAverageCpm(),
+			member.getAverageAccuracy(),
 			false
 		);
 	}
@@ -29,6 +36,9 @@ public record AccountGetResponse(
 			null,
 			guest.getNickname(),
 			rank,
+			0,
+			0,
+			0,
 			true
 		);
 	}
