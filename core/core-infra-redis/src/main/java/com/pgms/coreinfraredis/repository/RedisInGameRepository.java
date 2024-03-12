@@ -24,36 +24,29 @@ public class RedisInGameRepository {
 
 	private final RedisTemplate<String, Object> redisTemplate;
 
-	// 라운드별 점수 초기화
 	public void initRoundScores(String roomId, List<Long> memberIds) {
 		String key = deleteAlreadyExistKey(ROUND_PREFIX, roomId);
 		memberIds.forEach(memberId -> redisTemplate.opsForZSet().add(key, memberId.toString(), 0));
 	}
 
-	// 단어게임 단어 리스트 초기화
 	public void initWords(String roomId, List<String> words) {
 		String key = deleteAlreadyExistKey(WORD_PREFIX, roomId);
-		AtomicInteger index = new AtomicInteger(1); // 시작 인덱스를 1로 설정
-		// getAndIncrement() 메소드를 사용하여 현재 값을 가져온 후, 값을 1 증가시킴
+		AtomicInteger index = new AtomicInteger(1);
 		words.forEach(word -> redisTemplate.opsForZSet().add(key, word, index.getAndIncrement()));
 	}
 
-	// 라운드별 멤버 점수 업데이트
 	public void increaseRoundScore(String roomId, String memberId, Long score) {
 		redisTemplate.opsForZSet().add(ROUND_PREFIX + roomId, memberId, score);
 	}
 
-	// 단어게임 멤버 점수 업데이트
 	public void increaseRoundWordScore(String roomId, String memberId) {
 		redisTemplate.opsForZSet().incrementScore(ROUND_PREFIX + roomId, memberId, 1L);
 	}
 
-	// 누적 멤버 점수 업데이트
 	public void increaseTotalScore(String roomId, String memberId, Long score) {
 		redisTemplate.opsForZSet().incrementScore(TOTAL_PREFIX + roomId, memberId, score);
 	}
 
-	// 단어 목록 리스트 조회
 	public List<String> getWords(String roomId) {
 		Set<Object> words = redisTemplate.opsForZSet().range(WORD_PREFIX + roomId, 0, -1);
 		return Objects.requireNonNull(words).stream()
@@ -61,7 +54,6 @@ public class RedisInGameRepository {
 			.toList();
 	}
 
-	// 단어 사용 여부 업데이트 & 점수 반환
 	public boolean updateWords(String roomId, String word) {
 		// 단어 리스트 가져옴
 		Double index = redisTemplate.opsForZSet().score(WORD_PREFIX + roomId, word);
@@ -74,9 +66,7 @@ public class RedisInGameRepository {
 		return false;
 	}
 
-	// 멤버 점수 조회
 	public Long getRoundScore(String roomId, String memberId) {
-		// TODO: SortedSet 정렬이 의미가 없어짐
 		Double score = redisTemplate.opsForZSet().score(ROUND_PREFIX + roomId, memberId);
 		return score != null ? score.longValue() : 0;
 	}
@@ -108,8 +98,8 @@ public class RedisInGameRepository {
 	private Map<Long, Long> convertToMap(Set<ZSetOperations.TypedTuple<Object>> tupleSet) {
 		return tupleSet.stream()
 			.collect(Collectors.toMap(
-				tuple -> Long.valueOf(tuple.getValue().toString()), // Integer를 Long으로 변환
-				tuple -> tuple.getScore().longValue() // Double을 Long으로 변환
+				tuple -> Long.valueOf(tuple.getValue().toString()),
+				tuple -> tuple.getScore().longValue()
 			));
 	}
 

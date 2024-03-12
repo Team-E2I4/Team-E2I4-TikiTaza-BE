@@ -21,16 +21,11 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-/**
- * GameRoom (게임방) : 초대 코드, 현재 인원
- */
-
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(name = "game_room")
 public class GameRoom extends BaseEntity {
-
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
@@ -44,7 +39,7 @@ public class GameRoom extends BaseEntity {
 	@Column(name = "password")
 	private String password;
 
-	@Column(name = "invite_code")
+	@Column(name = "invite_code", nullable = false)
 	private String inviteCode;
 
 	@Column(name = "round", nullable = false)
@@ -59,8 +54,8 @@ public class GameRoom extends BaseEntity {
 	@Column(name = "is_playing", nullable = false)
 	private boolean isPlaying;
 
-	@Column(name = "game_type", nullable = false)
 	@Enumerated(EnumType.STRING)
+	@Column(name = "game_type", nullable = false)
 	private GameType gameType;
 
 	@JsonBackReference

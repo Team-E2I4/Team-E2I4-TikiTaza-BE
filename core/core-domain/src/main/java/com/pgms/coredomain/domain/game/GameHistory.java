@@ -20,25 +20,24 @@ import lombok.NoArgsConstructor;
 @Entity
 @Table(name = "game_history")
 public class GameHistory extends BaseEntity {
-
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@Column(name = "member_id")
+	@Column(name = "member_id", nullable = false)
 	private Long memberId;
 
-	@Column(name = "score")
+	@Column(name = "score", nullable = false)
 	private long score;
 
-	@Column(name = "cpm")
+	@Column(name = "cpm", nullable = false)
 	private int cpm;
 
-	@Column(name = "accuracy")
+	@Column(name = "accuracy", nullable = false)
 	private int accuracy;
 
 	@Enumerated(EnumType.STRING)
-	@Column(name = "game_type")
+	@Column(name = "game_type", nullable = false)
 	private GameType gameType;
 
 	@Builder

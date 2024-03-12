@@ -21,13 +21,13 @@ public class GameInfo extends BaseEntity {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@Column(name = "game_room_id")
+	@Column(name = "game_room_id", nullable = false)
 	private Long gameRoomId;
 
-	@Column(name = "entered_member_count")
+	@Column(name = "entered_member_count", nullable = false)
 	private int enteredMemberCount;
 
-	@Column(name = "submitted_member_count")
+	@Column(name = "submitted_member_count", nullable = false)
 	private int submittedMemberCount;
 
 	public GameInfo(Long gameRoomId) {
