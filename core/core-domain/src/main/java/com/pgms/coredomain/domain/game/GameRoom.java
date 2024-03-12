@@ -59,7 +59,7 @@ public class GameRoom extends BaseEntity {
 	private GameType gameType;
 
 	@JsonBackReference
-	@OneToMany(mappedBy = "gameRoom", fetch = FetchType.EAGER)
+	@OneToMany(mappedBy = "gameRoom", fetch = FetchType.LAZY)
 	List<GameRoomMember> gameRoomMembers = new ArrayList<>();
 
 	@Builder
