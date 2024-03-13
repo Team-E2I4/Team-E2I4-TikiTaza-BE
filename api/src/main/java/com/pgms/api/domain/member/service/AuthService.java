@@ -121,7 +121,7 @@ public class AuthService {
 		return memberRepository.findByEmail(kakaoUserInfo.email()).orElseGet(() -> {
 			Member newMember = Member.builder()
 				.email(kakaoUserInfo.email())
-				.nickname(kakaoUserInfo.nickname())
+				.nickname("")
 				.role(ROLE_USER)
 				.providerType(KAKAO)
 				.build();
