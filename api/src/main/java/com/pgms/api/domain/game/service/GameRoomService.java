@@ -335,6 +335,7 @@ public class GameRoomService {
 
 	private void cleanUpGameRoom(GameRoom gameRoom) {
 		gameRoomRepository.delete(gameRoom);
+		gameInfoRepository.deleteByGameRoomId(gameRoom.getId());
 		deleteInviteCodeFromRedis(gameRoom.getInviteCode());
 	}
 
