@@ -129,31 +129,6 @@ VALUES ('리액트', 'WORD'),
        ('OAuth', 'WORD'),
        ('SAML', 'WORD');
 
-INSERT INTO game_question (created_at, updated_at, question, game_type)
-VALUES (NOW(), NOW(),
-        'public class HelloWorld {\n\tpublic static void main(String[] args) {\n\t\tSystem.out.println("Hello, World!");\n\t}\n}',
-        'CODE'),
-       (NOW(), NOW(),
-        'public class AddTwoNumbers {\n\tpublic static void main(String[] args) {\n\t\tint num1 = 5;\n\t\tint num2 = 10;\n\t\tint sum = num1 + num2;\n\t\tSystem.out.println("Sum: " + sum);\n\t}\n}',
-        'CODE'),
-       (NOW(), NOW(),
-        'import java.util.Scanner;\n\npublic class UserInput {\n\tpublic static void main(String[] args) {\n\t\tScanner scanner = new Scanner(System.in);\n\t\tSystem.out.print("Enter a number: ");\n\t\tint userInput = scanner.nextInt();\n\t\tSystem.out.println("You entered: " + userInput);\n\t}\n}',
-        'CODE'),
-       (NOW(), NOW(),
-        'public class LoopExample {\n\tpublic static void main(String[] args) {\n\t\tfor (int i = 1; i <= 10; i++) {\n\t\t\tSystem.out.println(i);\n\t\t}\n\t}\n}',
-        'CODE'),
-       (NOW(), NOW(),
-        'import java.util.Scanner;\n\npublic class PositiveNegativeZero {\n\tpublic static void main(String[] args) {\n\t\tScanner scanner = new Scanner(System.in);\n\t\tSystem.out.print("Enter a number: ");\n\t\tint number = scanner.nextInt();\n\n\t\tif (number > 0) {\n\t\t\tSystem.out.println("Positive");\n\t\t} else if (number < 0) {\n\t\t\tSystem.out.println("Negative");\n\t\t} else {\n\t\t\tSystem.out.println("Zero");\n\t\t}\n\t}\n}',
-        'CODE'),
-       (NOW(), NOW(), 'console.log("Hello, World!");', 'CODE'),
-       (NOW(), NOW(), 'let num1 = 5;\nlet num2 = 10;\nlet sum = num1 + num2;\nconsole.log("Sum:", sum);', 'CODE'),
-       (NOW(), NOW(), 'let userInput = prompt("Enter a number:");\nconsole.log("You entered:", userInput);', 'CODE'),
-       (NOW(), NOW(), 'for (let i = 1; i <= 10; i++) {\n\tconsole.log(i);\n}', 'CODE'),
-       (NOW(), NOW(),
-        'let number = prompt("Enter a number:");\nif (number > 0) {\n\tconsole.log("Positive");\n} else if (number < 0) {\n\tconsole.log("Negative");\n} else {\n\tconsole.log("Zero");\n}',
-        'CODE');
-
-
 INSERT INTO tikitaza.game_question (created_at, updated_at, question, game_type)
 VALUES (NOW(), NOW(), '삶이 있는 한 희망은 있다.', 'SENTENCE'),
        (NOW(), NOW(), '산다는것 그것은 치열한 전투이다.', 'SENTENCE'),
@@ -185,3 +160,223 @@ VALUES (100, 100, 1, 100, 'WORD'),
        (100, 100, 1, 100, 'WORD'),
        (100, 100, 2, 99, 'SENTENCE'),
        (99, 100, 2, 99, 'WORD');
+
+INSERT INTO game_question (created_at, updated_at, question, game_type)
+VALUES (NOW(), NOW(), 'import java.util.Arrays;
+public class MinMaxFinder {
+    public static void main(String[] args) {
+        int[] numbers = {3, 5, 7, 2, 8, 1};
+        int min = Arrays.stream(numbers).min().getAsInt();
+        int max = Arrays.stream(numbers).max().getAsInt();
+        System.out.println("Min: " + min + ", Max: " + max);
+    }
+}', 'CODE'),
+       (NOW(), NOW(), 'import java.util.Arrays;
+public class BubbleSort {
+    public static void main(String[] args) {
+        int[] numbers = {5, 3, 8, 4, 2};
+        for (int i = 0; i < numbers.length - 1; i++)
+            for (int j = 0; j < numbers.length - i - 1; j++)
+                if (numbers[j] > numbers[j + 1]) {
+                    int temp = numbers[j];
+                    numbers[j] = numbers[j + 1];
+                    numbers[j + 1] = temp;
+                }
+        System.out.println(Arrays.toString(numbers));
+    }
+}', 'CODE'),
+       (NOW(), NOW(), 'public class LinearSearch {
+    public static void main(String[] args) {
+        int[] numbers = {1, 4, 6, 7, 8, 9};
+        int target = 7, index = -1;
+        for (int i = 0; i < numbers.length; i++)
+            if (numbers[i] == target) {
+                index = i; break;
+            }
+        System.out.println("Index of " + target + ": " + index);
+    }
+}', 'CODE'),
+       (NOW(), NOW(), 'public class BinarySearch {
+    public static void main(String[] args) {
+        int[] numbers = {1, 3, 4, 5, 7, 9, 10};
+        int target = 5, left = 0, right = numbers.length - 1, index = -1;
+        while (left <= right) {
+            int mid = left + (right - left) / 2;
+            if (numbers[mid] == target) { index = mid; break; }
+            else if (numbers[mid] < target) left = mid + 1;
+            else right = mid - 1;
+        }
+        System.out.println("Index of " + target + ": " + index);
+    }
+}', 'CODE'),
+       (NOW(), NOW(), 'import java.util.HashSet;
+public class DuplicateFinder {
+    public static void main(String[] args) {
+        int[] numbers = {1, 2, 3, 4, 5, 1};
+        HashSet<Integer> set = new HashSet<>();
+        boolean hasDuplicate = false;
+        for (int number : numbers)
+            if (!set.add(number)) { hasDuplicate = true; break; }
+        System.out.println("Has duplicate: " + hasDuplicate);
+    }
+}', 'CODE'),
+       (NOW(), NOW(), 'import java.util.Stack;
+public class StackExample {
+    public static void main(String[] args) {
+        Stack<Integer> stack = new Stack<>();
+        stack.push(1); stack.push(2); stack.push(3);
+        while (!stack.isEmpty()) System.out.println(stack.pop());
+    }
+}', 'CODE'),
+       (NOW(), NOW(), 'import java.util.Queue;
+import java.util.LinkedList;
+public class QueueExample {
+    public static void main(String[] args) {
+        Queue<Integer> queue = new LinkedList<>();
+        queue.add(1); queue.add(2); queue.add(3);
+        while (!queue.isEmpty()) System.out.println(queue.poll());
+    }
+}', 'CODE'),
+       (NOW(), NOW(), 'public class InsertionSort {
+    public static void main(String[] args) {
+        int[] arr = {4, 3, 2, 10, 12, 1, 5, 6};
+        for (int i = 1; i < arr.length; ++i) {
+            int key = arr[i], j = i - 1;
+            while (j >= 0 && arr[j] > key) {
+                arr[j + 1] = arr[j];
+                j = j - 1;
+            }
+            arr[j + 1] = key;
+        }
+        for (int i : arr) System.out.print(i + " ");
+    }
+}', 'CODE'),
+       (NOW(), NOW(), 'public class SelectionSort {
+    public static void main(String[] args) {
+        int[] arr = {64, 25, 12, 22, 11};
+        for (int i = 0; i < arr.length - 1; i++) {
+            int min_idx = i;
+            for (int j = i + 1; j < arr.length; j++)
+                if (arr[j] < arr[min_idx]) min_idx = j;
+            int temp = arr[min_idx];
+            arr[min_idx] = arr[i];
+            arr[i] = temp;
+        }
+        for (int i : arr) System.out.print(i + " ");
+    }
+}', 'CODE'),
+       (NOW(), NOW(), 'public class SimpleLinkedList {
+    Node head;
+    static class Node {
+        int data; Node next;
+        Node(int d) { data = d; next = null; }
+    }
+    public static void main(String[] args) {
+        SimpleLinkedList linkedList = new SimpleLinkedList();
+        linkedList.head = new Node(1);
+        Node second = new Node(2);
+        Node third = new Node(3);
+        linkedList.head.next = second; second.next = third;
+        while (linkedList.head != null) {
+            System.out.print(linkedList.head.data + " ");
+            linkedList.head = linkedList.head.next;
+        }
+    }
+}', 'CODE');
+
+INSERT INTO tikitaza.game_question (created_at, updated_at, question, game_type)
+VALUES (NOW(), NOW(), 'const bubbleSort = arr => {
+    let len = arr.length;
+    for (let i = 0; i < len; i++) {
+        for (let j = 0; j < len - i - 1; j++) {
+            if (arr[j] > arr[j + 1]) {
+                [arr[j], arr[j + 1]] = [arr[j + 1], arr[j]];
+            }
+        }
+    }
+    return arr;
+};
+console.log(bubbleSort([5, 3, 8, 4, 2]));', 'CODE'),
+       (NOW(), NOW(), 'const binarySearch = (arr, target) => {
+    let left = 0, right = arr.length - 1;
+    while (left <= right) {
+        const mid = Math.floor((left + right) / 2);
+        if (arr[mid] === target) return mid;
+        else if (arr[mid] < target) left = mid + 1;
+        else right = mid - 1;
+    }
+    return -1;
+};
+console.log(binarySearch([1, 3, 4, 5, 7, 9, 10], 5));', 'CODE'),
+       (NOW(), NOW(), 'const insertionSort = arr => {
+    for (let i = 1; i < arr.length; i++) {
+        let key = arr[i], j = i - 1;
+        while (j >= 0 && arr[j] > key) {
+            arr[j + 1] = arr[j];
+            j = j - 1;
+        }
+        arr[j + 1] = key;
+    }
+    return arr;
+};
+console.log(insertionSort([4, 3, 2, 10, 12, 1, 5, 6]));', 'CODE'),
+       (NOW(), NOW(), 'const selectionSort = arr => {
+    for (let i = 0; i < arr.length - 1; i++) {
+        let minIdx = i;
+        for (let j = i + 1; j < arr.length; j++) {
+            if (arr[j] < arr[minIdx]) minIdx = j;
+        }
+        [arr[i], arr[minIdx]] = [arr[minIdx], arr[i]];
+    }
+    return arr;
+};
+console.log(selectionSort([64, 25, 12, 22, 11]));', 'CODE'),
+       (NOW(), NOW(), 'let head = { data: 1, next: { data: 2, next: { data: 3, next: null } } };
+function printList(node) {
+    while (node !== null) {
+        console.log(node.data);
+        node = node.next;
+    }
+}
+printList(head);', 'CODE'),
+       (NOW(), NOW(), 'const graph = { A: ["B", "C"], B: ["A", "D", "E"], C: ["A", "F"], D: ["B"], E: ["B", "F"], F: ["C", "E"] };
+function dfs(graph, start) {
+    const stack = [start];
+    const visited = new Set();
+    while (stack.length) {
+        const node = stack.pop();
+        if (visited.has(node)) continue;
+        console.log(node);
+        visited.add(node);
+        graph[node].forEach(neighbor => {
+            if (!visited.has(neighbor)) stack.push(neighbor);
+        });
+    }
+}
+dfs(graph, "A");', 'CODE'),
+       (NOW(), NOW(), 'const graph = { 1: [2, 3], 2: [1, 4, 5], 3: [1, 6, 7], 4: [2], 5: [2], 6: [3], 7: [3] };
+function bfs(graph, start) {
+    const queue = [start];
+    const visited = new Set();
+    visited.add(start);
+    while (queue.length) {
+        const node = queue.shift();
+        console.log(node);
+        graph[node].forEach(neighbor => {
+            if (!visited.has(neighbor)) {
+                visited.add(neighbor);
+                queue.push(neighbor);
+            }
+        });
+    }
+}
+bfs(graph, 1);', 'CODE'),
+       (NOW(), NOW(), 'const graph = { "A": ["B", "C"], "B": ["A", "D", "E"], "C": ["A", "F"], "D": ["B"], "E": ["B", "F"], "F": ["C", "E"] };
+function dfsRecursive(node, graph, visited = new Set()) {
+    console.log(node);
+    visited.add(node);
+    graph[node].forEach(neighbor => {
+        if (!visited.has(neighbor)) dfsRecursive(neighbor, graph, visited);
+    });
+}
+dfsRecursive("A", graph);', 'CODE');

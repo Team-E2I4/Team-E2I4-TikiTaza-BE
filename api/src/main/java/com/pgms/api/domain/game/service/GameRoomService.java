@@ -170,7 +170,8 @@ public class GameRoomService {
 		// 세션 ID로 게임방 멤버 찾아서 제거
 		final GameRoomMember gameRoomMember = gameRoomMemberRepository.findByWebSessionId(sessionId)
 			.orElseThrow(() -> new GameException(GameRoomErrorCode.GAME_ROOM_MEMBER_NOT_FOUND));
-		final GameRoom gameRoom = gameRoomMember.getGameRoom();
+		final GameRoom gameRoom = gameRoomRepository.findById(gameRoomMember.getGameRoom().getId())
+			.orElseThrow(() -> new GameException(GameRoomErrorCode.GAME_ROOM_NOT_FOUND));
 
 		gameRoomMemberRepository.delete(gameRoomMember);
 		gameRoom.exitRoom();
