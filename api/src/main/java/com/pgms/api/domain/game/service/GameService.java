@@ -94,12 +94,16 @@ public class GameService {
 	}
 
 	// ============================== 게임 종료 / 다음 라운드 시작 ==============================
-	public void finishGame(Long roomId, GameFinishRequest gameFinishRequest) {
+	public void finishGame(Long accountId, Long roomId, GameFinishRequest gameFinishRequest) {
 		final GameInfo gameInfo = getGameInfo(roomId);
 		final GameRoom gameRoom = getGameRoom(roomId);
 		final List<GameRoomMember> gameRoomMembers = gameRoomMemberRepository.findAllByGameRoomId(roomId);
 
 		gameInfo.submit();
+		if (!gameRoom.getGameType().equals(GameType.WORD)) {
+			Long weight = (long)(gameRoom.getCurrentPlayer() - gameInfo.getSubmittedMemberCount());
+			redisInGameRepository.increaseWeight(String.valueOf(roomId), String.valueOf(accountId), weight);
+		}
 
 		// 게임방에 있는 모두가 게임 종료를 누르면 게임 종료 처리
 		if (gameInfo.isAllSubmitted(gameRoom.getCurrentPlayer())) {

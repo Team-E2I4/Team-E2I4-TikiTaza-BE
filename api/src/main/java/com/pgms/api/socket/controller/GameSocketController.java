@@ -61,6 +61,6 @@ public class GameSocketController {
 		@DestinationVariable Long roomId,
 		@Payload GameFinishRequest gameFinishRequest) {
 		log.info(">>>>>> Game Finish : roomId = {}, accountId = {}", roomId, accountId);
-		gameService.finishGame(roomId, gameFinishRequest);
+		gameService.finishGame(accountId, roomId, gameFinishRequest);
 	}
 }

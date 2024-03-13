@@ -43,6 +43,10 @@ public class RedisInGameRepository {
 		redisTemplate.opsForZSet().add(ROUND_PREFIX + roomId, memberId, score);
 	}
 
+	public void increaseWeight(String roomId, String memberId, Long weight) {
+		redisTemplate.opsForZSet().incrementScore(ROUND_PREFIX + roomId, memberId, weight);
+	}
+
 	// 단어게임 멤버 점수 업데이트
 	public void increaseRoundWordScore(String roomId, String memberId) {
 		redisTemplate.opsForZSet().incrementScore(ROUND_PREFIX + roomId, memberId, 1L);
