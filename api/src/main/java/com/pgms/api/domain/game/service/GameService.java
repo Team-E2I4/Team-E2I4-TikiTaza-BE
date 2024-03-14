@@ -11,7 +11,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.pgms.api.domain.game.dto.response.GameQuestionGetResponse;
 import com.pgms.api.domain.game.dto.response.InGameMemberGetResponse;
-import com.pgms.api.global.exception.GameException;
 import com.pgms.api.global.exception.SocketException;
 import com.pgms.api.socket.dto.request.GameFinishRequest;
 import com.pgms.api.socket.dto.request.GameInfoUpdateRequest;
@@ -55,16 +54,11 @@ public class GameService {
 	private final SseService sseService;
 
 	// ============================== 입장 확인 및 첫 라운드 스타트 ==============================
-	public void startFirstRound(Long roomId, Long accountId, String sessionId) {
+	public void startFirstRound(Long roomId) {
 		final GameInfo gameInfo = getGameInfo(roomId);
 		final GameRoom gameRoom = getGameRoom(roomId);
-		final GameRoomMember gameRoomMember = gameRoomMemberRepository.findByMemberId(accountId)
-			.orElseThrow(() -> new GameException(GameRoomErrorCode.GAME_ROOM_MEMBER_NOT_FOUND));
 
-		// 입장 카운트 증가 및 유저 세션아이디 업데이트
-		// TODO : 나중에 한명이 여러번 입장처리 못하게 수정
 		gameInfo.enter();
-		gameRoomMember.updateSessionId(sessionId);
 
 		// 모든 멤버가 입장했을 때
 		if (gameInfo.isAllEntered(gameRoom.getCurrentPlayer())) {
@@ -78,7 +72,7 @@ public class GameService {
 	public void updateGameInfo(Long accountId, Long roomId, GameInfoUpdateRequest gameInfoUpdateRequest) {
 		redisInGameRepository.increaseRoundScore(String.valueOf(roomId), String.valueOf(accountId),
 			gameInfoUpdateRequest.currentScore());
-		// TODO: gameRoomRepository를 쓰는게 낫나?
+
 		final List<GameRoomMember> gameRoomMembers = gameRoomMemberRepository.findAllByGameRoomId(roomId);
 		sendGameInfoMessage(roomId, gameRoomMembers);
 	}
