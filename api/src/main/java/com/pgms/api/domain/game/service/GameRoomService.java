@@ -196,7 +196,8 @@ public class GameRoomService {
 			leftGameRoomMembers);
 
 		// 구독된 사람들에게 메세지
-		gameRoomMessageService.sendExitGameRoomMessage(gameRoom, gameRoomMember.getId(), leftGameRoomMemberResponses);
+		gameRoomMessageService.sendExitGameRoomMessage(gameRoom, gameRoomMember.getMemberId(),
+			leftGameRoomMemberResponses);
 		sseEmitters.updateGameRoom(sseService.getRooms());
 	}
 
