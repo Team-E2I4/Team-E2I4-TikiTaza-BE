@@ -6,18 +6,18 @@ public record InGameMemberGetResponse(
 	Long memberId,
 	String nickname,
 	boolean readyStatus,
-	Long score
+	double score
 ) {
 	public static InGameMemberGetResponse from(GameRoomMember gameRoomMember) {
 		return new InGameMemberGetResponse(
 			gameRoomMember.getMemberId(),
 			gameRoomMember.getNickname(),
 			gameRoomMember.isReadyStatus(),
-			0L
+			0.0
 		);
 	}
 
-	public static InGameMemberGetResponse from(GameRoomMember gameRoomMember, Long score) {
+	public static InGameMemberGetResponse from(GameRoomMember gameRoomMember, double score) {
 		return new InGameMemberGetResponse(
 			gameRoomMember.getMemberId(),
 			gameRoomMember.getNickname(),

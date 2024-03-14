@@ -39,11 +39,11 @@ public class RedisInGameRepository {
 	}
 
 	// 라운드별 멤버 점수 업데이트
-	public void increaseRoundScore(String roomId, String memberId, Long score) {
+	public void increaseRoundScore(String roomId, String memberId, double score) {
 		redisTemplate.opsForZSet().add(ROUND_PREFIX + roomId, memberId, score);
 	}
 
-	public void increaseWeight(String roomId, String memberId, Long weight) {
+	public void increaseWeight(String roomId, String memberId, double weight) {
 		redisTemplate.opsForZSet().incrementScore(ROUND_PREFIX + roomId, memberId, weight);
 	}
 
@@ -53,7 +53,7 @@ public class RedisInGameRepository {
 	}
 
 	// 누적 멤버 점수 업데이트
-	public void increaseTotalScore(String roomId, String memberId, Long score) {
+	public void increaseTotalScore(String roomId, String memberId, double score) {
 		redisTemplate.opsForZSet().incrementScore(TOTAL_PREFIX + roomId, memberId, score);
 	}
 
@@ -67,9 +67,7 @@ public class RedisInGameRepository {
 
 	// 단어 사용 여부 업데이트 & 점수 반환
 	public boolean updateWords(String roomId, String word) {
-		// 단어 리스트 가져옴
 		Double index = redisTemplate.opsForZSet().score(WORD_PREFIX + roomId, word);
-		// 단어 있는지 확인 -> 있으면 삭제 & 점수 반환
 		if (index != null && !word.startsWith(USED_WORD_PREFIX)) {
 			redisTemplate.opsForZSet().remove(WORD_PREFIX + roomId, word);
 			redisTemplate.opsForZSet().add(WORD_PREFIX + roomId, USED_WORD_PREFIX + word, index);
@@ -79,13 +77,12 @@ public class RedisInGameRepository {
 	}
 
 	// 멤버 점수 조회
-	public Long getRoundScore(String roomId, String memberId) {
-		// TODO: SortedSet 정렬이 의미가 없어짐
+	public Double getRoundScore(String roomId, String memberId) {
 		Double score = redisTemplate.opsForZSet().score(ROUND_PREFIX + roomId, memberId);
-		return score != null ? score.longValue() : 0;
+		return score != null ? score : 0;
 	}
 
-	public Map<Long, Long> getRoundScores(String roomId) {
+	public Map<Long, Double> getRoundScores(String roomId) {
 		Set<ZSetOperations.TypedTuple<Object>> membersWithScores = redisTemplate.opsForZSet()
 			.rangeByScoreWithScores(ROUND_PREFIX + roomId, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY);
 		return convertToMap(membersWithScores);
@@ -97,7 +94,7 @@ public class RedisInGameRepository {
 		return score != null ? score.longValue() : 0;
 	}
 
-	public Map<Long, Long> getTotalScores(String roomId) {
+	public Map<Long, Double> getTotalScores(String roomId) {
 		Set<ZSetOperations.TypedTuple<Object>> membersWithScores = redisTemplate.opsForZSet()
 			.rangeByScoreWithScores(TOTAL_PREFIX + roomId, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY);
 		return convertToMap(membersWithScores);
@@ -109,11 +106,11 @@ public class RedisInGameRepository {
 		redisTemplate.delete(WORD_PREFIX + roomId);
 	}
 
-	private Map<Long, Long> convertToMap(Set<ZSetOperations.TypedTuple<Object>> tupleSet) {
+	private Map<Long, Double> convertToMap(Set<ZSetOperations.TypedTuple<Object>> tupleSet) {
 		return tupleSet.stream()
 			.collect(Collectors.toMap(
-				tuple -> Long.valueOf(tuple.getValue().toString()), // Integer를 Long으로 변환
-				tuple -> tuple.getScore().longValue() // Double을 Long으로 변환
+				tuple -> Long.valueOf(tuple.getValue().toString()),
+				ZSetOperations.TypedTuple::getScore
 			));
 	}
 
