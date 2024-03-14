@@ -67,8 +67,8 @@ public class AuthController {
 	@Operation(summary = "로그아웃")
 	@PostMapping("/logout")
 	public ResponseEntity<ApiResponse<Void>> logout(
-		@RequestHeader("Authorization") String bearerToken,
-		@CookieValue("refreshToken") String refreshToken,
+		@Parameter(hidden = true) @RequestHeader("Authorization") String bearerToken,
+		@Parameter(hidden = true) @CookieValue("refreshToken") String refreshToken,
 		@CurrentAccount Account account) {
 		authService.logout(jwtTokenProvider.resolveToken(bearerToken), refreshToken, account.id());
 		return ResponseEntity.ok(ApiResponse.of(ResponseCode.SUCCESS));
@@ -77,7 +77,7 @@ public class AuthController {
 	@Operation(summary = "토큰 재발급")
 	@PostMapping("/reissue")
 	public ResponseEntity<ApiResponse<AuthResponse>> reIssueAccessToken(
-		@Parameter(hidden = true) @CookieValue(value = "refreshToken", required = false) String refreshToken) {
+		@Parameter(hidden = true) @CookieValue(value = "refreshToken") String refreshToken) {
 		final AuthResponse response = authService.reIssueAccessTokenByRefresh(refreshToken);
 		return ResponseEntity.ok()
 			.header(SET_COOKIE, getRefreshTokenHeader(response.refreshToken()))

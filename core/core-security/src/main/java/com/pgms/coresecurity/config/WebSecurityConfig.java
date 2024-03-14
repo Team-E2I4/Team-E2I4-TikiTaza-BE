@@ -121,7 +121,6 @@ public class WebSecurityConfig {
 
 	private RequestMatcher[] requestHasRoleUser() {
 		List<RequestMatcher> requestMatchers = List.of(
-			antMatcher(POST, "/api/v1/auth/logout"),
 			antMatcher(DELETE, "/api/v1/members"),
 			antMatcher(PATCH, "/api/v1/members")
 		);
