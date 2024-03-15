@@ -23,7 +23,6 @@ import lombok.RequiredArgsConstructor;
 public class GameRoomMessageService {
 
 	private static final String GAME_ROOM_MESSAGE_DESTINATION = "/from/game-room/";
-	private static final String GAME_MESSAGE_DESTINATION = "/from/game/";
 	private final Producer producer;
 
 	public void sendGameRoomInfoMessage(GameRoomMessageType type, GameRoom gameRoom,
@@ -44,8 +43,16 @@ public class GameRoomMessageService {
 		List<GameRoomMemberGetResponse> leftGameRoomMember) {
 		Long roomId = gameRoom.getId();
 
-		createAndSendExitMessage(gameRoom, exitId, leftGameRoomMember, GAME_ROOM_MESSAGE_DESTINATION, roomId);
-		createAndSendExitMessage(gameRoom, exitId, leftGameRoomMember, GAME_MESSAGE_DESTINATION, roomId);
+		KafkaMessage message = GameRoomMessage.builder()
+			.type(EXIT)
+			.roomId(roomId)
+			.roomInfo(GameRoomGetResponse.from(gameRoom))
+			.exitMemberId(exitId)
+			.allMembers(leftGameRoomMember)
+			.build()
+			.convertToKafkaMessage(GAME_ROOM_MESSAGE_DESTINATION + roomId);
+
+		producer.produceMessage(message);
 	}
 
 	public void sendKickMessage(Long roomId, Long kickedId) {
@@ -64,24 +71,6 @@ public class GameRoomMessageService {
 			.type(type)
 			.build()
 			.convertToKafkaMessage(GAME_ROOM_MESSAGE_DESTINATION + roomId);
-
-		producer.produceMessage(message);
-	}
-
-	private void createAndSendExitMessage(GameRoom gameRoom,
-		Long exitId,
-		List<GameRoomMemberGetResponse> leftGameRoomMember,
-		String path,
-		Long roomId) {
-
-		KafkaMessage message = GameRoomMessage.builder()
-			.type(EXIT)
-			.roomId(roomId)
-			.roomInfo(GameRoomGetResponse.from(gameRoom))
-			.exitMemberId(exitId)
-			.allMembers(leftGameRoomMember)
-			.build()
-			.convertToKafkaMessage(path + roomId);
 
 		producer.produceMessage(message);
 	}
