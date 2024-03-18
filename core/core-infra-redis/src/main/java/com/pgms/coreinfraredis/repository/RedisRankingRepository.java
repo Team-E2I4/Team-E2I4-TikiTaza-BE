@@ -22,10 +22,10 @@ public class RedisRankingRepository {
 	}
 
 	public List<RankingResponse> getTopRankings(String key) {
-		Set<Object> setRankings = redisTemplate.opsForZSet().reverseRange(key, 0, -1);
+		Set<Object> nicknames = redisTemplate.opsForZSet().reverseRange(key, 0, -1);
 		List<RankingResponse> rankingResponses = new ArrayList<>();
 
-		for (Object obj : setRankings) {
+		for (Object obj : nicknames) {
 			String nickname = (String)obj;
 			Long rank = getMemberRank(key, nickname);
 			Double score = getMemberScore(key, nickname);
