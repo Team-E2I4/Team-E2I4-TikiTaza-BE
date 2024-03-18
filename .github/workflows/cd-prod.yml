@@ -8,17 +8,19 @@ on:
 env:
   AWS_REGION: ap-northeast-2
   ECR_REPOSITORY: 533267244952.dkr.ecr.ap-northeast-2.amazonaws.com/tikitaza
-  ECS_SERVICE: tikitaza-service
   ECS_CLUSTER: tikitaza-cluster
-  ECS_TASK_DEFINITION: .aws/task-definition.json
-  CONTAINER_NAME: tikitaza-container
+  ECS_SERVICE: tikitaza-service-prod
+  ECS_TASK_DEFINITION: .aws/task-definition-prod.json
+  CONTAINER_NAME: tikitaza-container-prod
 
 permissions:
   contents: read
 
 jobs:
   deploy:
+    name: prod-deploy
     runs-on: ubuntu-latest
+    environment: production
     steps:
       - uses: actions/checkout@v4
       - name: Set up JDK 17
@@ -73,9 +75,9 @@ jobs:
         id: build-image
         run: |
           docker build -t tikitaza:${{ steps.current-time.outputs.formattedTime }} .
-          docker tag tikitaza:${{ steps.current-time.outputs.formattedTime }} ${{ env.ECR_REPOSITORY }}:${{ steps.current-time.outputs.formattedTime }}
-          docker push ${{ env.ECR_REPOSITORY }}:${{ steps.current-time.outputs.formattedTime }}
-          echo "image=${{ env.ECR_REPOSITORY }}:${{ steps.current-time.outputs.formattedTime }}" >> $GITHUB_OUTPUT
+          docker tag tikitaza:${{ steps.current-time.outputs.formattedTime }} ${{ env.ECR_REPOSITORY }}:${{ steps.current-time.outputs.formattedTime }}-prod
+          docker push ${{ env.ECR_REPOSITORY }}:${{ steps.current-time.outputs.formattedTime }}-prod
+          echo "image=${{ env.ECR_REPOSITORY }}:${{ steps.current-time.outputs.formattedTime }}-prod" >> $GITHUB_OUTPUT
 
       - name: Fill in the new image ID in the Amazon ECS task definition
         id: task-def
