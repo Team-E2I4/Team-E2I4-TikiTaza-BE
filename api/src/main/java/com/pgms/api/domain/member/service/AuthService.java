@@ -44,7 +44,7 @@ public class AuthService {
 	private final JwtTokenProvider jwtTokenProvider;
 	private final MemberRepository memberRepository;
 	private final GuestRepository guestRepository;
-	private final OauthService oauthService;
+	private final KakaoOauthService kakaoOauthService;
 
 	public AuthResponse login(LoginRequest request) {
 		validateMember(request.email());
@@ -64,8 +64,8 @@ public class AuthService {
 	}
 
 	public AuthResponse kakaoLogin(String code) {
-		String kakaoToken = oauthService.getKakaoToken(code);
-		KakaoUserGetResponse kakaoUserInfo = oauthService.getKakaoUserInfo(kakaoToken);
+		String kakaoToken = kakaoOauthService.getKakaoToken(code);
+		KakaoUserGetResponse kakaoUserInfo = kakaoOauthService.getKakaoUserInfo(kakaoToken);
 
 		Member member = saveOrUpdate(kakaoUserInfo);
 		UserDetailsImpl userDetails = createUserDetails(member);

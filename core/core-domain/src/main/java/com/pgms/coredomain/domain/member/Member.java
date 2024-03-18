@@ -33,14 +33,13 @@ public class Member extends BaseEntity {
 	@Column(name = "password")
 	private String password;
 
-	@Column(name = "nickname")
+	@Column(name = "nickname", nullable = false)
 	private String nickname;
 
 	@Column(name = "role", nullable = false)
 	@Enumerated(EnumType.STRING)
 	private Role role;
 
-	// 판수 , 평균 타수, 평균 정확도 ?
 	@Column(name = "game_count", nullable = false)
 	private int gameCount;
 
@@ -53,12 +52,12 @@ public class Member extends BaseEntity {
 	@Column(name = "average_accuracy", nullable = false)
 	private double averageAccuracy;
 
-	@Column(name = "status", nullable = false)
 	@Enumerated(EnumType.STRING)
+	@Column(name = "status", nullable = false)
 	private AccountStatus status;
 
-	@Column(name = "provider")
 	@Enumerated(EnumType.STRING)
+	@Column(name = "provider")
 	private ProviderType providerType;
 
 	@Builder

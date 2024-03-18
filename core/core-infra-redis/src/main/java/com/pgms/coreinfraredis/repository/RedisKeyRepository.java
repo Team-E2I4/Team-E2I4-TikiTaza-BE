@@ -28,17 +28,14 @@ public class RedisKeyRepository {
 		return Boolean.TRUE.equals(redisTemplate.hasKey(key));
 	}
 
-	// 리프레시 토큰용
 	public void saveRefreshToken(String key, Object value) {
 		redisTemplate.opsForValue().set(key, value, REFRESH_TOKEN_TIME_OUT_DAYS, TimeUnit.DAYS);
 	}
 
-	// 블랙리스트용 (로그아웃)
 	public void saveBlackList(String key, Object value) {
 		redisTemplate.opsForValue().set(key, value, BLACKLIST_TIME_OUT_MINUTES, TimeUnit.MINUTES);
 	}
 
-	// 초대 코드용
 	public void saveInviteCode(String key, Object value) {
 		redisTemplate.opsForValue().set(key, value);
 	}

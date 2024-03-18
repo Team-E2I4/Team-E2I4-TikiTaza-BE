@@ -9,9 +9,9 @@ env:
   AWS_REGION: ap-northeast-2
   ECR_REPOSITORY: 533267244952.dkr.ecr.ap-northeast-2.amazonaws.com/tikitaza
   ECS_CLUSTER: tikitaza-cluster
-  ECS_SERVICE: tikitaza-service
+  ECS_SERVICE: tikitaza-service-dev
   ECS_TASK_DEFINITION: .aws/task-definition-dev.json
-  CONTAINER_NAME: tikitaza-container
+  CONTAINER_NAME: tikitaza-container-dev
 
 permissions:
   contents: read

@@ -24,7 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class OauthService {
+public class KakaoOauthService {
 
 	@Value("${spring.security.oauth2.client.registration.kakao.client-id}")
 	private String kakaoClientId;

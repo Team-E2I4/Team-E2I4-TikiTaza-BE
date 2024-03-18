@@ -2,7 +2,7 @@ name: Java CI with Gradle in Tiki-Taza
 
 on:
   pull_request:
-    branches: [ "main" ]
+    branches: [ "main", "dev" ]
 
 permissions:
   contents: read
