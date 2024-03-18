@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.pgms.api.domain.member.dto.request.LoginRequest;
 import com.pgms.api.domain.member.dto.response.AuthResponse;
+import com.pgms.api.domain.member.dto.response.GuestResponse;
 import com.pgms.api.domain.member.dto.response.KakaoUserGetResponse;
 import com.pgms.api.global.exception.MemberException;
 import com.pgms.coredomain.domain.member.Member;
@@ -76,7 +77,7 @@ public class AuthService {
 		return AuthResponse.from(accessToken, refreshToken);
 	}
 
-	public AuthResponse guestLogin() {
+	public GuestResponse guestLogin() {
 		final Long num = redisKeyRepository.guestIdIncrement("guestCount");
 		final Long guestId = STARTING_GUEST_ID + num;
 		final String uuid = UUID.randomUUID().toString();
@@ -85,10 +86,7 @@ public class AuthService {
 		guestRepository.save(guest);
 
 		String accessToken = jwtTokenProvider.createAccessToken(createGuestDetails(guest));
-		String refreshToken = jwtTokenProvider.createRefreshToken();
-
-		redisKeyRepository.saveRefreshToken(refreshToken, guest.getId());
-		return AuthResponse.from(accessToken, refreshToken);
+		return GuestResponse.from(accessToken);
 	}
 
 	public void logout(String accessToken, String refreshToken, Long accountId) {
@@ -99,6 +97,12 @@ public class AuthService {
 				redisKeyRepository.saveBlackList(accessToken, "accessToken");
 			}
 		}
+	}
+
+	public void guestLogout(String accessToken, Long accountId) {
+		guestRepository.findById(accountId)
+			.ifPresent(guestRepository::delete);
+		redisKeyRepository.saveBlackList(accessToken, "accessToken");
 	}
 
 	public AuthResponse reIssueAccessTokenByRefresh(String refreshToken) {
@@ -121,7 +125,7 @@ public class AuthService {
 		return memberRepository.findByEmail(kakaoUserInfo.email()).orElseGet(() -> {
 			Member newMember = Member.builder()
 				.email(kakaoUserInfo.email())
-				.nickname(kakaoUserInfo.nickname())
+				.nickname("")
 				.role(ROLE_USER)
 				.providerType(KAKAO)
 				.build();

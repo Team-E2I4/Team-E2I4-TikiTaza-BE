@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.pgms.api.domain.member.dto.request.LoginRequest;
 import com.pgms.api.domain.member.dto.response.AuthResponse;
+import com.pgms.api.domain.member.dto.response.GuestResponse;
 import com.pgms.api.domain.member.service.AuthService;
 import com.pgms.api.global.annotation.SwaggerResponseAuth;
 import com.pgms.coredomain.response.ApiResponse;
@@ -48,10 +49,9 @@ public class AuthController {
 
 	@Operation(summary = "게스트 로그인")
 	@PostMapping("/guest")
-	public ResponseEntity<ApiResponse<AuthResponse>> guestLogin() {
-		final AuthResponse response = authService.guestLogin();
+	public ResponseEntity<ApiResponse<GuestResponse>> guestLogin() {
+		final GuestResponse response = authService.guestLogin();
 		return ResponseEntity.ok()
-			.header(SET_COOKIE, getRefreshTokenHeader(response.refreshToken()))
 			.body(ApiResponse.of(response));
 	}
 
@@ -67,17 +67,26 @@ public class AuthController {
 	@Operation(summary = "로그아웃")
 	@PostMapping("/logout")
 	public ResponseEntity<ApiResponse<Void>> logout(
-		@RequestHeader("Authorization") String bearerToken,
-		@CookieValue("refreshToken") String refreshToken,
+		@Parameter(hidden = true) @RequestHeader("Authorization") String bearerToken,
+		@Parameter(hidden = true) @CookieValue("refreshToken") String refreshToken,
 		@CurrentAccount Account account) {
 		authService.logout(jwtTokenProvider.resolveToken(bearerToken), refreshToken, account.id());
+		return ResponseEntity.ok(ApiResponse.of(ResponseCode.SUCCESS));
+	}
+
+	@Operation(summary = "게스트 로그아웃")
+	@PostMapping("/logout/guest")
+	public ResponseEntity<ApiResponse<Void>> logout(
+		@Parameter(hidden = true) @RequestHeader("Authorization") String bearerToken,
+		@CurrentAccount Account account) {
+		authService.guestLogout(jwtTokenProvider.resolveToken(bearerToken), account.id());
 		return ResponseEntity.ok(ApiResponse.of(ResponseCode.SUCCESS));
 	}
 
 	@Operation(summary = "토큰 재발급")
 	@PostMapping("/reissue")
 	public ResponseEntity<ApiResponse<AuthResponse>> reIssueAccessToken(
-		@Parameter(hidden = true) @CookieValue(value = "refreshToken", required = false) String refreshToken) {
+		@Parameter(hidden = true) @CookieValue(value = "refreshToken") String refreshToken) {
 		final AuthResponse response = authService.reIssueAccessTokenByRefresh(refreshToken);
 		return ResponseEntity.ok()
 			.header(SET_COOKIE, getRefreshTokenHeader(response.refreshToken()))

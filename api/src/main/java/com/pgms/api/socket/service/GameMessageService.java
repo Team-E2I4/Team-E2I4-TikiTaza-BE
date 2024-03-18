@@ -71,7 +71,6 @@ public class GameMessageService {
 	}
 
 	public void sendFinishGameMessage(Long roomId, List<InGameMemberGetResponse> allMembers) {
-
 		KafkaMessage message = GameMessage.builder()
 			.type(GameMessageType.FINISH)
 			.allMembers(allMembers)

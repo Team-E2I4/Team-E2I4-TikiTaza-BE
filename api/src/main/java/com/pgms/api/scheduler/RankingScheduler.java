@@ -39,7 +39,7 @@ public class RankingScheduler {
 
 	private void calculateTotalRanking() {
 		String totalRankingQuery = "SELECT m.nickname AS nickname, SUM(gh.score) AS total_score "
-			+ "FROM game_history gh LEFT JOIN member m ON gh.member_id = m.id "
+			+ "FROM game_history gh INNER JOIN member m ON gh.member_id = m.id "
 			+ "GROUP BY gh.member_id, m.nickname";
 
 		List<RankingRequest> rankingResponses = jdbcTemplate.query(totalRankingQuery, (rs, rowNum) ->
@@ -56,7 +56,7 @@ public class RankingScheduler {
 	private void calculateRankingByGameType() {
 		String totalRankingQuery =
 			"SELECT m.nickname AS nickname, SUM(gh.score) AS total_score, gh.game_type AS game_type "
-				+ "FROM game_history gh LEFT JOIN member m ON gh.member_id = m.id "
+				+ "FROM game_history gh INNER JOIN member m ON gh.member_id = m.id "
 				+ "GROUP BY gh.member_id, m.nickname, gh.game_type";
 
 		List<RankingRequest> rankingResponses = jdbcTemplate.query(totalRankingQuery, (rs, rowNum) ->

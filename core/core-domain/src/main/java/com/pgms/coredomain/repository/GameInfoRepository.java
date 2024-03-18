@@ -15,4 +15,6 @@ public interface GameInfoRepository extends JpaRepository<GameInfo, Long> {
 	@Lock(LockModeType.PESSIMISTIC_WRITE)
 	@QueryHints({@QueryHint(name = "javax.persistence.lock.timeout", value = "5000")})
 	Optional<GameInfo> findByGameRoomId(Long gameRoomId);
+
+	void deleteByGameRoomId(Long gameRoomId);
 }

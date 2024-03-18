@@ -1,5 +1,7 @@
 package com.pgms.api.domain.game.service;
 
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 
@@ -9,7 +11,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.pgms.api.domain.game.dto.response.GameQuestionGetResponse;
 import com.pgms.api.domain.game.dto.response.InGameMemberGetResponse;
-import com.pgms.api.global.exception.GameException;
 import com.pgms.api.global.exception.SocketException;
 import com.pgms.api.socket.dto.request.GameFinishRequest;
 import com.pgms.api.socket.dto.request.GameInfoUpdateRequest;
@@ -53,16 +54,11 @@ public class GameService {
 	private final SseService sseService;
 
 	// ============================== 입장 확인 및 첫 라운드 스타트 ==============================
-	public void startFirstRound(Long roomId, Long accountId, String sessionId) {
+	public void startFirstRound(Long roomId) {
 		final GameInfo gameInfo = getGameInfo(roomId);
 		final GameRoom gameRoom = getGameRoom(roomId);
-		final GameRoomMember gameRoomMember = gameRoomMemberRepository.findByMemberId(accountId)
-			.orElseThrow(() -> new GameException(GameRoomErrorCode.GAME_ROOM_MEMBER_NOT_FOUND));
 
-		// 입장 카운트 증가 및 유저 세션아이디 업데이트
-		// TODO : 나중에 한명이 여러번 입장처리 못하게 수정
 		gameInfo.enter();
-		gameRoomMember.updateSessionId(sessionId);
 
 		// 모든 멤버가 입장했을 때
 		if (gameInfo.isAllEntered(gameRoom.getCurrentPlayer())) {
@@ -76,7 +72,7 @@ public class GameService {
 	public void updateGameInfo(Long accountId, Long roomId, GameInfoUpdateRequest gameInfoUpdateRequest) {
 		redisInGameRepository.increaseRoundScore(String.valueOf(roomId), String.valueOf(accountId),
 			gameInfoUpdateRequest.currentScore());
-		// TODO: gameRoomRepository를 쓰는게 낫나?
+
 		final List<GameRoomMember> gameRoomMembers = gameRoomMemberRepository.findAllByGameRoomId(roomId);
 		sendGameInfoMessage(roomId, gameRoomMembers);
 	}
@@ -94,18 +90,22 @@ public class GameService {
 	}
 
 	// ============================== 게임 종료 / 다음 라운드 시작 ==============================
-	public void finishGame(Long roomId, GameFinishRequest gameFinishRequest) {
+	public void finishGame(Long accountId, Long roomId, GameFinishRequest gameFinishRequest) {
 		final GameInfo gameInfo = getGameInfo(roomId);
 		final GameRoom gameRoom = getGameRoom(roomId);
 		final List<GameRoomMember> gameRoomMembers = gameRoomMemberRepository.findAllByGameRoomId(roomId);
 
 		gameInfo.submit();
+		if (!gameRoom.getGameType().equals(GameType.WORD)) {
+			double weight = getWeight(gameInfo);
+			redisInGameRepository.increaseWeight(String.valueOf(roomId), String.valueOf(accountId), weight);
+		}
 
 		// 게임방에 있는 모두가 게임 종료를 누르면 게임 종료 처리
 		if (gameInfo.isAllSubmitted(gameRoom.getCurrentPlayer())) {
 			// 마지막 라운드면 /from/game/{roomId}/round-finish 로 전송 -> 라운드 점수를 최종 점수에 누적
-			accumulateRoundScoresToTotalScores(roomId);
 			updateMemberStats(gameRoomMembers, gameFinishRequest);
+			accumulateRoundScoresToTotalScores(roomId);
 			if (gameFinishRequest.currentRound() == gameRoom.getRound()) {
 				gameInfoRepository.delete(gameInfo);
 				handleFinishGame(roomId, gameRoom, gameRoomMembers);
@@ -114,6 +114,18 @@ public class GameService {
 				startNextRound(roomId, gameRoom, gameRoomMembers);
 			}
 		}
+	}
+
+	private double getWeight(GameInfo gameInfo) {
+		LocalDateTime startedAt = gameInfo.getCreatedAt();
+		LocalDateTime submittedAt = LocalDateTime.now();
+
+		long millisUntilMidnight = ChronoUnit.MILLIS.between(submittedAt, startedAt);
+
+		double minWeight = 0.1;
+		double increaseRatePerMillisecond = 0.000001;
+
+		return minWeight + (millisUntilMidnight * increaseRatePerMillisecond);
 	}
 
 	private List<InGameMemberGetResponse> sendQuestionsAndUserInfo(GameRoom gameRoom, Long roomId) {
@@ -153,16 +165,16 @@ public class GameService {
 	}
 
 	private void accumulateRoundScoresToTotalScores(Long roomId) {
-		Map<Long, Long> roundScores = redisInGameRepository.getRoundScores(String.valueOf(roomId));
+		Map<Long, Double> roundScores = redisInGameRepository.getRoundScores(String.valueOf(roomId));
 		// 1등부터 순차적으로 +2 씩하면서 totalScore에 넣기
 		roundScores.forEach((memberId, score) ->
 			redisInGameRepository.increaseTotalScore(String.valueOf(roomId), String.valueOf(memberId), score));
 	}
 
-	private void saveGameHistory(Map<Long, Long> totalScores, GameRoom gameRoom) {
+	private void saveGameHistory(Map<Long, Double> totalScores, GameRoom gameRoom) {
 		totalScores.forEach((memberId, score) -> {
 			final GameHistory gameHistory = GameHistory.builder()
-				.score(score)
+				.score(score.longValue())
 				.gameType(gameRoom.getGameType())
 				.memberId(memberId)
 				.build();
@@ -188,7 +200,7 @@ public class GameService {
 
 	private void handleFinishGame(Long roomId, GameRoom gameRoom, List<GameRoomMember> gameRoomMembers) {
 		// 최종 점수 조회
-		final Map<Long, Long> totalScores = redisInGameRepository.getTotalScores(String.valueOf(roomId));
+		final Map<Long, Double> totalScores = redisInGameRepository.getTotalScores(String.valueOf(roomId));
 		gameRoom.updateGameRoomStatus(false);
 
 		// 게임 카운트 증가 및 히스토리 저장
@@ -253,7 +265,7 @@ public class GameService {
 		return gameRoomMembers.stream()
 			.map(gameRoomMember -> {
 				final Long memberId = gameRoomMember.getMemberId();
-				final Long score = redisInGameRepository.getRoundScore(String.valueOf(roomId),
+				final double score = redisInGameRepository.getRoundScore(String.valueOf(roomId),
 					String.valueOf(memberId));
 				return InGameMemberGetResponse.from(gameRoomMember, score);
 			}).toList();

@@ -36,7 +36,9 @@ public class WebMvcConfig implements WebMvcConfigurer {
 		return Arrays.asList(
 			"http://localhost:5173",
 			"https://localhost:5173",
-			"https://api.tikitaza.com"
+			"https://api.tikitaza.com",
+			"https://tikitaza.vercel.app",
+			"https://www.tikitaza.com"
 		).toArray(String[]::new);
 	}
 }

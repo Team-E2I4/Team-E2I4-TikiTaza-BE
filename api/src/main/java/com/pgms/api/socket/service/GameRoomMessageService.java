@@ -42,6 +42,7 @@ public class GameRoomMessageService {
 	public void sendExitGameRoomMessage(GameRoom gameRoom, Long exitId,
 		List<GameRoomMemberGetResponse> leftGameRoomMember) {
 		Long roomId = gameRoom.getId();
+
 		KafkaMessage message = GameRoomMessage.builder()
 			.type(EXIT)
 			.roomId(roomId)
