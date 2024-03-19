@@ -20,7 +20,7 @@ jobs:
   deploy:
     name: prod-deploy
     runs-on: ubuntu-latest
-    environment: production
+    environment: v1.0.0
     steps:
       - uses: actions/checkout@v4
       - name: Set up JDK 17
