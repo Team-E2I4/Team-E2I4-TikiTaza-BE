@@ -24,8 +24,7 @@ public class OnlineService {
 
 	public Set<OnlineMemberGetResponse> getOnlineMembers(Account account) {
 		OnlineMember currentMember = new OnlineMember(account.id(), account.nickname());
-		updateOnlineStatus(account, currentMember);
-
+		onlineMemberRepository.save(currentMember);
 		Set<OnlineMemberGetResponse> onlineMembers = new HashSet<>();
 		addGameRoomMembers(onlineMembers);
 		addOnlineMembers(onlineMembers);
@@ -48,12 +47,5 @@ public class OnlineService {
 					onlineMember.getNickname()));
 			}
 		});
-	}
-
-	private void updateOnlineStatus(Account account, OnlineMember currentMember) {
-		if (onlineMemberRepository.existsById(account.id())) {
-			onlineMemberRepository.deleteById(account.id());
-			onlineMemberRepository.save(currentMember);
-		}
 	}
 }
