@@ -203,6 +203,9 @@ public class GameService {
 		final Map<Long, Double> totalScores = redisInGameRepository.getTotalScores(String.valueOf(roomId));
 		gameRoom.updateGameRoomStatus(false);
 
+		gameRoomMembers.forEach(gameRoomMember -> memberRepository.findById(gameRoomMember.getMemberId())
+			.ifPresent(member -> member.increaseGameCount()));
+
 		// 게임 카운트 증가 및 히스토리 저장
 		saveGameHistory(totalScores, gameRoom);
 
@@ -220,10 +223,7 @@ public class GameService {
 
 	private void updateMemberStats(List<GameRoomMember> gameRoomMembers, GameFinishRequest gameFinishRequest) {
 		gameRoomMembers.forEach(gameRoomMember -> memberRepository.findById(gameRoomMember.getMemberId())
-			.ifPresent(member -> {
-				member.increaseGameCount();
-				member.updateMemberStats(gameFinishRequest.cpm(), gameFinishRequest.accuracy());
-			}));
+			.ifPresent(member -> member.updateMemberStats(gameFinishRequest.cpm(), gameFinishRequest.accuracy())));
 	}
 
 	private void updateReadyStatusAfterFinishGame(GameRoom gameRoom, List<GameRoomMember> gameRoomMembers) {
@@ -276,7 +276,7 @@ public class GameService {
 		return gameRoomMembers.stream()
 			.map(gameRoomMember -> {
 				final Long memberId = gameRoomMember.getMemberId();
-				final Long score = redisInGameRepository.getTotalScore(String.valueOf(roomId),
+				final Double score = redisInGameRepository.getTotalScore(String.valueOf(roomId),
 					String.valueOf(memberId));
 				return InGameMemberGetResponse.from(gameRoomMember, score);
 			}).toList();

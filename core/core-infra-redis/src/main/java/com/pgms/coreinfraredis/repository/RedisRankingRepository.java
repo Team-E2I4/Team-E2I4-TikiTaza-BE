@@ -17,6 +17,10 @@ public class RedisRankingRepository {
 
 	private final RedisTemplate<String, Object> redisTemplate;
 
+	public boolean hasKey(String key) {
+		return redisTemplate.hasKey(key);
+	}
+
 	public void addScore(String key, String nickname, double score) {
 		redisTemplate.opsForZSet().add(key, nickname, score);
 	}
@@ -39,6 +43,10 @@ public class RedisRankingRepository {
 		final Long memberRank = getMemberRank(key, nickname);
 		final Double memberScore = getMemberScore(key, nickname);
 		return new RankingResponse(nickname, memberRank, memberScore);
+	}
+
+	public void delete(String key) {
+		redisTemplate.delete(key);
 	}
 
 	private Long getMemberRank(String key, String nickname) {

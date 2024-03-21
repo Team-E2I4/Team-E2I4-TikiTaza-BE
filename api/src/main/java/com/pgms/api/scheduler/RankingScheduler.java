@@ -49,6 +49,7 @@ public class RankingScheduler {
 				.build()
 		);
 
+		deleteAllRankings(REDIS_RANKING_KEY);
 		rankingResponses.forEach(
 			ranking -> redisRankingRepository.addScore(REDIS_RANKING_KEY, ranking.getNickname(), ranking.getScore()));
 	}
@@ -67,10 +68,21 @@ public class RankingScheduler {
 				.build()
 		);
 
-		rankingResponses.forEach(
-			ranking -> redisRankingRepository.addScore(
-				ranking.getGameType() + REDIS_RANKING_KEY,
-				ranking.getNickname(),
-				ranking.getScore()));
+		if (!rankingResponses.isEmpty()) {
+			String gameType = rankingResponses.get(0).getGameType();
+			String key = gameType + REDIS_RANKING_KEY;
+			deleteAllRankings(key);
+			rankingResponses.forEach(
+				ranking -> redisRankingRepository.addScore(
+					key,
+					ranking.getNickname(),
+					ranking.getScore()));
+		}
+	}
+
+	private void deleteAllRankings(String key) {
+		if (redisRankingRepository.hasKey(key)) {
+			redisRankingRepository.delete(key);
+		}
 	}
 }
