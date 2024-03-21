@@ -68,13 +68,14 @@ public class RankingScheduler {
 				.build()
 		);
 
+		deleteAllRankings("CODE" + REDIS_RANKING_KEY);
+		deleteAllRankings("WORD" + REDIS_RANKING_KEY);
+		deleteAllRankings("SENTENCE" + REDIS_RANKING_KEY);
+
 		if (!rankingResponses.isEmpty()) {
-			String gameType = rankingResponses.get(0).getGameType();
-			String key = gameType + REDIS_RANKING_KEY;
-			deleteAllRankings(key);
 			rankingResponses.forEach(
 				ranking -> redisRankingRepository.addScore(
-					key,
+					ranking.getGameType() + REDIS_RANKING_KEY,
 					ranking.getNickname(),
 					ranking.getScore()));
 		}
