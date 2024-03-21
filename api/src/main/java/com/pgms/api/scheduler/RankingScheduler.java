@@ -72,13 +72,11 @@ public class RankingScheduler {
 		deleteAllRankings("WORD" + REDIS_RANKING_KEY);
 		deleteAllRankings("SENTENCE" + REDIS_RANKING_KEY);
 
-		if (!rankingResponses.isEmpty()) {
-			rankingResponses.forEach(
-				ranking -> redisRankingRepository.addScore(
-					ranking.getGameType() + REDIS_RANKING_KEY,
-					ranking.getNickname(),
-					ranking.getScore()));
-		}
+		rankingResponses.forEach(
+			ranking -> redisRankingRepository.addScore(
+				ranking.getGameType() + REDIS_RANKING_KEY,
+				ranking.getNickname(),
+				ranking.getScore()));
 	}
 
 	private void deleteAllRankings(String key) {
