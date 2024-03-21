@@ -25,6 +25,7 @@ import com.pgms.coredomain.domain.game.GameInfo;
 import com.pgms.coredomain.domain.game.GameRoom;
 import com.pgms.coredomain.domain.game.GameRoomMember;
 import com.pgms.coredomain.domain.game.GameType;
+import com.pgms.coredomain.domain.member.Member;
 import com.pgms.coredomain.exception.GameErrorCode;
 import com.pgms.coredomain.exception.GameRoomErrorCode;
 import com.pgms.coredomain.exception.MemberErrorCode;
@@ -33,6 +34,7 @@ import com.pgms.coredomain.repository.GameRoomMemberRepository;
 import com.pgms.coredomain.repository.GameRoomRepository;
 import com.pgms.coredomain.repository.MemberRepository;
 import com.pgms.coreinfraredis.dto.RankingResponse;
+import com.pgms.coreinfraredis.entity.Guest;
 import com.pgms.coreinfraredis.repository.GuestRepository;
 import com.pgms.coreinfraredis.repository.RedisKeyRepository;
 import com.pgms.coreinfraredis.repository.RedisRankingRepository;
@@ -61,7 +63,7 @@ public class GameRoomService {
 	// ============================== 게임방 생성 ==============================
 	public GameRoomCreateResponse createGameRoom(Account account, GameRoomCreateRequest request) {
 		// 유저/게스트가 존재하는지 확인
-		validateExistMember(account);
+		String nickname = validateExistMember(account);
 
 		// 유저가 다른 방에 들어가 있는지 확인
 		validateMemberAlreadyEntered(account.id(), null);
@@ -76,7 +78,7 @@ public class GameRoomService {
 		GameRoomMember gameRoomMember = GameRoomMember.builder()
 			.gameRoom(gameRoom)
 			.memberId(account.id())
-			.nickname(account.nickname())
+			.nickname(nickname)
 			.readyStatus(true)
 			.build();
 
@@ -124,7 +126,7 @@ public class GameRoomService {
 	// ============================== 게임방 입장 ==============================
 	public GameRoomEnterResponse enterGameRoom(Account account, Long roomId, GameRoomEnterRequest request) {
 		// 유저가 존재하는지
-		validateExistMember(account);
+		String nickname = validateExistMember(account);
 
 		// roomId로 방이 존재하는지
 		GameRoom gameRoom = getGameRoom(roomId);
@@ -142,7 +144,7 @@ public class GameRoomService {
 		GameRoomMember gameRoomMember = GameRoomMember.builder()
 			.gameRoom(gameRoom)
 			.memberId(account.id())
-			.nickname(account.nickname())
+			.nickname(nickname)
 			.readyStatus(false)
 			.build();
 
@@ -276,13 +278,15 @@ public class GameRoomService {
 		return inviteCode;
 	}
 
-	private void validateExistMember(Account account) {
+	private String validateExistMember(Account account) {
 		if (account.isGuest()) {
-			guestRepository.findById(account.id())
+			Guest guest = guestRepository.findById(account.id())
 				.orElseThrow(() -> new GameException(MemberErrorCode.MEMBER_NOT_FOUND));
+			return guest.getNickname();
 		} else {
-			memberRepository.findById(account.id())
+			Member member = memberRepository.findById(account.id())
 				.orElseThrow(() -> new GameException(MemberErrorCode.MEMBER_NOT_FOUND));
+			return member.getNickname();
 		}
 	}
 
