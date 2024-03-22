@@ -875,8 +875,8 @@ public class Main {
     Scanner sc = new Scanner(System.in);
     int N = sc.nextInt();
     long D[] = new long[1001];
-    D[1] = 1;  //길이가 2*1일때 타일 경우의 수
-    D[2] = 2;  //길이가 2*2일때 타일 경우의 수
+    D[1] = 1;
+    D[2] = 2;
     for(int i=3; i<=N; i++){
       D[i] = (D[i-1] + D[i-2])%mod;
     }
@@ -899,7 +899,7 @@ public class Main {
     System.out.println(D[N]);
   }
 }', 'CODE'),
-       (NOW(), NOW(), 'public class P1947_선물전달 {
+       (NOW(), NOW(), 'public class Main {
   public static void main(String[] args) {
     Scanner sc = new Scanner(System.in);
     int N = sc.nextInt();
