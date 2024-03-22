@@ -30,19 +30,18 @@ public class FilterChannelInterceptor implements ChannelInterceptor {
 	@Override
 	public Message<?> preSend(Message<?> message, MessageChannel channel) {
 		StompHeaderAccessor headerAccessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
-		log.info(">>>>>> headerAccessor : {}", headerAccessor);
+		log.info(">>>>> 웹소켓 메시지 헤더 정보 : {}", headerAccessor);
 		assert headerAccessor != null;
-		log.info(">>>>> headAccessorHeaders : {}", headerAccessor.getCommand());
 		if (Objects.equals(headerAccessor.getCommand(), StompCommand.CONNECT)
 			|| Objects.equals(headerAccessor.getCommand(), StompCommand.SEND)) { // 문제 발생 예상 지/점
-			String token = removeBrackets(String.valueOf(headerAccessor.getNativeHeader("Authorization")));
-			token = jwtTokenProvider.resolveToken(token);
-			log.info(">>>>>> Token resolved : {}", token);
+			String accessToken = removeBrackets(String.valueOf(headerAccessor.getNativeHeader("Authorization")));
+			accessToken = jwtTokenProvider.resolveToken(accessToken);
+			log.info(">>>>>> 웹소켓 AccessToken : {}", accessToken);
 			try {
-				Authentication authentication = jwtTokenProvider.getAuthentication(token);
+				Authentication authentication = jwtTokenProvider.getAuthentication(accessToken);
 				Long accountId = ((UserDetailsImpl)authentication.getPrincipal()).getId();
 				headerAccessor.addNativeHeader("AccountId", String.valueOf(accountId));
-				log.info(">>>>>> AccountId is set to header : {}", accountId);
+				log.info(">>>>>> 웹소켓 AccountId : {}", accountId);
 			} catch (Exception e) {
 				log.warn(">>>>> Authentication Failed in FilterChannelInterceptor : ", e);
 			}

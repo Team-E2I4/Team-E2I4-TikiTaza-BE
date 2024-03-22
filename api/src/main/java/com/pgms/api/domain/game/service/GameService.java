@@ -146,7 +146,7 @@ public class GameService {
 			.map(question -> GameQuestionGetResponse.of(question.getQuestion()))
 			.toList();
 
-		log.info(">>>>>> find random Question !!!! {}", questions);
+		log.info(">>>>>> 랜덤으로 문제를 가져옵니다! : {}", questions);
 
 		// 단어 게임이면 레디스에 단어 초기화
 		initWordsIfWordGame(gameRoom, roomId, questions);
