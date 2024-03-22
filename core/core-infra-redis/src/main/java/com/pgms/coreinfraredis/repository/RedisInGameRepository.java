@@ -86,7 +86,7 @@ public class RedisInGameRepository {
 	// 누적 멤버 점수 조회
 	public Double getTotalScore(String roomId, String memberId) {
 		Double score = redisTemplate.opsForZSet().score(TOTAL_PREFIX + roomId, memberId);
-		return score != null ? score.longValue() : 0.0;
+		return score != null ? score : 0.0;
 	}
 
 	public Map<Long, Double> getTotalScores(String roomId) {

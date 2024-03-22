@@ -24,6 +24,7 @@ import com.pgms.coredomain.domain.game.GameQuestion;
 import com.pgms.coredomain.domain.game.GameRoom;
 import com.pgms.coredomain.domain.game.GameRoomMember;
 import com.pgms.coredomain.domain.game.GameType;
+import com.pgms.coredomain.domain.member.Member;
 import com.pgms.coredomain.exception.GameRoomErrorCode;
 import com.pgms.coredomain.repository.GameHistoryRepository;
 import com.pgms.coredomain.repository.GameInfoRepository;
@@ -96,17 +97,17 @@ public class GameService {
 		final List<GameRoomMember> gameRoomMembers = gameRoomMemberRepository.findAllByGameRoomId(roomId);
 
 		gameInfo.submit();
+
 		if (!gameRoom.getGameType().equals(GameType.WORD)) {
-			double weight = getWeight(gameInfo);
+			double weight = calculateGameWeight(gameInfo, gameRoom.getCurrentPlayer());
 			redisInGameRepository.increaseWeight(String.valueOf(roomId), String.valueOf(accountId), weight);
 		}
 
 		// 게임방에 있는 모두가 게임 종료를 누르면 게임 종료 처리
 		if (gameInfo.isAllSubmitted(gameRoom.getCurrentPlayer())) {
-			// 마지막 라운드면 /from/game/{roomId}/round-finish 로 전송 -> 라운드 점수를 최종 점수에 누적
 			updateMemberStats(gameRoomMembers, gameFinishRequest);
 			accumulateRoundScoresToTotalScores(roomId);
-			if (gameFinishRequest.currentRound() == gameRoom.getRound()) {
+			if (gameFinishRequest.currentRound() >= gameRoom.getRound()) {
 				gameInfoRepository.delete(gameInfo);
 				handleFinishGame(roomId, gameRoom, gameRoomMembers);
 			} else {
@@ -116,16 +117,22 @@ public class GameService {
 		}
 	}
 
-	private double getWeight(GameInfo gameInfo) {
-		LocalDateTime startedAt = gameInfo.getCreatedAt();
-		LocalDateTime submittedAt = LocalDateTime.now();
+	private double calculateGameWeight(GameInfo gameInfo, int totalPlayerCount) {
+		// 게임 시작 시각과 현재 시각(제출 시각)을 구함
+		LocalDateTime gameStartAt = gameInfo.getCreatedAt();
+		LocalDateTime currentTime = LocalDateTime.now();
 
-		long millisUntilMidnight = ChronoUnit.MILLIS.between(submittedAt, startedAt);
+		// 순위 가중치 계산: 전체 플레이어 수에서 실제 제출한 멤버 수를 뺌
+		int rankWeight = totalPlayerCount - gameInfo.getSubmittedMemberCount();
 
-		double minWeight = 0.1;
+		// 현재 시각과 게임 시작 시각 사이의 밀리초 차이 계산
+		long timeDifferenceInMillis = ChronoUnit.MILLIS.between(gameStartAt, currentTime);
+
+		// 밀리초 당 가중치 증가율
 		double increaseRatePerMillisecond = 0.000001;
 
-		return minWeight + (millisUntilMidnight * increaseRatePerMillisecond);
+		// 최종 가중치 계산: 순위 가중치에 시간 차이에 따른 가중치 증가분을 더함
+		return rankWeight + (timeDifferenceInMillis * increaseRatePerMillisecond);
 	}
 
 	private List<InGameMemberGetResponse> sendQuestionsAndUserInfo(GameRoom gameRoom, Long roomId) {
@@ -166,9 +173,9 @@ public class GameService {
 
 	private void accumulateRoundScoresToTotalScores(Long roomId) {
 		Map<Long, Double> roundScores = redisInGameRepository.getRoundScores(String.valueOf(roomId));
-		// 1등부터 순차적으로 +2 씩하면서 totalScore에 넣기
-		roundScores.forEach((memberId, score) ->
-			redisInGameRepository.increaseTotalScore(String.valueOf(roomId), String.valueOf(memberId), score));
+
+		roundScores.forEach((accountId, score) ->
+			redisInGameRepository.increaseTotalScore(String.valueOf(roomId), String.valueOf(accountId), score));
 	}
 
 	private void saveGameHistory(Map<Long, Double> totalScores, GameRoom gameRoom) {
@@ -201,15 +208,15 @@ public class GameService {
 	private void handleFinishGame(Long roomId, GameRoom gameRoom, List<GameRoomMember> gameRoomMembers) {
 		// 최종 점수 조회
 		final Map<Long, Double> totalScores = redisInGameRepository.getTotalScores(String.valueOf(roomId));
-		gameRoom.updateGameRoomStatus(false);
 
 		gameRoomMembers.forEach(gameRoomMember -> memberRepository.findById(gameRoomMember.getMemberId())
-			.ifPresent(member -> member.increaseGameCount()));
+			.ifPresent(Member::increaseGameCount));
 
 		// 게임 카운트 증가 및 히스토리 저장
 		saveGameHistory(totalScores, gameRoom);
 
 		// 모든 유저들 게임 종료 후 준비 상태 해제
+		gameRoom.updateGameRoomStatus(false);
 		updateReadyStatusAfterFinishGame(gameRoom, gameRoomMembers);
 		final List<InGameMemberGetResponse> allMembers = getAllMembersWithTotalScore(roomId, gameRoomMembers);
 		gameMessageService.sendFinishGameMessage(roomId, allMembers);
