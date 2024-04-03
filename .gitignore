@@ -39,3 +39,8 @@ out/
 *-secret.yml
 **/src/main/generated/
 #**/data.sql
+
+/grafana
+/prometheus
+!/prometheus/prometheus.yml
+!/prometheus/prometheus.rules.yml

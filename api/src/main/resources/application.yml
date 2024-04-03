@@ -1,8 +1,10 @@
 spring:
+  application:
+    name: api
   profiles:
     group:
-      "local": "db, security, secret, redis, kafka"
-      "dev": "db, security, secret, redis, kafka"
+      "local": "db, security, secret, redis, kafka, monitoring"
+      "dev": "db, security, secret, redis, kafka, monitoring"
     default: local
 server:
   port: 8080
