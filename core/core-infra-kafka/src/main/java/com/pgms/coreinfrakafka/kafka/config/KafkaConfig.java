@@ -1,5 +1,9 @@
 package com.pgms.coreinfrakafka.kafka.config;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -22,15 +26,15 @@ import org.springframework.kafka.support.serializer.JsonSerializer;
 
 import com.pgms.coreinfrakafka.kafka.KafkaMessage;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @EnableKafka
 @Configuration
 public class KafkaConfig {
 
 	@Value("${spring.kafka.bootstrap-servers}")
 	private String bootstrapServer;
-
-	@Value("${spring.kafka.consumer.group-id}")
-	private String groupId;
 
 	@Bean
 	public ProducerFactory<String, KafkaMessage> producerFactory() {
@@ -53,7 +57,7 @@ public class KafkaConfig {
 	public ConsumerFactory<String, KafkaMessage> consumerFactory() {
 		HashMap<String, Object> props = new HashMap<>();
 		props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServer);
-		props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
+		props.put(ConsumerConfig.GROUP_ID_CONFIG, getConsumerGroupId());
 		return new DefaultKafkaConsumerFactory<>(props, new StringDeserializer(),
 			new JsonDeserializer<>(KafkaMessage.class));
 	}
@@ -63,5 +67,24 @@ public class KafkaConfig {
 		ConcurrentKafkaListenerContainerFactory<String, KafkaMessage> factory = new ConcurrentKafkaListenerContainerFactory<>();
 		factory.setConsumerFactory(consumerFactory());
 		return factory;
+	}
+
+	private String getConsumerGroupId() {
+		// 현재 시간 가져오기 (UTC)
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+		String currentTime = LocalDateTime.now().format(formatter);
+
+		// 호스트 이름 추출
+		String hostName = "unknown-host";
+		try {
+			hostName = InetAddress.getLocalHost().getHostName();
+		} catch (UnknownHostException e) {
+			log.error("Failed to get host name", e);
+		}
+
+		// 컨슈머 그룹 ID 생성
+		String consumerGroupId = "consumer-" + hostName + "-" + currentTime;
+		log.info("Kafka Consumer Group ID: {}", consumerGroupId);
+		return consumerGroupId;
 	}
 }

@@ -14,7 +14,7 @@ public class Consumer {
 
 	private final SimpMessageSendingOperations messageSendingOperations;
 
-	@KafkaListener(topics = "${spring.kafka.template.default-topic}", groupId = "${spring.kafka.consumer.group-id}")
+	@KafkaListener(topics = "${spring.kafka.template.default-topic}")
 	public void consume(KafkaMessage message) {
 		log.info(">>>>>> Consume !!!!!!! Message {} ", message);
 		messageSendingOperations.convertAndSend(message.destination(), message.message());
