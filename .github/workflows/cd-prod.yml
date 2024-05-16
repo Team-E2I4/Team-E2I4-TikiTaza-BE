@@ -7,7 +7,7 @@ on:
 
 env:
   AWS_REGION: ap-northeast-2
-  ECR_REPOSITORY: 533267244952.dkr.ecr.ap-northeast-2.amazonaws.com/tikitaza
+  ECR_URI: 975050255579.dkr.ecr.ap-northeast-2.amazonaws.com/tikitaza
   ECS_CLUSTER: tikitaza-cluster
   ECS_SERVICE: tikitaza-service-prod
   ECS_TASK_DEFINITION: .aws/task-definition-prod.json
@@ -75,9 +75,9 @@ jobs:
         id: build-image
         run: |
           docker build -t tikitaza:${{ steps.current-time.outputs.formattedTime }} .
-          docker tag tikitaza:${{ steps.current-time.outputs.formattedTime }} ${{ env.ECR_REPOSITORY }}:${{ steps.current-time.outputs.formattedTime }}-prod
-          docker push ${{ env.ECR_REPOSITORY }}:${{ steps.current-time.outputs.formattedTime }}-prod
-          echo "image=${{ env.ECR_REPOSITORY }}:${{ steps.current-time.outputs.formattedTime }}-prod" >> $GITHUB_OUTPUT
+          docker tag tikitaza:${{ steps.current-time.outputs.formattedTime }} ${{ env.ECR_URI }}:${{ steps.current-time.outputs.formattedTime }}-prod
+          docker push ${{ env.ECR_URI }}:${{ steps.current-time.outputs.formattedTime }}-prod
+          echo "image=${{ env.ECR_URI }}:${{ steps.current-time.outputs.formattedTime }}-prod" >> $GITHUB_OUTPUT
 
       - name: Fill in the new image ID in the Amazon ECS task definition
         id: task-def
