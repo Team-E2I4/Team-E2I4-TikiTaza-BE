@@ -38,7 +38,8 @@ public class WebMvcConfig implements WebMvcConfigurer {
 			"https://localhost:5173",
 			"https://api.tikitaza.com",
 			"https://tikitaza.com",
-			"https://www.tikitaza.com"
+			"https://www.tikitaza.com",
+			"https://team-e2i4-tikitaza-fe.pages.dev/"
 		).toArray(String[]::new);
 	}
 }
